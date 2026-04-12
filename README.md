@@ -22,3 +22,6 @@ npm run build
 
 ## Game
 **Shatter Step** is a 10-row ladder game. Each row presents two tiles — pick one to advance. One path leads to the top. The other shatters.
+
+## Game: Shatter Step
+10-row ladder, pick left or right. 50/50. Logic in `src/games/ShatterStepLogic.ts` — Phaser-free, licensable standalone.
