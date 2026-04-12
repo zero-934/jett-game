@@ -22,3 +22,6 @@ npm run build
 
 ## Game
 **Shatter Step** is a 10-row ladder game. Each row presents two tiles — pick one to advance. One path leads to the top. The other shatters.
+
+## Game: Jett
+Auto-ascending obstacle dodger. Logic in `src/games/JettLogic.ts` — Phaser-free, licensable standalone.
