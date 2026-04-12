@@ -1,26 +1,20 @@
 /**
  * @file FlapFortuneLogic.ts
- * @purpose Pure game logic for Flap Fortune — gravity physics, pipe generation,
- *          collision detection, distance multiplier, cash-out, and RTP simulation.
- *          No Phaser dependencies.
+ * @purpose Pure game logic for Flap Fortune — gravity physics, Mario-style red pipe generation,
+ *          collision detection, distance multiplier, random combustion (house edge mechanic),
+ *          and cash-out. No Phaser dependencies.
  * @author Agent 934
  * @date 2026-04-12
  * @license Proprietary – available for licensing
  */
 
-/** A pipe obstacle pair — top section and bottom section. */
 export interface FlapPipe {
-  /** Horizontal position of the pipe's left edge. */
   x: number;
-  /** Height of the top pipe section (from top of world). */
   topHeight: number;
-  /** Height of the bottom pipe section (from bottom of world). */
   bottomHeight: number;
-  /** Whether this pipe has already been cleared by the player (for multiplier tracking). */
   cleared: boolean;
 }
 
-/** Full state snapshot for Flap Fortune. */
 export interface FlapFortuneState {
   playerY: number;
   playerVelocityY: number;
@@ -31,12 +25,12 @@ export interface FlapFortuneState {
   multiplier: number;
   pipes: FlapPipe[];
   isAlive: boolean;
+  combusted: boolean;
   cashedOut: boolean;
   payout: number;
   bet: number;
 }
 
-/** Configuration for a Flap Fortune game instance. */
 export interface FlapFortuneConfig {
   worldWidth: number;
   worldHeight: number;
@@ -47,24 +41,27 @@ export interface FlapFortuneConfig {
   pipeSpacing?: number;
   pipeGapHeight?: number;
   scrollSpeed?: number;
-  /** House edge as a fraction (e.g. 0.03 = 3%). */
   houseEdge?: number;
+  /** Per-tick combustion chance (house edge mechanic). */
+  combustionChancePerTick?: number;
+  rng?: () => number;
 }
 
-const DEFAULT_GRAVITY = 0.5;
-const DEFAULT_FLAP_STRENGTH = -8;
-const DEFAULT_PIPE_SPACING = 220;
-const DEFAULT_GAP_HEIGHT = 180;
-const DEFAULT_SCROLL_SPEED = 3;
-const DEFAULT_HOUSE_EDGE = 0.03;
-const MULTIPLIER_PER_PIPE = 1.1;
+const DEFAULT_GRAVITY          = 0.45;
+const DEFAULT_FLAP_STRENGTH    = -7.5;
+const DEFAULT_PIPE_SPACING     = 230;
+const DEFAULT_GAP_HEIGHT       = 170;
+const DEFAULT_SCROLL_SPEED     = 3;
+const DEFAULT_HOUSE_EDGE       = 0.03;
+const DEFAULT_COMBUSTION_CHANCE = 0.0003;
+const MULTIPLIER_PER_PIPE      = 1.09;
 
 /**
- * Creates an initial Flap Fortune game state.
+ * Creates an initial Flap Fortune state.
  *
- * @param bet - The player's wager in credits.
- * @param config - World and game configuration.
- * @returns A fresh FlapFortuneState.
+ * @param bet - Wager in credits.
+ * @param config - Game configuration.
+ * @returns Fresh FlapFortuneState.
  *
  * @example
  * const state = createFlapFortuneState(10, { worldWidth: 390, worldHeight: 844 });
@@ -76,13 +73,14 @@ export function createFlapFortuneState(
   return {
     playerY: config.worldHeight / 2,
     playerVelocityY: 0,
-    playerWidth: config.playerWidth ?? 30,
-    playerHeight: config.playerHeight ?? 30,
+    playerWidth:  config.playerWidth  ?? 28,
+    playerHeight: config.playerHeight ?? 28,
     distanceTravelled: 0,
     pipesCleared: 0,
     multiplier: 1.0,
     pipes: [generateFlapPipe(config.worldWidth + 100, config)],
     isAlive: true,
+    combusted: false,
     cashedOut: false,
     payout: 0,
     bet,
@@ -90,15 +88,15 @@ export function createFlapFortuneState(
 }
 
 /**
- * Advances the game by one tick — applies gravity, moves pipes, checks collisions.
+ * Advances game by one tick.
  *
- * @param state - Current game state (mutated in place).
- * @param isFlapping - Whether the player triggered a flap this tick.
+ * @param state - Current game state (mutated).
+ * @param isFlapping - Whether player flapped this tick.
  * @param config - Game configuration.
- * @returns The updated state.
+ * @returns Updated state.
  *
  * @example
- * tickFlapFortune(state, true, { worldWidth: 390, worldHeight: 844 });
+ * tickFlapFortune(state, true, config);
  */
 export function tickFlapFortune(
   state: FlapFortuneState,
@@ -107,161 +105,137 @@ export function tickFlapFortune(
 ): FlapFortuneState {
   if (!state.isAlive || state.cashedOut) return state;
 
-  const gravity = config.gravity ?? DEFAULT_GRAVITY;
-  const flapStrength = config.flapStrength ?? DEFAULT_FLAP_STRENGTH;
-  const pipeSpacing = config.pipeSpacing ?? DEFAULT_PIPE_SPACING;
-  const scrollSpeed = config.scrollSpeed ?? DEFAULT_SCROLL_SPEED;
-  const houseEdge = config.houseEdge ?? DEFAULT_HOUSE_EDGE;
+  const gravity          = config.gravity          ?? DEFAULT_GRAVITY;
+  const flapStrength     = config.flapStrength     ?? DEFAULT_FLAP_STRENGTH;
+  const pipeSpacing      = config.pipeSpacing      ?? DEFAULT_PIPE_SPACING;
+  const scrollSpeed      = config.scrollSpeed      ?? DEFAULT_SCROLL_SPEED;
+  const houseEdge        = config.houseEdge        ?? DEFAULT_HOUSE_EDGE;
+  const combustionChance = config.combustionChancePerTick ?? DEFAULT_COMBUSTION_CHANCE;
+  const rng              = config.rng              ?? Math.random;
 
-  // Physics
-  if (isFlapping) {
-    state.playerVelocityY = flapStrength;
-  }
+  if (isFlapping) state.playerVelocityY = flapStrength;
   state.playerVelocityY += gravity;
-  state.playerY += state.playerVelocityY;
+  state.playerY         += state.playerVelocityY;
   state.distanceTravelled += scrollSpeed;
 
-  // Boundary check (floor/ceiling)
-  if (
-    state.playerY < state.playerHeight / 2 ||
-    state.playerY > config.worldHeight - state.playerHeight / 2
-  ) {
+  // Boundary
+  const halfH = state.playerHeight / 2;
+  if (state.playerY < halfH || state.playerY > config.worldHeight - halfH) {
     state.isAlive = false;
-    state.payout = 0;
+    state.payout  = 0;
     return state;
   }
 
-  // Move pipes left, remove off-screen
-  for (const pipe of state.pipes) {
-    pipe.x -= scrollSpeed;
-  }
-  state.pipes = state.pipes.filter((pipe) => pipe.x > -60);
+  // Move pipes
+  for (const pipe of state.pipes) pipe.x -= scrollSpeed;
+  state.pipes = state.pipes.filter(p => p.x > -60);
 
   // Spawn new pipes
   const lastPipe = state.pipes[state.pipes.length - 1];
   if (!lastPipe || lastPipe.x < config.worldWidth - pipeSpacing) {
-    state.pipes.push(
-      generateFlapPipe(config.worldWidth + 60, config)
-    );
+    state.pipes.push(generateFlapPipe(config.worldWidth + 60, config));
   }
 
-  // Check cleared pipes and update multiplier
-  const playerCenterX = 80; // fixed horizontal position of player
+  // Track cleared pipes
+  const playerX = 80;
   for (const pipe of state.pipes) {
-    if (!pipe.cleared && pipe.x + 40 < playerCenterX) {
+    if (!pipe.cleared && pipe.x + 30 < playerX) {
       pipe.cleared = true;
-      state.pipesCleared += 1;
+      state.pipesCleared++;
     }
   }
 
   state.multiplier = computeFlapMultiplier(state.pipesCleared, houseEdge);
 
-  // Collision check
+  // Collision
   if (checkFlapCollision(state, config)) {
     state.isAlive = false;
-    state.payout = 0;
+    state.payout  = 0;
+    return state;
+  }
+
+  // Combustion
+  if (rng() < combustionChance * (1 + state.pipesCleared * 0.05)) {
+    state.isAlive   = false;
+    state.combusted = true;
+    state.payout    = 0;
   }
 
   return state;
 }
 
 /**
- * Generates a new pipe with a random gap position.
+ * Generates a new pipe with a random gap.
  *
- * @param spawnX - Horizontal position to spawn the pipe at.
+ * @param spawnX - X position to spawn at.
  * @param config - Game configuration.
  * @returns A new FlapPipe.
  *
  * @example
- * const pipe = generateFlapPipe(500, { worldWidth: 390, worldHeight: 844 });
+ * const pipe = generateFlapPipe(500, config);
  */
-export function generateFlapPipe(
-  spawnX: number,
-  config: FlapFortuneConfig
-): FlapPipe {
-  const gapHeight = config.pipeGapHeight ?? DEFAULT_GAP_HEIGHT;
-  const margin = 60;
-  const maxTopHeight = config.worldHeight - gapHeight - margin;
-  const topHeight = margin + Math.random() * (maxTopHeight - margin);
+export function generateFlapPipe(spawnX: number, config: FlapFortuneConfig): FlapPipe {
+  const gapHeight  = config.pipeGapHeight ?? DEFAULT_GAP_HEIGHT;
+  const margin     = 70;
+  const maxTop     = config.worldHeight - gapHeight - margin;
+  const topHeight  = margin + Math.random() * (maxTop - margin);
   const bottomHeight = config.worldHeight - topHeight - gapHeight;
-
-  return {
-    x: spawnX,
-    topHeight,
-    bottomHeight,
-    cleared: false,
-  };
+  return { x: spawnX, topHeight, bottomHeight, cleared: false };
 }
 
 /**
- * Computes the payout multiplier based on pipes cleared, adjusted for house edge.
+ * Computes the payout multiplier from pipes cleared.
  *
- * @param pipesCleared - Number of pipe pairs successfully passed.
- * @param houseEdge - Fraction taken by the house (default 0.03).
- * @returns The payout multiplier.
+ * @param pipesCleared - Number of pipes passed.
+ * @param houseEdge - Fraction taken by house.
+ * @returns Multiplier value.
  *
  * @example
- * computeFlapMultiplier(5, 0.03); // ~1.57
+ * computeFlapMultiplier(5, 0.03); // ~1.52
  */
-export function computeFlapMultiplier(
-  pipesCleared: number,
-  houseEdge: number = DEFAULT_HOUSE_EDGE
-): number {
+export function computeFlapMultiplier(pipesCleared: number, houseEdge: number = DEFAULT_HOUSE_EDGE): number {
   if (pipesCleared <= 0) return 1.0;
-  const rawMultiplier = Math.pow(MULTIPLIER_PER_PIPE, pipesCleared);
-  return parseFloat((rawMultiplier * (1 - houseEdge)).toFixed(4));
+  return parseFloat((Math.pow(MULTIPLIER_PER_PIPE, pipesCleared) * (1 - houseEdge)).toFixed(4));
 }
 
 /**
- * Checks whether the player overlaps any pipe.
+ * Checks collision with any pipe.
  *
  * @param state - Current game state.
- * @param config - Game configuration (needs worldHeight).
- * @returns True if there is a collision.
+ * @param config - Game config (needs worldHeight).
+ * @returns True if collision detected.
  *
  * @example
  * if (checkFlapCollision(state, config)) { handleDeath(); }
  */
-export function checkFlapCollision(
-  state: FlapFortuneState,
-  config: FlapFortuneConfig
-): boolean {
-  const playerCenterX = 80;
-  const playerLeft = playerCenterX - state.playerWidth / 2;
-  const playerRight = playerCenterX + state.playerWidth / 2;
-  const playerTop = state.playerY - state.playerHeight / 2;
-  const playerBottom = state.playerY + state.playerHeight / 2;
-  const pipeWidth = 40;
+export function checkFlapCollision(state: FlapFortuneState, config: FlapFortuneConfig): boolean {
+  const px = 80;
+  const pl = px - state.playerWidth  / 2;
+  const pr = px + state.playerWidth  / 2;
+  const pt = state.playerY - state.playerHeight / 2;
+  const pb = state.playerY + state.playerHeight / 2;
+  const pipeW = 30;
 
   for (const pipe of state.pipes) {
-    const pipeRight = pipe.x + pipeWidth;
-    const pipeLeft = pipe.x;
-
-    // Horizontal overlap?
-    if (playerRight <= pipeLeft || playerLeft >= pipeRight) continue;
-
-    // Top pipe collision?
-    if (playerTop <= pipe.topHeight) return true;
-
-    // Bottom pipe collision?
-    if (playerBottom >= config.worldHeight - pipe.bottomHeight) return true;
+    if (pr <= pipe.x || pl >= pipe.x + pipeW) continue;
+    if (pt <= pipe.topHeight) return true;
+    if (pb >= config.worldHeight - pipe.bottomHeight) return true;
   }
-
   return false;
 }
 
 /**
- * Processes a player cash-out.
+ * Processes a cash-out.
  *
- * @param state - Current game state (mutated in place).
- * @returns The credit payout amount.
+ * @param state - Current game state (mutated).
+ * @returns Credit payout amount.
  *
  * @example
- * const winnings = cashOutFlapFortune(state);
+ * const payout = cashOutFlapFortune(state);
  */
 export function cashOutFlapFortune(state: FlapFortuneState): number {
   if (!state.isAlive || state.cashedOut) return 0;
   state.cashedOut = true;
-  state.payout = parseFloat((state.bet * state.multiplier).toFixed(2));
+  state.payout    = parseFloat((state.bet * state.multiplier).toFixed(2));
   return state.payout;
 }

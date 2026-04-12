@@ -46,7 +46,7 @@ const DEFAULT_HOUSE_EDGE = 0.03;
  */
 export function createShatterStepState(
   bet: number,
-  config: ShatterStepConfig = {}
+  _config: ShatterStepConfig = {}
 ): ShatterStepState {
   return {
     currentRow: 0,

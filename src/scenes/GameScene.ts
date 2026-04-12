@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -79,8 +79,8 @@ export class GameScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    bg.on('pointerover', () => bg.setFillColor(0x2a2a4e));
-    bg.on('pointerout', () => bg.setFillColor(0x1a1a2e));
+    bg.on('pointerover', () => { bg.fillColor = 0x2a2a4e; });
+    bg.on('pointerout', () => { bg.fillColor = 0x1a1a2e; });
     bg.on('pointerdown', () => {
       console.log(`Selected: Row ${row} - ${side === 'L' ? 'Left' : 'Right'}`);
     });
