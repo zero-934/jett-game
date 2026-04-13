@@ -162,8 +162,10 @@ export function tickFlapFortune(
     return state;
   }
 
-  // Combustion
-  if (rng() < combustionChance * (1 + state.pipesCleared * 0.05)) {
+  // Combustion — base 0.05% per tick ensures house edge is felt from frame 1.
+  // Scales with pipes cleared so longer runs carry increasing risk.
+  const BASE_COMBUSTION_FLAP = 0.0005;
+  if (rng() < Math.max(BASE_COMBUSTION_FLAP, combustionChance * (1 + state.pipesCleared * 0.05))) {
     state.isAlive   = false;
     state.combusted = true;
     state.payout    = 0;

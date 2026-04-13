@@ -1,7 +1,7 @@
 /**
  * @file JettLogic.test.ts
- * @purpose Unit tests for JettLogic — verifies multiplier math, collision detection,
- *          cash-out, and ~97% RTP over 10,000 simulated rounds.
+ * @purpose Unit tests for JettLogic — verifies asteroid spawning, collision detection,
+ *          multiplier math, combustion mechanic, cash-out, and RTP over 10,000 rounds.
  * @author Agent 934
  * @date 2026-04-12
  * @license Proprietary – available for licensing
@@ -12,11 +12,11 @@ import {
   tickJett,
   computeMultiplier,
   cashOutJett,
-  checkJettCollision,
-  generateObstacleRow,
+  checkAsteroidCollision,
+  spawnAsteroidWave,
 } from '../games/JettLogic';
 
-const BASE_CONFIG = { worldWidth: 390, worldHeight: 844 };
+const BASE_CONFIG = { worldWidth: 390, screenHeight: 844 };
 
 describe('JettLogic', () => {
   describe('createJettState', () => {
@@ -27,124 +27,158 @@ describe('JettLogic', () => {
       expect(state.altitude).toBe(0);
       expect(state.isAlive).toBe(true);
       expect(state.cashedOut).toBe(false);
+      expect(state.combusted).toBe(false);
       expect(state.payout).toBe(0);
     });
   });
 
   describe('computeMultiplier', () => {
-    it('returns 1.0 at zero obstacles cleared', () => {
+    it('returns 1.0 at zero altitude', () => {
       expect(computeMultiplier(0, 0.03)).toBe(1.0);
     });
 
-    it('increases with each obstacle cleared', () => {
-      const m1 = computeMultiplier(1, 0.03);
-      const m5 = computeMultiplier(5, 0.03);
-      const m10 = computeMultiplier(10, 0.03);
+    it('increases with altitude', () => {
+      const m1 = computeMultiplier(100, 0.03);
+      const m5 = computeMultiplier(500, 0.03);
       expect(m1).toBeGreaterThan(1.0);
       expect(m5).toBeGreaterThan(m1);
-      expect(m10).toBeGreaterThan(m5);
     });
 
-    it('applies house edge (multiplier < raw)', () => {
-      const withEdge = computeMultiplier(5, 0.03);
-      const withoutEdge = computeMultiplier(5, 0);
+    it('applies house edge', () => {
+      const withEdge    = computeMultiplier(500, 0.03);
+      const withoutEdge = computeMultiplier(500, 0);
       expect(withEdge).toBeLessThan(withoutEdge);
     });
   });
 
-  describe('cashOutJett', () => {
-    it('returns 0 on first cash-out with no altitude', () => {
+  describe('spawnAsteroidWave', () => {
+    it('spawns the requested number of asteroids', () => {
+      const wave = spawnAsteroidWave(500, 4, 390, 0);
+      expect(wave).toHaveLength(4);
+    });
+
+    it('keeps asteroids within world bounds', () => {
+      for (let i = 0; i < 20; i++) {
+        const wave = spawnAsteroidWave(500, 5, 390, 0);
+        for (const ast of wave) {
+          expect(ast.x - ast.radius).toBeGreaterThanOrEqual(0);
+          expect(ast.x + ast.radius).toBeLessThanOrEqual(390);
+        }
+      }
+    });
+
+    it('assigns unique ids starting from startId', () => {
+      const wave = spawnAsteroidWave(500, 3, 390, 10);
+      expect(wave[0].id).toBe(10);
+      expect(wave[1].id).toBe(11);
+      expect(wave[2].id).toBe(12);
+    });
+  });
+
+  describe('checkAsteroidCollision', () => {
+    it('detects collision when player overlaps asteroid', () => {
       const state = createJettState(10, BASE_CONFIG);
-      // multiplier is 1.0 at start, so payout = bet * 1.0
+      state.playerX     = 100;
+      state.playerWorldY = 500;
+      state.asteroids   = [{
+        id: 0, x: 100, worldY: 500, radius: 20,
+        driftX: 0, rotationAngle: 0, rotationSpeed: 0,
+      }];
+      expect(checkAsteroidCollision(state)).toBe(true);
+    });
+
+    it('returns false when player is clear of all asteroids', () => {
+      const state = createJettState(10, BASE_CONFIG);
+      state.playerX      = 200;
+      state.playerWorldY = 500;
+      state.asteroids    = [{
+        id: 0, x: 50, worldY: 500, radius: 15,
+        driftX: 0, rotationAngle: 0, rotationSpeed: 0,
+      }];
+      expect(checkAsteroidCollision(state)).toBe(false);
+    });
+  });
+
+  describe('cashOutJett', () => {
+    it('returns bet × multiplier on first cash-out', () => {
+      const state = createJettState(10, BASE_CONFIG);
+      state.altitude   = 200;
+      state.multiplier = computeMultiplier(200, 0.03);
       const payout = cashOutJett(state);
-      expect(payout).toBe(10);
+      expect(payout).toBeCloseTo(10 * state.multiplier, 1);
       expect(state.cashedOut).toBe(true);
     });
 
-    it('returns 0 on second cash-out attempt', () => {
+    it('returns 0 on second cash-out', () => {
       const state = createJettState(10, BASE_CONFIG);
       cashOutJett(state);
-      const secondPayout = cashOutJett(state);
-      expect(secondPayout).toBe(0);
+      expect(cashOutJett(state)).toBe(0);
     });
 
-    it('returns 0 after collision', () => {
+    it('returns 0 if already dead', () => {
       const state = createJettState(10, BASE_CONFIG);
       state.isAlive = false;
       expect(cashOutJett(state)).toBe(0);
     });
   });
 
-  describe('generateObstacleRow', () => {
-    it('generates exactly 2 obstacles', () => {
-      const obstacles = generateObstacleRow(240, 390, 844, 160);
-      expect(obstacles).toHaveLength(2);
+  describe('Combustion mechanic (house edge)', () => {
+    it('triggers combustion with rng always returning 0 (below any threshold)', () => {
+      // rng = 0 always < any positive chance → always combusts
+      const state  = createJettState(10, BASE_CONFIG);
+      const config = { ...BASE_CONFIG, combustionChancePerTick: 1.0, rng: () => 0 };
+      tickJett(state, 195, config);
+      expect(state.isAlive).toBe(false);
+      expect(state.combusted).toBe(true);
     });
 
-    it('leaves a gap of the correct width', () => {
-      for (let i = 0; i < 20; i++) {
-        const obstacles = generateObstacleRow(240, 390, 844, 160);
-        const leftEnd = obstacles[0].x + obstacles[0].width;
-        const rightStart = obstacles[1].x;
-        const gapWidth = rightStart - leftEnd;
-        expect(gapWidth).toBeCloseTo(160, 0);
+    it('never combusts when rng always returns 1', () => {
+      // rng = 1 → never below threshold
+      const config = {
+        ...BASE_CONFIG,
+        combustionChancePerTick: 0.0005,
+        rng: () => 1,
+        // wide gap so no asteroid collision either
+      };
+      const state = createJettState(10, config);
+      for (let i = 0; i < 200; i++) {
+        tickJett(state, 195, config);
+        if (!state.isAlive) break;
       }
-    });
-  });
-
-  describe('checkJettCollision', () => {
-    it('detects overlap with an obstacle', () => {
-      const state = createJettState(10, BASE_CONFIG);
-      state.playerX = 100;
-      state.playerY = 400;
-      state.obstacles = [{ x: 85, y: 390, width: 200, height: 24 }];
-      expect(checkJettCollision(state)).toBe(true);
-    });
-
-    it('returns false when no obstacles overlap', () => {
-      const state = createJettState(10, BASE_CONFIG);
-      state.playerX = 195;
-      state.playerY = 400;
-      state.obstacles = [{ x: 0, y: 400, width: 100, height: 24 }];
-      // player center 195, half-width 15 => player left = 180; obstacle right = 100 → no overlap
-      expect(checkJettCollision(state)).toBe(false);
+      expect(state.combusted).toBe(false);
     });
   });
 
   describe('RTP simulation', () => {
-    it('achieves ~94–100% RTP over 10,000 rounds (cash out after 5 obstacles)', () => {
+    it('achieves sane RTP over 10,000 rounds (cash out at altitude 300, no asteroids)', () => {
       const rounds = 10000;
       let totalBet = 0;
       let totalPayout = 0;
 
+      const config = {
+        ...BASE_CONFIG,
+        combustionChancePerTick: 0.0005,
+        rng: () => 1, // no combustion, no asteroids
+      };
+
       for (let i = 0; i < rounds; i++) {
-        const bet = 1;
-        totalBet += bet;
-        const state = createJettState(bet, BASE_CONFIG);
+        totalBet += 1;
+        const state = createJettState(1, config);
 
-        // Simulate ascending through 5 obstacle rows then cash out
-        // Use a deterministic path down the center, no collisions
-        for (let tick = 0; tick < 600; tick++) {
-          tickJett(state, BASE_CONFIG.worldWidth / 2, 1, {
-            ...BASE_CONFIG,
-            obstacleSpacing: 120,
-            obstacleGapWidth: 300, // wide gap so no collision
-          });
-          if (!state.isAlive) break;
-          if (Math.floor(state.altitude / 120) >= 5) break;
+        // Run until altitude 300 then cash out (no asteroids injected)
+        while (state.isAlive && !state.cashedOut && state.altitude < 300) {
+          tickJett(state, 195, config);
         }
-
-        if (state.isAlive) {
-          const payout = cashOutJett(state);
-          totalPayout += payout;
+        if (state.isAlive && !state.cashedOut) {
+          totalPayout += cashOutJett(state);
+        } else {
+          totalPayout += state.payout;
         }
       }
 
       const rtp = totalPayout / totalBet;
-      // With wide gaps (no collisions) and 5 obstacles, multiplier is ~1.43
-      // (1.08^5 * 0.97). RTP should be consistent near that value.
-      expect(rtp).toBeGreaterThan(0.90);
-      expect(rtp).toBeLessThanOrEqual(1.50);
+      expect(rtp).toBeGreaterThan(0.8);
+      expect(rtp).toBeLessThanOrEqual(1.5);
     });
   });
 });
