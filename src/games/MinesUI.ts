@@ -128,8 +128,17 @@ export class MinesUI {
     this.bombSelectorObjs = [];
 
     this.state = createMinesState(this.BET, this.selectedBombs, this.config);
+    this.buildInstructions();
     this.buildGrid();
     this.buildCashOut();
+  }
+
+  private buildInstructions(): void {
+    const { width, height } = this.scene.scale;
+    this.scene.add.text(width / 2, height * 0.085, 'Reveal tiles to grow your multiplier.\nHit a bomb and you lose everything.', {
+      fontFamily: '"Fredoka", sans-serif',
+      fontSize: '12px', color: '#444455', align: 'center', lineSpacing: 4,
+    }).setOrigin(0.5);
   }
 
   private buildGrid(): void {
@@ -179,12 +188,19 @@ export class MinesUI {
   private buildCashOut(): void {
     const { width, height } = this.scene.scale;
 
-    this.multiplierText = this.scene.add.text(16, 16, 'x1.00', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '24px', color: GOLD_STR,
-    }).setDepth(10);
+    const { width: w2, height: h2 } = this.scene.scale;
 
-    this.scene.add.text(16, 46, `BET: ${this.BET}`, {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '13px', color: '#444455',
+    // Multiplier shown prominently below the grid
+    this.scene.add.text(w2 / 2, h2 * 0.72, 'MULTIPLIER', {
+      fontFamily: '"Fredoka One", sans-serif', fontSize: '12px', color: '#444455', letterSpacing: 2,
+    }).setOrigin(0.5).setDepth(10);
+
+    this.multiplierText = this.scene.add.text(w2 / 2, h2 * 0.765, 'x1.00', {
+      fontFamily: '"Fredoka One", sans-serif', fontSize: '32px', color: GOLD_STR,
+    }).setOrigin(0.5).setDepth(10);
+
+    this.scene.add.text(16, 16, `BET: ${this.BET}`, {
+      fontFamily: '"Fredoka One", sans-serif', fontSize: '15px', color: GOLD_STR,
     }).setDepth(10);
 
     this.statusText = this.scene.add.text(width / 2, height * 0.88, '', {
@@ -214,7 +230,7 @@ export class MinesUI {
     if (tile.state === 'safe') {
       this.paintTile(bg, cx, cy, w, h, 'safe');
       icon.setText('💎');
-      this.multiplierText?.setText(`x${this.state.multiplier.toFixed(2)}`);
+      this.multiplierText?.setText(`x${this.state.multiplier.toFixed(2)}`).setOrigin(0.5);
     } else if (tile.state === 'bomb') {
       this.paintTile(bg, cx, cy, w, h, 'bomb');
       icon.setText('💣');
