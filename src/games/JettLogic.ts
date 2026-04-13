@@ -58,12 +58,12 @@ const MAX_SPEED                   = 8;
 
 /** How many asteroid "slots" exist per spawn wave. Increases with altitude. */
 function asteroidsPerWave(altitude: number): number {
-  return Math.min(2 + Math.floor(altitude / 400), 8);
+  return Math.min(1 + Math.floor(altitude / 600), 5);
 }
 
 /** Vertical spacing between spawn waves (decreases with altitude). */
 function waveSpacing(altitude: number): number {
-  return Math.max(80, 220 - Math.floor(altitude / 300) * 10);
+  return Math.max(140, 320 - Math.floor(altitude / 400) * 10);
 }
 
 /**
@@ -125,7 +125,7 @@ export function tickJett(
   state.playerX = Math.max(pr, Math.min(config.worldWidth - pr, newPlayerX));
 
   // Ramp speed
-  state.speed = Math.min(MAX_SPEED, BASE_SPEED + state.altitude / 600);
+  state.speed = Math.min(MAX_SPEED, BASE_SPEED + state.altitude / 900);
 
   // Ascend
   state.altitude     += state.speed;
@@ -207,7 +207,7 @@ export function spawnAsteroidWave(
   const slotWidth = (worldWidth - margin * 2) / count;
 
   for (let i = 0; i < count; i++) {
-    const radius = 14 + rng() * 18; // 14–32px
+    const radius = 22 + rng() * 20; // 22–42px — bigger but fewer
     const slotX  = margin + i * slotWidth;
     const x      = slotX + rng() * (slotWidth - radius * 2) + radius;
 

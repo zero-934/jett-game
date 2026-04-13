@@ -323,7 +323,8 @@ export class ShatterStepUI {
       if (this.state.cashedOut) {
         this.statusText?.setText(`✓ PAID OUT: ${this.state.payout.toFixed(2)}`).setColor(GOLD_STR);
         this.lockAllTiles();
-        this.scene.time.delayedCall(600, () => this.showPlayAgain());
+        this.revealAllTiles();
+        this.scene.time.delayedCall(TOTAL_ROWS * 80 + 500, () => this.showPlayAgain());
       }
     } else {
       // Wrong pick — crack the chosen tile, then shatter + fall
@@ -342,7 +343,8 @@ export class ShatterStepUI {
       this.lockAllTiles();
       this.scene.time.delayedCall(900, () => {
         this.statusText?.setText('✗ SHATTERED').setColor('#ff4444');
-        this.scene.time.delayedCall(400, () => this.showPlayAgain());
+        this.revealAllTiles();
+        this.scene.time.delayedCall(TOTAL_ROWS * 80 + 500, () => this.showPlayAgain());
       });
     }
   }
@@ -353,8 +355,67 @@ export class ShatterStepUI {
     if (payout > 0) {
       this.lockAllTiles();
       this.statusText?.setText(`✓ PAID OUT: ${payout.toFixed(2)}`).setColor(GOLD_STR);
-      this.scene.time.delayedCall(600, () => this.showPlayAgain());
+      this.revealAllTiles();
+      this.scene.time.delayedCall(TOTAL_ROWS * 80 + 500, () => this.showPlayAgain());
     }
+  }
+
+  private revealAllTiles(): void {
+    if (!this.state) return;
+    const startRow = this.state.currentRow; // rows already played
+
+    for (let i = 0; i < TOTAL_ROWS; i++) {
+      const rowIndex = TOTAL_ROWS - 1 - i; // bottom → top
+      if (i < startRow) continue; // already revealed by gameplay
+
+      const obj = this.tileObjects[rowIndex];
+      const row = this.tileRows[rowIndex];
+      if (!obj || !row) continue;
+
+      // Randomly determine which side would have been correct
+      const correctSide: 'left' | 'right' = Math.random() >= 0.5 ? 'left' : 'right';
+      const delay = (i - startRow) * 80;
+
+      this.scene.time.delayedCall(delay, () => {
+        // Correct tile — green glass
+        this.drawRevealTile(
+          correctSide === 'left' ? obj.leftBg : obj.rightBg,
+          correctSide === 'left' ? row.leftX  : row.rightX,
+          row.y, row.tileW, row.tileH,
+          0x44ff88
+        );
+        // Wrong tile — red glass
+        this.drawRevealTile(
+          correctSide === 'left' ? obj.rightBg : obj.leftBg,
+          correctSide === 'left' ? row.rightX  : row.leftX,
+          row.y, row.tileW, row.tileH,
+          0xff4444
+        );
+      });
+    }
+  }
+
+  private drawRevealTile(
+    g: Phaser.GameObjects.Graphics,
+    cx: number, cy: number, w: number, h: number,
+    color: number
+  ): void {
+    g.clear();
+    const x = cx - w / 2;
+    const y = cy - h / 2;
+    const r = 6;
+
+    // Translucent colour fill (glass tint)
+    g.fillStyle(color, 0.22);
+    g.fillRoundedRect(x, y, w, h, r);
+
+    // Coloured border
+    g.lineStyle(1.5, color, 0.75);
+    g.strokeRoundedRect(x, y, w, h, r);
+
+    // Faint shine strip
+    g.fillStyle(0xffffff, 0.12);
+    g.fillRoundedRect(x + 4, y + 3, w - 8, h * 0.3, 3);
   }
 
   private showPlayAgain(): void {
