@@ -1,38 +1,42 @@
 /**
  * @file JettLogic.ts
- * @purpose Pure game logic for Jett — endless vertical scroller with altitude-based multiplier,
- *          android obstacle generation, collision detection, random combustion (house edge mechanic),
- *          and cash-out. No Phaser dependencies.
+ * @purpose Pure game logic for Jett — endless vertical scroller, random asteroid field
+ *          that grows denser with altitude, combustion house-edge mechanic, cash-out.
+ *          No Phaser dependencies.
  * @author Agent 934
  * @date 2026-04-12
  * @license Proprietary – available for licensing
  */
 
-/** A rectangular android obstacle in world coordinates. */
-export interface JettObstacle {
-  x: number;
-  y: number;       // world Y (increases as player ascends)
-  width: number;
-  height: number;
+/** A single asteroid in world coordinates. */
+export interface JettAsteroid {
   id: number;
+  x: number;
+  /** World Y — altitude at which this asteroid sits. */
+  worldY: number;
+  radius: number;
+  /** Slow horizontal drift speed (world units per tick). */
+  driftX: number;
+  /** Visual rotation angle (degrees, incremented per tick). */
+  rotationAngle: number;
+  rotationSpeed: number;
 }
 
 /** Full Jett game state snapshot. */
 export interface JettState {
   playerX: number;
-  playerWorldY: number;    // player's position in world space (increases upward)
-  playerWidth: number;
-  playerHeight: number;
-  altitude: number;        // metres climbed — same as playerWorldY
+  playerWorldY: number;
+  playerRadius: number;
+  altitude: number;
   multiplier: number;
-  obstacles: JettObstacle[];
-  nextObstacleId: number;
+  asteroids: JettAsteroid[];
+  nextAsteroidId: number;
   isAlive: boolean;
   cashedOut: boolean;
-  combusted: boolean;      // true if random combustion fired
+  combusted: boolean;
   payout: number;
   bet: number;
-  speed: number;           // current ascent speed (increases over time)
+  speed: number;
   tickCount: number;
 }
 
@@ -40,34 +44,34 @@ export interface JettState {
 export interface JettConfig {
   worldWidth: number;
   screenHeight: number;
-  playerWidth?: number;
-  playerHeight?: number;
-  /** House edge as a fraction (e.g. 0.03 = 3%). */
+  playerRadius?: number;
   houseEdge?: number;
-  /** Vertical distance (world units) between android rows. */
-  obstacleSpacing?: number;
-  /** Horizontal gap the player can fly through. */
-  obstacleGapWidth?: number;
-  /** Base probability per tick of random combustion (house edge mechanic). */
   combustionChancePerTick?: number;
-  /** RNG override for testing. */
   rng?: () => number;
 }
 
 const DEFAULT_HOUSE_EDGE          = 0.03;
-const DEFAULT_OBSTACLE_SPACING    = 200;
-const DEFAULT_GAP_WIDTH           = 150;
-const DEFAULT_COMBUSTION_CHANCE   = 0.0004; // ~1 in 2500 ticks
+const DEFAULT_COMBUSTION_CHANCE   = 0.0004;
 const MULTIPLIER_PER_100_ALTITUDE = 1.12;
 const BASE_SPEED                  = 2;
-const MAX_SPEED                   = 7;
+const MAX_SPEED                   = 8;
+
+/** How many asteroid "slots" exist per spawn wave. Increases with altitude. */
+function asteroidsPerWave(altitude: number): number {
+  return Math.min(2 + Math.floor(altitude / 400), 8);
+}
+
+/** Vertical spacing between spawn waves (decreases with altitude). */
+function waveSpacing(altitude: number): number {
+  return Math.max(80, 220 - Math.floor(altitude / 300) * 10);
+}
 
 /**
  * Creates an initial Jett game state.
  *
- * @param bet - The player's wager in credits.
- * @param config - World and game configuration.
- * @returns A fresh JettState.
+ * @param bet - Wager in credits.
+ * @param config - World configuration.
+ * @returns Fresh JettState.
  *
  * @example
  * const state = createJettState(10, { worldWidth: 390, screenHeight: 844 });
@@ -76,12 +80,11 @@ export function createJettState(bet: number, config: JettConfig): JettState {
   return {
     playerX: config.worldWidth / 2,
     playerWorldY: 0,
-    playerWidth: config.playerWidth ?? 24,
-    playerHeight: config.playerHeight ?? 36,
+    playerRadius: config.playerRadius ?? 12,
     altitude: 0,
     multiplier: 1.0,
-    obstacles: [],
-    nextObstacleId: 0,
+    asteroids: [],
+    nextAsteroidId: 0,
     isAlive: true,
     cashedOut: false,
     combusted: false,
@@ -93,14 +96,13 @@ export function createJettState(bet: number, config: JettConfig): JettState {
 }
 
 /**
- * Advances the game by one tick.
- * Moves the player upward, spawns android obstacles, checks collisions,
- * and rolls the combustion mechanic.
+ * Advances the game by one tick — ascends the player, spawns asteroids,
+ * drifts existing asteroids, checks collisions, rolls combustion.
  *
  * @param state - Current game state (mutated in place).
  * @param newPlayerX - Updated horizontal position from input.
  * @param config - Game configuration.
- * @returns The updated state (same reference).
+ * @returns The updated state.
  *
  * @example
  * tickJett(state, 195, config);
@@ -112,157 +114,167 @@ export function tickJett(
 ): JettState {
   if (!state.isAlive || state.cashedOut) return state;
 
-  const spacing          = config.obstacleSpacing    ?? DEFAULT_OBSTACLE_SPACING;
-  const gapWidth         = config.obstacleGapWidth   ?? DEFAULT_GAP_WIDTH;
-  const houseEdge        = config.houseEdge          ?? DEFAULT_HOUSE_EDGE;
-  const combustionChance = config.combustionChancePerTick ?? DEFAULT_COMBUSTION_CHANCE;
-  const rng              = config.rng                ?? Math.random;
+  const houseEdge        = config.houseEdge               ?? DEFAULT_HOUSE_EDGE;
+  const combustionChance = config.combustionChancePerTick  ?? DEFAULT_COMBUSTION_CHANCE;
+  const rng              = config.rng                      ?? Math.random;
 
   state.tickCount++;
 
-  // Clamp horizontal movement
-  const hw = state.playerWidth / 2;
-  state.playerX = Math.max(hw, Math.min(config.worldWidth - hw, newPlayerX));
+  // Clamp player X
+  const pr = state.playerRadius;
+  state.playerX = Math.max(pr, Math.min(config.worldWidth - pr, newPlayerX));
 
-  // Ramp speed with altitude (capped)
-  state.speed = Math.min(MAX_SPEED, BASE_SPEED + state.altitude / 800);
+  // Ramp speed
+  state.speed = Math.min(MAX_SPEED, BASE_SPEED + state.altitude / 600);
 
   // Ascend
-  state.altitude        += state.speed;
-  state.playerWorldY     = state.altitude;
+  state.altitude     += state.speed;
+  state.playerWorldY  = state.altitude;
 
-  // Spawn android rows — one every `spacing` altitude units
-  const nextRowAltitude = (Math.floor(state.altitude / spacing) + 1) * spacing;
-  const alreadySpawned  = state.obstacles.some(
-    o => Math.abs(o.y - nextRowAltitude) < 1
-  );
-  if (!alreadySpawned && nextRowAltitude <= state.altitude + spacing) {
-    const newObstacles = spawnAndroidRow(
-      nextRowAltitude,
-      config.worldWidth,
-      gapWidth,
-      state.nextObstacleId
-    );
-    state.nextObstacleId += newObstacles.length;
-    state.obstacles.push(...newObstacles);
+  // Drift existing asteroids horizontally and rotate them
+  for (const ast of state.asteroids) {
+    ast.x             += ast.driftX;
+    ast.rotationAngle += ast.rotationSpeed;
+    // Bounce off walls
+    if (ast.x - ast.radius < 0 || ast.x + ast.radius > config.worldWidth) {
+      ast.driftX *= -1;
+    }
   }
 
-  // Cull obstacles far below (more than 2 screen heights behind)
-  state.obstacles = state.obstacles.filter(
-    o => o.y > state.altitude - config.screenHeight * 2
-  );
+  // Spawn new asteroid waves ahead of the player
+  const spacing    = waveSpacing(state.altitude);
+  const lookAhead  = config.screenHeight * 1.2; // spawn up to this far ahead
+
+  // Determine the highest already-spawned asteroid worldY
+  const highestY   = state.asteroids.reduce((max, a) => Math.max(max, a.worldY), state.altitude);
+  const nextWaveY  = Math.ceil((highestY + 1) / spacing) * spacing;
+
+  if (nextWaveY < state.altitude + lookAhead) {
+    const count   = asteroidsPerWave(state.altitude);
+    const newAsts = spawnAsteroidWave(nextWaveY, count, config.worldWidth, state.nextAsteroidId, rng);
+    state.nextAsteroidId += newAsts.length;
+    state.asteroids.push(...newAsts);
+  }
+
+  // Cull asteroids far below
+  state.asteroids = state.asteroids.filter(a => a.worldY > state.altitude - config.screenHeight);
 
   // Update multiplier
   state.multiplier = computeMultiplier(state.altitude, houseEdge);
 
   // Collision check
-  if (checkJettCollision(state)) {
+  if (checkAsteroidCollision(state)) {
     state.isAlive = false;
     state.payout  = 0;
     return state;
   }
 
-  // Random combustion (house edge mechanic) — chance scales with altitude
-  const scaledCombustionChance = combustionChance * (1 + state.altitude / 5000);
-  if (rng() < scaledCombustionChance) {
-    state.isAlive    = false;
-    state.combusted  = true;
-    state.payout     = 0;
+  // Combustion (house edge mechanic)
+  const scaledChance = combustionChance * (1 + state.altitude / 4000);
+  if (rng() < scaledChance) {
+    state.isAlive   = false;
+    state.combusted = true;
+    state.payout    = 0;
   }
 
   return state;
 }
 
 /**
- * Generates a pair of android obstacles forming a gap at the given altitude.
+ * Spawns a wave of randomly-placed asteroids at a given world altitude.
  *
- * @param altitudeY - World Y position of this obstacle row.
- * @param worldWidth - Total horizontal world width.
- * @param gapWidth - Width of the passable gap.
- * @param startId - ID to assign to first obstacle.
- * @returns Array of two JettObstacle objects (left android wall, right android wall).
+ * @param worldY - Altitude of this wave.
+ * @param count - Number of asteroids in this wave.
+ * @param worldWidth - Horizontal world width.
+ * @param startId - Starting ID for new asteroids.
+ * @param rng - Random number generator.
+ * @returns Array of new JettAsteroid objects.
  *
  * @example
- * const row = spawnAndroidRow(400, 390, 150, 0);
+ * const wave = spawnAsteroidWave(500, 3, 390, 0, Math.random);
  */
-export function spawnAndroidRow(
-  altitudeY: number,
+export function spawnAsteroidWave(
+  worldY: number,
+  count: number,
   worldWidth: number,
-  gapWidth: number,
-  startId: number
-): JettObstacle[] {
-  const obstacleHeight = 40;
-  const margin = 16;
-  const gapStart = margin + Math.random() * (worldWidth - gapWidth - margin * 2);
-  const gapEnd   = gapStart + gapWidth;
+  startId: number,
+  rng: () => number = Math.random
+): JettAsteroid[] {
+  const asteroids: JettAsteroid[] = [];
+  const margin = 30;
 
-  return [
-    { id: startId,     x: 0,       y: altitudeY, width: gapStart,           height: obstacleHeight },
-    { id: startId + 1, x: gapEnd,  y: altitudeY, width: worldWidth - gapEnd, height: obstacleHeight },
-  ];
+  // Divide width into slots to avoid all asteroids clustering on one side
+  const slotWidth = (worldWidth - margin * 2) / count;
+
+  for (let i = 0; i < count; i++) {
+    const radius = 14 + rng() * 18; // 14–32px
+    const slotX  = margin + i * slotWidth;
+    const x      = slotX + rng() * (slotWidth - radius * 2) + radius;
+
+    // Slight vertical scatter within the wave band
+    const yOffset = (rng() - 0.5) * 40;
+
+    asteroids.push({
+      id:            startId + i,
+      x:             Math.max(radius, Math.min(worldWidth - radius, x)),
+      worldY:        worldY + yOffset,
+      radius,
+      driftX:        (rng() - 0.5) * 0.6,
+      rotationAngle: rng() * 360,
+      rotationSpeed: (rng() - 0.5) * 2,
+    });
+  }
+
+  return asteroids;
 }
 
 /**
- * Computes the payout multiplier based on altitude, adjusted for house edge.
- *
- * @param altitude - Player's current altitude in world units.
- * @param houseEdge - Fraction taken by the house (default 0.03).
- * @returns The current multiplier (≥ 1.0).
- *
- * @example
- * computeMultiplier(500, 0.03); // ~1.55
- */
-export function computeMultiplier(
-  altitude: number,
-  houseEdge: number = DEFAULT_HOUSE_EDGE
-): number {
-  if (altitude <= 0) return 1.0;
-  const steps = altitude / 100;
-  const raw   = Math.pow(MULTIPLIER_PER_100_ALTITUDE, steps);
-  return parseFloat((raw * (1 - houseEdge)).toFixed(4));
-}
-
-/**
- * Checks whether the player bounding box overlaps any obstacle.
- * Uses world coordinates: obstacle.y is the altitude of the row.
+ * Checks whether the player (circle) overlaps any asteroid (circle).
  *
  * @param state - Current game state.
- * @returns True if there is a collision.
+ * @returns True if collision detected.
  *
  * @example
- * if (checkJettCollision(state)) { handleDeath(); }
+ * if (checkAsteroidCollision(state)) { handleDeath(); }
  */
-export function checkJettCollision(state: JettState): boolean {
-  const px  = state.playerX - state.playerWidth  / 2;
-  const py  = state.playerWorldY;
-  const pw  = state.playerWidth;
-  const ph  = state.playerHeight;
+export function checkAsteroidCollision(state: JettState): boolean {
+  const px = state.playerX;
+  const py = state.playerWorldY;
+  const pr = state.playerRadius * 0.8; // slight forgiveness
 
-  for (const obs of state.obstacles) {
-    // Obstacle is "at" the player when altitude is within the obstacle's height band
-    const obsTop    = obs.y;
-    const obsBottom = obs.y - obs.height;
-    const playerTop = py;
-    const playerBot = py - ph;
-
-    if (playerTop >= obsBottom && playerBot <= obsTop) {
-      // Vertical overlap — check horizontal
-      if (px < obs.x + obs.width && px + pw > obs.x) {
-        return true;
-      }
-    }
+  for (const ast of state.asteroids) {
+    const dx   = px - ast.x;
+    const dy   = py - ast.worldY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < pr + ast.radius * 0.85) return true;
   }
   return false;
 }
 
 /**
- * Processes a player cash-out.
+ * Computes the payout multiplier based on altitude.
  *
- * @param state - Current game state (mutated in place).
- * @returns The credit payout amount.
+ * @param altitude - Current altitude in world units.
+ * @param houseEdge - Fraction taken by the house.
+ * @returns Multiplier value ≥ 1.0.
  *
  * @example
- * const winnings = cashOutJett(state);
+ * computeMultiplier(500, 0.03); // ~1.55
+ */
+export function computeMultiplier(altitude: number, houseEdge: number = DEFAULT_HOUSE_EDGE): number {
+  if (altitude <= 0) return 1.0;
+  const steps = altitude / 100;
+  return parseFloat((Math.pow(MULTIPLIER_PER_100_ALTITUDE, steps) * (1 - houseEdge)).toFixed(4));
+}
+
+/**
+ * Processes a cash-out.
+ *
+ * @param state - Current game state (mutated).
+ * @returns Credit payout amount.
+ *
+ * @example
+ * const payout = cashOutJett(state);
  */
 export function cashOutJett(state: JettState): number {
   if (!state.isAlive || state.cashedOut) return 0;

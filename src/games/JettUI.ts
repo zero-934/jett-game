@@ -1,69 +1,64 @@
 /**
  * @file JettUI.ts
- * @purpose Phaser rendering for Jett — space background with stars/planets, stick figure
- *          with jetpack, android obstacle sprites, endless vertical camera scroll,
- *          combustion explosion FX, and HUD.
+ * @purpose Phaser rendering for Jett — space background, stick figure with jetpack,
+ *          individual asteroid rendering with rotation, endless vertical scroll,
+ *          combustion FX, HUD.
  * @author Agent 934
  * @date 2026-04-12
  * @license Proprietary – available for licensing
  */
 
 import * as Phaser from 'phaser';
-import type { JettConfig, JettObstacle } from './JettLogic';
+import type { JettConfig } from './JettLogic';
 import { createJettState, tickJett, cashOutJett } from './JettLogic';
 
-const GOLD      = 0xc9a84c;
-const GOLD_STR  = '#c9a84c';
+const GOLD     = 0xc9a84c;
+const GOLD_STR = '#c9a84c';
 
 export class JettUI {
-  private scene: Phaser.Scene;
+  private scene:  Phaser.Scene;
   private config: JettConfig;
 
-  // Player parts
-  private playerHead:  Phaser.GameObjects.Arc        | null = null;
-  private playerBody:  Phaser.GameObjects.Rectangle  | null = null;
-  private playerPack:  Phaser.GameObjects.Rectangle  | null = null;
-  private flameGroup:  Phaser.GameObjects.Group      | null = null;
-  private playerScreenX = 0;
+  // Player parts (screen-space, fixed Y)
+  private playerHead: Phaser.GameObjects.Arc       | null = null;
+  private playerBody: Phaser.GameObjects.Rectangle | null = null;
+  private playerPack: Phaser.GameObjects.Rectangle | null = null;
   private playerScreenY = 0;
 
-  // World / camera
-  private cameraOffsetY = 0; // how many world units the camera has scrolled
+  // Background
+  private bgGraphics: Phaser.GameObjects.Graphics | null = null;
+  private stars: { x: number; y: number; r: number; phase: number }[] = [];
+  private bgPlanet:  Phaser.GameObjects.Arc | null = null;
+  private bgPlanet2: Phaser.GameObjects.Arc | null = null;
 
-  // Background layers
-  private starGraphics: Phaser.GameObjects.Graphics | null = null;
-  private stars: { x: number; y: number; r: number; twinkle: number }[] = [];
-  private bgPlanet: Phaser.GameObjects.Arc   | null = null;
-  private bgPlanet2: Phaser.GameObjects.Arc  | null = null;
+  // Asteroid graphics pool — keyed by asteroid id
+  private asteroidGraphics: Map<number, Phaser.GameObjects.Graphics> = new Map();
 
-  // Android obstacle graphics pool
-  private androidPool: Map<number, Phaser.GameObjects.Graphics> = new Map();
+  // Flame
+  private flameGraphics: Phaser.GameObjects.Graphics | null = null;
 
   // HUD
-  private multiplierText: Phaser.GameObjects.Text | null = null;
-  private altitudeText:   Phaser.GameObjects.Text | null = null;
-  private statusText:     Phaser.GameObjects.Text | null = null;
+  private multiplierText: Phaser.GameObjects.Text      | null = null;
+  private altitudeText:   Phaser.GameObjects.Text      | null = null;
+  private statusText:     Phaser.GameObjects.Text      | null = null;
   private cashOutButton:  Phaser.GameObjects.Rectangle | null = null;
-  private cashOutLabel:   Phaser.GameObjects.Text | null = null;
-  private homeButton:     Phaser.GameObjects.Text | null = null;
+  private cashOutLabel:   Phaser.GameObjects.Text      | null = null;
+  private homeButton:     Phaser.GameObjects.Text      | null = null;
 
-  private pointerX   = 0;
+  private pointerX  = 0;
   private tickTimer: Phaser.Time.TimerEvent | null = null;
   private state: ReturnType<typeof createJettState> | null = null;
 
   constructor(scene: Phaser.Scene, config: JettConfig) {
-    this.scene  = scene;
-    this.config = config;
-    this.playerScreenX = config.worldWidth  / 2;
-    this.playerScreenY = config.screenHeight * 0.65; // player sits at 65% down screen
-    this.pointerX      = config.worldWidth  / 2;
+    this.scene   = scene;
+    this.config  = config;
+    this.pointerX     = config.worldWidth / 2;
+    this.playerScreenY = config.screenHeight * 0.62;
   }
 
-  /** Start a new game with the given bet. */
   public start(bet: number): void {
     this.cleanup();
-    this.state         = createJettState(bet, this.config);
-    this.cameraOffsetY = 0;
+    this.state = createJettState(bet, this.config);
     this.buildBackground();
     this.buildPlayer();
     this.buildHUD();
@@ -76,19 +71,18 @@ export class JettUI {
     });
   }
 
-  /** Destroy all managed game objects. */
   public cleanup(): void {
     this.tickTimer?.remove();
     this.tickTimer = null;
     this.playerHead?.destroy();
     this.playerBody?.destroy();
     this.playerPack?.destroy();
-    this.flameGroup?.destroy(true);
-    this.starGraphics?.destroy();
+    this.bgGraphics?.destroy();
     this.bgPlanet?.destroy();
     this.bgPlanet2?.destroy();
-    for (const g of this.androidPool.values()) g.destroy();
-    this.androidPool.clear();
+    this.flameGraphics?.destroy();
+    for (const g of this.asteroidGraphics.values()) g.destroy();
+    this.asteroidGraphics.clear();
     this.multiplierText?.destroy();
     this.altitudeText?.destroy();
     this.statusText?.destroy();
@@ -102,111 +96,72 @@ export class JettUI {
 
   private buildBackground(): void {
     const { worldWidth, screenHeight } = this.config;
+    this.bgGraphics = this.scene.add.graphics();
 
-    // Static star field (redrawn each frame for parallax)
-    this.starGraphics = this.scene.add.graphics();
-    this.stars = [];
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < 130; i++) {
       this.stars.push({
-        x: Math.random() * worldWidth,
-        y: Math.random() * screenHeight,
-        r: Math.random() < 0.15 ? 1.5 : 0.7,
-        twinkle: Math.random() * Math.PI * 2,
+        x:     Math.random() * worldWidth,
+        y:     Math.random() * screenHeight,
+        r:     Math.random() < 0.15 ? 1.8 : 0.8,
+        phase: Math.random() * Math.PI * 2,
       });
     }
 
-    // Background planets (decorative)
     this.bgPlanet = this.scene.add.arc(
-      worldWidth * 0.8, screenHeight * 0.2, 38, 0, 360, false, 0x3355aa, 0.5
+      worldWidth * 0.78, screenHeight * 0.18, 42, 0, 360, false, 0x2244aa, 0.45
     );
     this.bgPlanet2 = this.scene.add.arc(
-      worldWidth * 0.15, screenHeight * 0.4, 18, 0, 360, false, 0x883333, 0.4
+      worldWidth * 0.14, screenHeight * 0.38, 22, 0, 360, false, 0x773322, 0.4
     );
   }
 
   private buildPlayer(): void {
-    const x = this.playerScreenX;
+    const x = this.config.worldWidth / 2;
     const y = this.playerScreenY;
-
-    // Jetpack (behind body)
-    this.playerPack = this.scene.add.rectangle(x + 6, y + 2, 10, 20, 0x555577);
-
-    // Body
-    this.playerBody = this.scene.add.rectangle(x, y, 8, 20, GOLD);
-
-    // Head
-    this.playerHead = this.scene.add.arc(x, y - 16, 7, 0, 360, false, GOLD);
-
-    // Flame group
-    this.flameGroup = this.scene.add.group();
+    this.playerPack = this.scene.add.rectangle(x + 8, y + 2, 10, 22, 0x4455aa).setDepth(5);
+    this.playerBody = this.scene.add.rectangle(x, y,      8, 22, GOLD).setDepth(5);
+    this.playerHead = this.scene.add.arc(x, y - 17, 7, 0, 360, false, GOLD).setDepth(5);
+    this.flameGraphics = this.scene.add.graphics().setDepth(4);
   }
 
   private buildHUD(): void {
-    const { worldWidth } = this.config;
+    const { worldWidth, screenHeight } = this.config;
 
     this.multiplierText = this.scene.add
-      .text(16, 16, 'x1.00', {
-        fontFamily: 'monospace',
-        fontSize: '24px',
-        color: GOLD_STR,
-      })
+      .text(16, 16, 'x1.00', { fontFamily: 'monospace', fontSize: '24px', color: GOLD_STR })
       .setDepth(10);
 
     this.altitudeText = this.scene.add
-      .text(16, 46, 'ALT: 0m', {
-        fontFamily: 'monospace',
-        fontSize: '13px',
-        color: '#888888',
-      })
+      .text(16, 48, 'ALT: 0m', { fontFamily: 'monospace', fontSize: '13px', color: '#888888' })
       .setDepth(10);
 
     this.statusText = this.scene.add
-      .text(worldWidth / 2, this.config.screenHeight * 0.35, '', {
-        fontFamily: 'monospace',
-        fontSize: '22px',
-        color: '#ffffff',
-        align: 'center',
+      .text(worldWidth / 2, screenHeight * 0.35, '', {
+        fontFamily: 'monospace', fontSize: '22px', color: '#ffffff', align: 'center',
       })
-      .setOrigin(0.5)
-      .setDepth(10);
+      .setOrigin(0.5).setDepth(10);
 
     this.cashOutButton = this.scene.add
       .rectangle(worldWidth - 70, 30, 124, 44, GOLD)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(10)
+      .setInteractive({ useHandCursor: true }).setDepth(10)
       .on('pointerdown', () => this.handleCashOut());
 
     this.cashOutLabel = this.scene.add
-      .text(worldWidth - 70, 30, 'CASH OUT', {
-        fontFamily: 'monospace',
-        fontSize: '11px',
-        color: '#0d0d0d',
-      })
-      .setOrigin(0.5)
-      .setDepth(10);
+      .text(worldWidth - 70, 30, 'CASH OUT', { fontFamily: 'monospace', fontSize: '11px', color: '#0d0d0d' })
+      .setOrigin(0.5).setDepth(10);
 
     this.homeButton = this.scene.add
-      .text(worldWidth / 2, this.config.screenHeight - 16, '[ HOME ]', {
-        fontFamily: 'monospace',
-        fontSize: '11px',
-        color: '#444444',
+      .text(worldWidth / 2, screenHeight - 16, '[ HOME ]', {
+        fontFamily: 'monospace', fontSize: '11px', color: '#444444',
       })
-      .setOrigin(0.5)
-      .setDepth(10)
+      .setOrigin(0.5).setDepth(10)
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => {
-        this.cleanup();
-        this.scene.scene.start('HomeScene');
-      });
+      .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
   }
 
   private registerInput(): void {
-    this.scene.input.on('pointermove', (p: Phaser.Input.Pointer) => {
-      this.pointerX = p.x;
-    });
-    this.scene.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
-      this.pointerX = p.x;
-    });
+    this.scene.input.on('pointermove', (p: Phaser.Input.Pointer) => { this.pointerX = p.x; });
+    this.scene.input.on('pointerdown', (p: Phaser.Input.Pointer) => { this.pointerX = p.x; });
   }
 
   // ─── Tick ─────────────────────────────────────────────────────────────────
@@ -216,13 +171,10 @@ export class JettUI {
 
     if (this.state.isAlive && !this.state.cashedOut) {
       tickJett(this.state, this.pointerX, this.config);
-      // Camera follows player — offset increases with altitude
-      this.cameraOffsetY = this.state.altitude;
     }
 
-    this.renderStars();
-    this.renderPlanets();
-    this.renderAndroidsFromState();
+    this.renderBackground();
+    this.renderAsteroids();
     this.renderPlayer();
     this.renderFlame();
     this.updateHUD();
@@ -230,181 +182,174 @@ export class JettUI {
     if (!this.state.isAlive) {
       this.tickTimer?.remove();
       this.tickTimer = null;
-      if (this.state.combusted) {
-        this.triggerCombustion();
-      } else {
-        this.statusText?.setText('COLLISION\nGAME OVER').setColor('#ff4444');
-      }
+      this.state.combusted ? this.triggerCombustion() : this.showCrash();
     }
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
-  private renderStars(): void {
-    if (!this.starGraphics) return;
+  private renderBackground(): void {
     const { worldWidth, screenHeight } = this.config;
-    this.starGraphics.clear();
+    const altitude = this.state?.altitude ?? 0;
     const t = this.scene.time.now / 1000;
+
+    if (!this.bgGraphics) return;
+    this.bgGraphics.clear();
+
+    // Deep space gradient
+    this.bgGraphics.fillGradientStyle(0x00000a, 0x00000a, 0x050518, 0x050518, 1);
+    this.bgGraphics.fillRect(0, 0, worldWidth, screenHeight);
+
+    // Twinkling stars with parallax
     for (const star of this.stars) {
-      const alpha = 0.4 + 0.4 * Math.sin(star.twinkle + t * 1.2);
-      // Slow parallax: stars drift upward slightly as player ascends
-      const parallaxY = ((star.y - (this.cameraOffsetY * 0.05)) % screenHeight + screenHeight) % screenHeight;
-      this.starGraphics.fillStyle(0xffffff, alpha);
-      this.starGraphics.fillCircle(star.x, parallaxY, star.r);
+      const alpha  = 0.35 + 0.45 * Math.sin(star.phase + t * 1.1);
+      const parallaxY = ((star.y - altitude * 0.04) % screenHeight + screenHeight) % screenHeight;
+      this.bgGraphics.fillStyle(0xffffff, alpha);
+      this.bgGraphics.fillCircle(star.x, parallaxY, star.r);
     }
-    // Grid lines for space feel
-    this.starGraphics.lineStyle(0.5, 0x1a1a3a, 0.4);
-    const gridSize = 80;
-    const gridOffY = ((this.cameraOffsetY * 0.3) % gridSize);
-    for (let gy = -gridOffY; gy < screenHeight + gridSize; gy += gridSize) {
-      this.starGraphics.beginPath();
-      this.starGraphics.moveTo(0, gy);
-      this.starGraphics.lineTo(worldWidth, gy);
-      this.starGraphics.strokePath();
+
+    // Subtle grid
+    this.bgGraphics.lineStyle(0.4, 0x1a1a3a, 0.35);
+    const gridSize = 70;
+    const gridOff  = (altitude * 0.25) % gridSize;
+    for (let gy = -gridOff; gy < screenHeight + gridSize; gy += gridSize) {
+      this.bgGraphics.beginPath();
+      this.bgGraphics.moveTo(0, gy);
+      this.bgGraphics.lineTo(worldWidth, gy);
+      this.bgGraphics.strokePath();
     }
     for (let gx = 0; gx < worldWidth + gridSize; gx += gridSize) {
-      this.starGraphics.beginPath();
-      this.starGraphics.moveTo(gx, 0);
-      this.starGraphics.lineTo(gx, screenHeight);
-      this.starGraphics.strokePath();
+      this.bgGraphics.beginPath();
+      this.bgGraphics.moveTo(gx, 0);
+      this.bgGraphics.lineTo(gx, screenHeight);
+      this.bgGraphics.strokePath();
     }
+
+    // Planets drift slowly upward
+    if (this.bgPlanet)  this.bgPlanet.y  = ((screenHeight * 0.18 - altitude * 0.018) % screenHeight + screenHeight) % screenHeight;
+    if (this.bgPlanet2) this.bgPlanet2.y = ((screenHeight * 0.38 - altitude * 0.013) % screenHeight + screenHeight) % screenHeight;
   }
 
-  private renderPlanets(): void {
-    if (!this.bgPlanet || !this.bgPlanet2 || !this.state) return;
-    // Planets scroll slowly upward (parallax layer)
-    this.bgPlanet.y  = (this.config.screenHeight * 0.2 - this.state.altitude * 0.02 % this.config.screenHeight + this.config.screenHeight) % this.config.screenHeight;
-    this.bgPlanet2.y = (this.config.screenHeight * 0.4 - this.state.altitude * 0.015 % this.config.screenHeight + this.config.screenHeight) % this.config.screenHeight;
-  }
-
-  private renderAndroidsFromState(): void {
+  private renderAsteroids(): void {
     if (!this.state) return;
-    const { screenHeight } = this.config;
-    const playerAltitude = this.state.altitude;
+    const altitude     = this.state.altitude;
+    const screenHeight = this.config.screenHeight;
 
-    // Track which obstacle ids are still active
-    const activeIds = new Set(this.state.obstacles.map(o => o.id));
-
-    // Remove obsolete graphics
-    for (const [id, g] of this.androidPool) {
-      if (!activeIds.has(id)) {
-        g.destroy();
-        this.androidPool.delete(id);
-      }
+    // Remove stale graphics
+    const activeIds = new Set(this.state.asteroids.map(a => a.id));
+    for (const [id, g] of this.asteroidGraphics) {
+      if (!activeIds.has(id)) { g.destroy(); this.asteroidGraphics.delete(id); }
     }
 
-    // Draw each obstacle as an android figure
-    for (const obs of this.state.obstacles) {
-      // Convert world Y to screen Y
-      // World Y increases upward; screen Y increases downward
-      const screenY = this.playerScreenY - (obs.y - playerAltitude);
+    for (const ast of this.state.asteroids) {
+      // World → screen Y: player is at playerScreenY at altitude `altitude`
+      const screenY = this.playerScreenY - (ast.worldY - altitude);
+      if (screenY < -50 || screenY > screenHeight + 50) continue;
 
-      // Skip if off screen
-      if (screenY < -60 || screenY > screenHeight + 60) continue;
-
-      let g = this.androidPool.get(obs.id);
+      let g = this.asteroidGraphics.get(ast.id);
       if (!g) {
-        g = this.scene.add.graphics();
-        this.androidPool.set(obs.id, g);
+        g = this.scene.add.graphics().setDepth(3);
+        this.asteroidGraphics.set(ast.id, g);
       }
 
-      this.drawAndroidWall(g, obs, screenY);
+      this.drawAsteroid(g, ast.x, screenY, ast.radius, ast.rotationAngle);
     }
   }
 
-  private drawAndroidWall(
+  private drawAsteroid(
     g: Phaser.GameObjects.Graphics,
-    obs: JettObstacle,
-    screenY: number
+    cx: number, cy: number,
+    radius: number,
+    angleDeg: number
   ): void {
     g.clear();
+    const angleRad = (angleDeg * Math.PI) / 180;
+    const points   = 8;
+    const verts: { x: number; y: number }[] = [];
 
-    if (obs.width < 2) return;
-
-    const h = obs.height;
-    const segW = 32; // width of each android figure
-    const count = Math.floor(obs.width / segW);
-
-    for (let i = 0; i < count; i++) {
-      const ax = obs.x + i * segW + segW / 2;
-      const ay = screenY;
-
-      // Android body (torso rectangle)
-      g.fillStyle(0x2244aa, 1);
-      g.fillRect(ax - 8, ay - h / 2 + 4, 16, 18);
-
-      // Android head (rounded)
-      g.fillStyle(0x3366cc, 1);
-      g.fillRoundedRect(ax - 7, ay - h / 2 - 10, 14, 12, 3);
-
-      // Eyes (red LEDs)
-      g.fillStyle(0xff2222, 1);
-      g.fillRect(ax - 5, ay - h / 2 - 7, 3, 2);
-      g.fillRect(ax + 2,  ay - h / 2 - 7, 3, 2);
-
-      // Antenna
-      g.lineStyle(1, 0x4488ff, 1);
-      g.beginPath();
-      g.moveTo(ax, ay - h / 2 - 10);
-      g.lineTo(ax, ay - h / 2 - 16);
-      g.strokePath();
-      g.fillStyle(0x4488ff, 1);
-      g.fillCircle(ax, ay - h / 2 - 16, 2);
-
-      // Legs
-      g.fillStyle(0x2244aa, 1);
-      g.fillRect(ax - 7, ay - h / 2 + 22, 5, 8);
-      g.fillRect(ax + 2,  ay - h / 2 + 22, 5, 8);
+    // Irregular rock polygon
+    for (let i = 0; i < points; i++) {
+      const a   = angleRad + (i / points) * Math.PI * 2;
+      // Vary radius per vertex for rocky look (seeded by i for stable shape)
+      const r   = radius * (0.72 + 0.28 * Math.sin(i * 2.3 + angleDeg * 0.01));
+      verts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
     }
+
+    // Shadow / depth fill
+    g.fillStyle(0x221100, 1);
+    g.beginPath();
+    g.moveTo(verts[0].x + 2, verts[0].y + 2);
+    for (let i = 1; i < verts.length; i++) g.lineTo(verts[i].x + 2, verts[i].y + 2);
+    g.closePath();
+    g.fillPath();
+
+    // Main rock fill
+    g.fillStyle(0x887755, 1);
+    g.beginPath();
+    g.moveTo(verts[0].x, verts[0].y);
+    for (let i = 1; i < verts.length; i++) g.lineTo(verts[i].x, verts[i].y);
+    g.closePath();
+    g.fillPath();
+
+    // Highlight face
+    g.fillStyle(0xbbaa88, 0.55);
+    g.beginPath();
+    g.moveTo(verts[0].x, verts[0].y);
+    for (let i = 1; i < Math.floor(points / 2); i++) g.lineTo(verts[i].x, verts[i].y);
+    g.closePath();
+    g.fillPath();
+
+    // Outline
+    g.lineStyle(1, 0x554433, 1);
+    g.beginPath();
+    g.moveTo(verts[0].x, verts[0].y);
+    for (let i = 1; i < verts.length; i++) g.lineTo(verts[i].x, verts[i].y);
+    g.closePath();
+    g.strokePath();
+
+    // Small crater detail
+    g.fillStyle(0x554433, 0.7);
+    g.fillCircle(cx - radius * 0.25, cy - radius * 0.15, radius * 0.18);
+    g.fillCircle(cx + radius * 0.3,  cy + radius * 0.2,  radius * 0.12);
   }
 
   private renderPlayer(): void {
     if (!this.state) return;
     const { worldWidth } = this.config;
-    const screenX = this.playerScreenX + (this.state.playerX - worldWidth / 2);
+    const screenX = this.config.worldWidth / 2 + (this.state.playerX - worldWidth / 2);
+    const tilt    = Phaser.Math.Clamp((this.state.playerX - worldWidth / 2) / 80, -15, 15);
 
-    this.playerBody?.setPosition(screenX, this.playerScreenY);
-    this.playerHead?.setPosition(screenX, this.playerScreenY - 16);
-    this.playerPack?.setPosition(screenX + 8, this.playerScreenY + 2);
-
-    // Tilt head/body slightly toward movement direction
-    const tilt = Phaser.Math.Clamp((this.state.playerX - worldWidth / 2) / 80, -12, 12);
-    this.playerBody?.setAngle(tilt);
-    this.playerHead?.setAngle(tilt);
+    this.playerBody?.setPosition(screenX, this.playerScreenY).setAngle(tilt);
+    this.playerHead?.setPosition(screenX, this.playerScreenY - 17).setAngle(tilt);
+    this.playerPack?.setPosition(screenX + 8, this.playerScreenY + 2).setAngle(tilt);
   }
 
   private renderFlame(): void {
-    if (!this.state || !this.flameGroup) return;
-    this.flameGroup.clear(true, true);
-
+    if (!this.state || !this.flameGraphics) return;
+    this.flameGraphics.clear();
     if (!this.state.isAlive) return;
 
     const { worldWidth } = this.config;
-    const screenX = this.playerScreenX + (this.state.playerX - worldWidth / 2);
-    const flameY  = this.playerScreenY + 16;
+    const screenX = this.config.worldWidth / 2 + (this.state.playerX - worldWidth / 2);
     const t       = this.scene.time.now;
+    const flameH  = 12 + Math.sin(t / 55) * 6;
+    const flameW  = 5  + Math.sin(t / 35) * 2;
+    const baseY   = this.playerScreenY + 13;
 
-    // Animated flame beneath jetpack
-    const flameH = 14 + Math.sin(t / 60) * 6;
-    const flameW = 6 + Math.sin(t / 40) * 2;
-
-    const flame = this.scene.add.triangle(
-      screenX + 8, flameY,
-      -flameW / 2, 0,
-      flameW / 2,  0,
-      0,           flameH,
-      0xff6600
+    // Outer flame
+    this.flameGraphics.fillStyle(0xff6600, 0.9);
+    this.flameGraphics.fillTriangle(
+      screenX + 8 - flameW, baseY,
+      screenX + 8 + flameW, baseY,
+      screenX + 8,           baseY + flameH
     );
-    const innerFlame = this.scene.add.triangle(
-      screenX + 8, flameY,
-      -flameW / 4, 0,
-      flameW / 4,  0,
-      0,           flameH * 0.6,
-      0xffcc00
+    // Inner flame
+    this.flameGraphics.fillStyle(0xffdd00, 0.95);
+    this.flameGraphics.fillTriangle(
+      screenX + 8 - flameW * 0.5, baseY,
+      screenX + 8 + flameW * 0.5, baseY,
+      screenX + 8,                  baseY + flameH * 0.55
     );
-
-    this.flameGroup.add(flame);
-    this.flameGroup.add(innerFlame);
   }
 
   private updateHUD(): void {
@@ -423,37 +368,38 @@ export class JettUI {
     this.statusText?.setText(`PAID OUT\n${payout.toFixed(2)} credits`).setColor(GOLD_STR);
   }
 
+  private showCrash(): void {
+    this.statusText?.setText('ASTEROID HIT!\nGAME OVER').setColor('#ff4444');
+  }
+
   private triggerCombustion(): void {
     if (!this.state) return;
     const { worldWidth } = this.config;
-    const screenX = this.playerScreenX + (this.state.playerX - worldWidth / 2);
+    const sx = this.config.worldWidth / 2 + (this.state.playerX - worldWidth / 2);
+    const sy = this.playerScreenY;
 
-    // Explosion rings
     for (let ring = 0; ring < 3; ring++) {
-      const circle = this.scene.add.arc(
-        screenX, this.playerScreenY, 10, 0, 360, false, 0xff6600, 0.8
-      );
+      const circle = this.scene.add.arc(sx, sy, 10, 0, 360, false, 0xff6600, 0.85).setDepth(8);
       this.scene.tweens.add({
         targets: circle,
-        scaleX: (ring + 1) * 3,
-        scaleY: (ring + 1) * 3,
+        scaleX: (ring + 1) * 3.5,
+        scaleY: (ring + 1) * 3.5,
         alpha: 0,
-        duration: 500 + ring * 150,
-        delay: ring * 80,
+        duration: 500 + ring * 140,
+        delay: ring * 75,
         onComplete: () => circle.destroy(),
       });
     }
 
-    // Particle sparks
-    for (let i = 0; i < 16; i++) {
-      const angle = (i / 16) * Math.PI * 2;
-      const spark = this.scene.add.rectangle(screenX, this.playerScreenY, 4, 4, 0xffaa00);
+    for (let i = 0; i < 18; i++) {
+      const angle = (i / 18) * Math.PI * 2;
+      const spark = this.scene.add.rectangle(sx, sy, 4, 4, 0xffaa00).setDepth(8);
       this.scene.tweens.add({
         targets: spark,
-        x: screenX + Math.cos(angle) * Phaser.Math.Between(40, 100),
-        y: this.playerScreenY + Math.sin(angle) * Phaser.Math.Between(40, 100),
+        x: sx + Math.cos(angle) * Phaser.Math.Between(40, 110),
+        y: sy + Math.sin(angle) * Phaser.Math.Between(40, 110),
         alpha: 0,
-        duration: Phaser.Math.Between(400, 700),
+        duration: Phaser.Math.Between(400, 750),
         onComplete: () => spark.destroy(),
       });
     }
