@@ -1,7 +1,7 @@
 /**
  * @file FlapFortuneUI.ts
- * @purpose Phaser rendering for Flap Fortune — Mario aesthetic with red pipes,
- *          scrolling landscape background, bird player, combustion FX, HUD.
+ * @purpose Phaser rendering for Flap Fortune — medieval castle theme with portcullis gates,
+ *          wizard on broomstick player, castle background, combustion FX, HUD.
  * @author Agent 934
  * @date 2026-04-12
  * @license Proprietary – available for licensing
@@ -14,47 +14,52 @@ import { createFlapFortuneState, tickFlapFortune, cashOutFlapFortune } from './F
 const GOLD     = 0xc9a84c;
 const GOLD_STR = '#c9a84c';
 
-// Mario palette
-const SKY_TOP    = 0x5c94fc; // classic Mario sky blue
-const SKY_BOT    = 0x8cb8ff;
-const GROUND_COL = 0x8b4513;
-const GRASS_COL  = 0x3cb043;
-const PIPE_GREEN = 0xcc0000; // RED pipes (not green)
-const PIPE_DARK  = 0x880000;
-const PIPE_LIGHT = 0xff4444;
-const CLOUD_COL  = 0xffffff;
-const BIRD_COL   = 0xffdd44;
+// Medieval palette
+const SKY_TOP      = 0x1a0a2e; // deep twilight purple
+const SKY_BOT      = 0x3d1a0a; // dark amber horizon
+const STONE_DARK   = 0x3a3530;
+const STONE_MID    = 0x5a524a;
+const STONE_LIGHT  = 0x7a6e62;
+const GATE_IRON    = 0x2a2a2a;
+const GATE_RUST    = 0x5a3a1a;
+const GATE_BAR     = 0x1a1a1a;
+const TORCH_ORANGE = 0xff6600;
+const WIZARD_ROBE  = 0x4a0a8a;
+const WIZARD_HAT   = 0x2a0a5a;
+const BROOM_WOOD   = 0x8b6914;
+const MOON_COL     = 0xffe8a0;
 
 export class FlapFortuneUI {
-  private scene: Phaser.Scene;
+  private scene:  Phaser.Scene;
   private config: FlapFortuneConfig;
-  private state: ReturnType<typeof createFlapFortuneState> | null = null;
+  private state:  ReturnType<typeof createFlapFortuneState> | null = null;
 
-  // Background layers
+  // Background
   private bgGraphics: Phaser.GameObjects.Graphics | null = null;
-  private clouds: { x: number; y: number; w: number }[] = [];
+  private castleTowers: { x: number; h: number }[] = [];
+  private torches: { x: number; y: number; phase: number }[] = [];
   private groundScrollX = 0;
+  private stars: { x: number; y: number; r: number; phase: number }[] = [];
 
-  // Player
-  private birdBody:  Phaser.GameObjects.Arc       | null = null;
-  private birdWing:  Phaser.GameObjects.Ellipse   | null = null;
-  private birdEye:   Phaser.GameObjects.Arc       | null = null;
+  // Wizard player parts
+  private wizBody:  Phaser.GameObjects.Rectangle | null = null;
+  private wizHead:  Phaser.GameObjects.Arc       | null = null;
+  private wizHat:   Phaser.GameObjects.Triangle  | null = null;
+  private wizBroom: Phaser.GameObjects.Rectangle | null = null;
 
-  // Pipes graphics pool
-  private pipeGraphics: Phaser.GameObjects.Graphics[] = [];
+  // Gate graphics pool
+  private gateGraphics: Phaser.GameObjects.Graphics[] = [];
 
   // HUD
   private multiplierText: Phaser.GameObjects.Text      | null = null;
-  private distanceText:   Phaser.GameObjects.Text      | null = null;
+  private gatesText:      Phaser.GameObjects.Text      | null = null;
   private statusText:     Phaser.GameObjects.Text      | null = null;
   private cashOutButton:  Phaser.GameObjects.Rectangle | null = null;
   private cashOutLabel:   Phaser.GameObjects.Text      | null = null;
   private homeButton:     Phaser.GameObjects.Text      | null = null;
-  private pipesText:      Phaser.GameObjects.Text      | null = null;
 
   private isFlapping = false;
-  private tickTimer: Phaser.Time.TimerEvent | null = null;
-  private wingAngle = 0;
+  private tickTimer:  Phaser.Time.TimerEvent | null = null;
 
   constructor(scene: Phaser.Scene, config: FlapFortuneConfig) {
     this.scene  = scene;
@@ -65,7 +70,7 @@ export class FlapFortuneUI {
     this.cleanup();
     this.state = createFlapFortuneState(bet, this.config);
     this.buildBackground();
-    this.buildBird();
+    this.buildWizard();
     this.buildHUD();
     this.registerInput();
     this.tickTimer = this.scene.time.addEvent({
@@ -80,18 +85,18 @@ export class FlapFortuneUI {
     this.tickTimer?.remove();
     this.tickTimer = null;
     this.bgGraphics?.destroy();
-    this.birdBody?.destroy();
-    this.birdWing?.destroy();
-    this.birdEye?.destroy();
-    for (const g of this.pipeGraphics) g.destroy();
-    this.pipeGraphics = [];
+    this.wizBody?.destroy();
+    this.wizHead?.destroy();
+    this.wizHat?.destroy();
+    this.wizBroom?.destroy();
+    for (const g of this.gateGraphics) g.destroy();
+    this.gateGraphics = [];
     this.multiplierText?.destroy();
-    this.distanceText?.destroy();
+    this.gatesText?.destroy();
     this.statusText?.destroy();
     this.cashOutButton?.destroy();
     this.cashOutLabel?.destroy();
     this.homeButton?.destroy();
-    this.pipesText?.destroy();
     this.state = null;
   }
 
@@ -101,26 +106,55 @@ export class FlapFortuneUI {
     const { worldWidth, worldHeight } = this.config;
     this.bgGraphics = this.scene.add.graphics();
 
-    // Clouds
-    this.clouds = [];
-    for (let i = 0; i < 6; i++) {
-      this.clouds.push({
-        x: Math.random() * worldWidth,
-        y: 60 + Math.random() * (worldHeight * 0.35),
-        w: 50 + Math.random() * 60,
+    // Stars
+    for (let i = 0; i < 80; i++) {
+      this.stars.push({
+        x:     Math.random() * worldWidth,
+        y:     Math.random() * worldHeight * 0.6,
+        r:     Math.random() < 0.2 ? 1.5 : 0.7,
+        phase: Math.random() * Math.PI * 2,
       });
     }
+
+    // Background castle silhouette towers
+    this.castleTowers = [];
+    const towerCount = 6;
+    for (let i = 0; i < towerCount; i++) {
+      this.castleTowers.push({
+        x: (worldWidth / towerCount) * i + Math.random() * 40,
+        h: 80 + Math.random() * 120,
+      });
+    }
+
+    // Torches on the castle walls
+    this.torches = [
+      { x: worldWidth * 0.2, y: worldHeight * 0.72, phase: 0 },
+      { x: worldWidth * 0.5, y: worldHeight * 0.70, phase: 1.2 },
+      { x: worldWidth * 0.8, y: worldHeight * 0.73, phase: 2.4 },
+    ];
   }
 
-  private buildBird(): void {
+  private buildWizard(): void {
     const bx = 80;
     const by = this.config.worldHeight / 2;
 
-    this.birdBody = this.scene.add.arc(bx, by, 14, 0, 360, false, BIRD_COL);
-    this.birdWing = this.scene.add.ellipse(bx - 6, by - 4, 16, 10, 0xff8800);
-    this.birdEye  = this.scene.add.arc(bx + 6, by - 4, 4, 0, 360, false, 0x000000);
-    // Beak
-    this.scene.add.triangle(bx + 12, by, 0, -3, 0, 3, 10, 0, 0xff6600);
+    // Broomstick
+    this.wizBroom = this.scene.add.rectangle(bx - 4, by + 10, 36, 5, BROOM_WOOD).setDepth(4);
+
+    // Robe / body
+    this.wizBody = this.scene.add.rectangle(bx, by, 10, 22, WIZARD_ROBE).setDepth(5);
+
+    // Head
+    this.wizHead = this.scene.add.arc(bx, by - 16, 8, 0, 360, false, 0xf4c48a).setDepth(5);
+
+    // Hat (triangle)
+    this.wizHat = this.scene.add.triangle(
+      bx, by - 28,
+      -8, 8,
+      8,  8,
+      0, -18,
+      WIZARD_HAT
+    ).setDepth(5);
   }
 
   private buildHUD(): void {
@@ -128,73 +162,42 @@ export class FlapFortuneUI {
 
     this.multiplierText = this.scene.add
       .text(16, 16, 'x1.00', {
-        fontFamily: 'monospace',
-        fontSize: '22px',
-        color: GOLD_STR,
-        stroke: '#000000',
-        strokeThickness: 3,
+        fontFamily: 'monospace', fontSize: '22px', color: GOLD_STR,
+        stroke: '#000000', strokeThickness: 3,
       }).setDepth(10);
 
-    this.pipesText = this.scene.add
-      .text(16, 46, 'PIPES: 0', {
-        fontFamily: 'monospace',
-        fontSize: '13px',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 2,
-      }).setDepth(10);
-
-    this.distanceText = this.scene.add
-      .text(16, 66, 'DIST: 0', {
-        fontFamily: 'monospace',
-        fontSize: '11px',
-        color: '#cccccc',
-        stroke: '#000000',
-        strokeThickness: 2,
+    this.gatesText = this.scene.add
+      .text(16, 46, 'GATES: 0', {
+        fontFamily: 'monospace', fontSize: '13px', color: '#ddccaa',
+        stroke: '#000000', strokeThickness: 2,
       }).setDepth(10);
 
     this.statusText = this.scene.add
-      .text(worldWidth / 2, worldHeight * 0.4, '', {
-        fontFamily: 'monospace',
-        fontSize: '22px',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 4,
-        align: 'center',
+      .text(worldWidth / 2, worldHeight * 0.38, '', {
+        fontFamily: 'monospace', fontSize: '22px', color: '#ffffff',
+        stroke: '#000000', strokeThickness: 4, align: 'center',
       })
-      .setOrigin(0.5)
-      .setDepth(10);
+      .setOrigin(0.5).setDepth(10);
 
     this.cashOutButton = this.scene.add
       .rectangle(worldWidth - 70, 30, 124, 44, GOLD)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(10)
+      .setInteractive({ useHandCursor: true }).setDepth(10)
       .on('pointerdown', () => this.handleCashOut());
 
     this.cashOutLabel = this.scene.add
       .text(worldWidth - 70, 30, 'CASH OUT', {
-        fontFamily: 'monospace',
-        fontSize: '11px',
-        color: '#0d0d0d',
+        fontFamily: 'monospace', fontSize: '11px', color: '#0d0d0d',
       })
-      .setOrigin(0.5)
-      .setDepth(10);
+      .setOrigin(0.5).setDepth(10);
 
     this.homeButton = this.scene.add
       .text(worldWidth / 2, worldHeight - 16, '[ HOME ]', {
-        fontFamily: 'monospace',
-        fontSize: '11px',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 2,
+        fontFamily: 'monospace', fontSize: '11px', color: '#888866',
+        stroke: '#000000', strokeThickness: 2,
       })
-      .setOrigin(0.5)
-      .setDepth(10)
+      .setOrigin(0.5).setDepth(10)
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => {
-        this.cleanup();
-        this.scene.scene.start('HomeScene');
-      });
+      .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
   }
 
   private registerInput(): void {
@@ -211,13 +214,13 @@ export class FlapFortuneUI {
 
     if (this.state.isAlive && !this.state.cashedOut) {
       tickFlapFortune(this.state, this.isFlapping, this.config);
-      this.isFlapping = false;
-      this.groundScrollX = (this.groundScrollX + (this.config.scrollSpeed ?? 3)) % (this.config.worldWidth);
+      this.isFlapping   = false;
+      this.groundScrollX = (this.groundScrollX + (this.config.scrollSpeed ?? 3)) % this.config.worldWidth;
     }
 
     this.renderBackground();
-    this.renderPipes();
-    this.renderBird();
+    this.renderGates();
+    this.renderWizard();
     this.updateHUD();
 
     if (!this.state.isAlive) {
@@ -226,7 +229,7 @@ export class FlapFortuneUI {
       if (this.state.combusted) {
         this.triggerCombustion();
       } else {
-        this.statusText?.setText('GAME OVER\nFLAP HARDER!').setColor('#ff4444');
+        this.statusText?.setText('GATE CRASHED!\nFLY HIGHER').setColor('#ff4444');
         this.scene.time.delayedCall(600, () => this.showPlayAgain());
       }
     }
@@ -237,115 +240,206 @@ export class FlapFortuneUI {
   private renderBackground(): void {
     const { worldWidth, worldHeight } = this.config;
     if (!this.bgGraphics) return;
+    const t = this.scene.time.now / 1000;
 
     this.bgGraphics.clear();
 
-    // Sky gradient
+    // Twilight sky
     this.bgGraphics.fillGradientStyle(SKY_TOP, SKY_TOP, SKY_BOT, SKY_BOT, 1);
-    this.bgGraphics.fillRect(0, 0, worldWidth, worldHeight * 0.85);
+    this.bgGraphics.fillRect(0, 0, worldWidth, worldHeight);
 
-    // Clouds
-    for (const cloud of this.clouds) {
-      cloud.x -= 0.4;
-      if (cloud.x < -cloud.w) cloud.x = worldWidth + cloud.w;
-      this.drawCloud(cloud.x, cloud.y, cloud.w);
+    // Moon
+    this.bgGraphics.fillStyle(MOON_COL, 0.9);
+    this.bgGraphics.fillCircle(worldWidth * 0.75, worldHeight * 0.12, 28);
+    this.bgGraphics.fillStyle(SKY_TOP, 0.6); // crescent shadow
+    this.bgGraphics.fillCircle(worldWidth * 0.75 + 10, worldHeight * 0.12 - 4, 24);
+
+    // Stars twinkle
+    for (const star of this.stars) {
+      const alpha = 0.3 + 0.5 * Math.sin(star.phase + t * 0.9);
+      this.bgGraphics.fillStyle(0xffffff, alpha);
+      this.bgGraphics.fillCircle(star.x, star.y, star.r);
     }
 
-    // Hills (rolling landscape)
-    this.bgGraphics.fillStyle(0x4a8a28, 0.7);
-    const hillY = worldHeight * 0.78;
-    for (let hx = -this.groundScrollX * 0.3; hx < worldWidth + 120; hx += 160) {
-      this.bgGraphics.fillEllipse(hx, hillY, 180, 80);
-    }
-    for (let hx = -this.groundScrollX * 0.2 + 80; hx < worldWidth + 120; hx += 200) {
-      this.bgGraphics.fillEllipse(hx, hillY + 10, 140, 60);
+    // Distant castle silhouettes
+    this.bgGraphics.fillStyle(0x110d1a, 1);
+    for (const tower of this.castleTowers) {
+      const scrolledX = ((tower.x - this.groundScrollX * 0.15) % worldWidth + worldWidth) % worldWidth;
+      const towerW = 28;
+      const groundY = worldHeight * 0.75;
+      // Tower body
+      this.bgGraphics.fillRect(scrolledX, groundY - tower.h, towerW, tower.h);
+      // Battlements (3 merlons)
+      const merW = 8;
+      for (let m = 0; m < 3; m++) {
+        this.bgGraphics.fillRect(scrolledX + m * 10, groundY - tower.h - 10, merW, 10);
+      }
+      // Window slit
+      this.bgGraphics.fillStyle(0xffcc44, 0.3);
+      this.bgGraphics.fillRect(scrolledX + towerW / 2 - 2, groundY - tower.h * 0.5, 4, 8);
+      this.bgGraphics.fillStyle(0x110d1a, 1);
     }
 
-    // Ground strip
-    this.bgGraphics.fillStyle(GROUND_COL, 1);
+    // Ground — cobblestone
+    this.bgGraphics.fillStyle(STONE_DARK, 1);
     this.bgGraphics.fillRect(0, worldHeight * 0.85, worldWidth, worldHeight * 0.15);
-    this.bgGraphics.fillStyle(GRASS_COL, 1);
-    this.bgGraphics.fillRect(0, worldHeight * 0.85, worldWidth, 12);
+    this.bgGraphics.fillStyle(STONE_MID, 1);
+    this.bgGraphics.fillRect(0, worldHeight * 0.85, worldWidth, 8);
 
-    // Scrolling ground tiles
-    this.bgGraphics.fillStyle(0x6b3410, 1);
-    const tileW = 40;
-    const tileOffset = this.groundScrollX % tileW;
-    for (let gx = -tileOffset; gx < worldWidth; gx += tileW) {
-      this.bgGraphics.fillRect(gx, worldHeight * 0.85 + 14, tileW - 2, 20);
+    // Scrolling cobblestone tiles
+    const tileW = 36;
+    const tileOff = this.groundScrollX % tileW;
+    this.bgGraphics.fillStyle(STONE_LIGHT, 0.25);
+    for (let gx = -tileOff; gx < worldWidth; gx += tileW) {
+      this.bgGraphics.fillRect(gx, worldHeight * 0.85 + 10, tileW - 2, 14);
+      this.bgGraphics.fillRect(gx + tileW / 2, worldHeight * 0.85 + 26, tileW - 2, 14);
+    }
+
+    // Torches
+    for (const torch of this.torches) {
+      const flicker = 0.7 + 0.3 * Math.sin(torch.phase + t * 8);
+      // Bracket
+      this.bgGraphics.fillStyle(GATE_IRON, 1);
+      this.bgGraphics.fillRect(torch.x - 2, torch.y, 4, 12);
+      // Flame
+      this.bgGraphics.fillStyle(TORCH_ORANGE, flicker);
+      this.bgGraphics.fillTriangle(
+        torch.x - 5, torch.y,
+        torch.x + 5, torch.y,
+        torch.x,     torch.y - 14
+      );
+      this.bgGraphics.fillStyle(0xffee44, flicker * 0.8);
+      this.bgGraphics.fillTriangle(
+        torch.x - 3, torch.y,
+        torch.x + 3, torch.y,
+        torch.x,     torch.y - 9
+      );
+      // Glow
+      this.bgGraphics.fillStyle(TORCH_ORANGE, 0.08 * flicker);
+      this.bgGraphics.fillCircle(torch.x, torch.y - 4, 22);
     }
   }
 
-  private drawCloud(cx: number, cy: number, w: number): void {
-    if (!this.bgGraphics) return;
-    this.bgGraphics.fillStyle(CLOUD_COL, 0.9);
-    this.bgGraphics.fillEllipse(cx,           cy,      w,       w * 0.5);
-    this.bgGraphics.fillEllipse(cx - w * 0.3, cy + 6,  w * 0.7, w * 0.4);
-    this.bgGraphics.fillEllipse(cx + w * 0.3, cy + 6,  w * 0.6, w * 0.35);
-  }
-
-  private renderPipes(): void {
+  private renderGates(): void {
     if (!this.state) return;
     const { worldHeight } = this.config;
-    const pipeW = 30;
+    const gateW = 34;
+    const t = this.scene.time.now;
 
-    // Ensure enough graphics objects
-    while (this.pipeGraphics.length < this.state.pipes.length) {
-      this.pipeGraphics.push(this.scene.add.graphics());
+    while (this.gateGraphics.length < this.state.pipes.length) {
+      this.gateGraphics.push(this.scene.add.graphics().setDepth(6));
     }
 
-    for (let i = 0; i < this.pipeGraphics.length; i++) {
-      const g = this.pipeGraphics[i];
+    for (let i = 0; i < this.gateGraphics.length; i++) {
+      const g = this.gateGraphics[i];
       g.clear();
       if (i >= this.state.pipes.length) continue;
 
       const pipe = this.state.pipes[i];
 
-      // ── Top pipe ──────────────────────────────────────
-      // Pipe shaft
-      g.fillStyle(PIPE_GREEN, 1);
-      g.fillRect(pipe.x, 0, pipeW, pipe.topHeight - 8);
-      // Pipe cap
-      g.fillStyle(PIPE_DARK, 1);
-      g.fillRect(pipe.x - 3, pipe.topHeight - 16, pipeW + 6, 16);
-      // Highlight
-      g.fillStyle(PIPE_LIGHT, 0.5);
-      g.fillRect(pipe.x + 3, 0, 5, pipe.topHeight - 8);
+      // ── Top portcullis ─────────────────────────────────────────────────
+      this.drawPortcullis(g, pipe.x, 0, gateW, pipe.topHeight, true, t);
 
-      // ── Bottom pipe ────────────────────────────────────
+      // ── Bottom portcullis ──────────────────────────────────────────────
       const botY = worldHeight - pipe.bottomHeight;
-      g.fillStyle(PIPE_GREEN, 1);
-      g.fillRect(pipe.x, botY + 8, pipeW, pipe.bottomHeight);
-      g.fillStyle(PIPE_DARK, 1);
-      g.fillRect(pipe.x - 3, botY, pipeW + 6, 16);
-      g.fillStyle(PIPE_LIGHT, 0.5);
-      g.fillRect(pipe.x + 3, botY + 8, 5, pipe.bottomHeight);
+      this.drawPortcullis(g, pipe.x, botY, gateW, pipe.bottomHeight, false, t);
     }
   }
 
-  private renderBird(): void {
-    if (!this.state || !this.birdBody || !this.birdWing || !this.birdEye) return;
+  private drawPortcullis(
+    g: Phaser.GameObjects.Graphics,
+    x: number, y: number,
+    w: number, h: number,
+    isTop: boolean,
+    _t: number
+  ): void {
+    if (h < 4) return;
 
-    const by = this.state.playerY;
-    const tilt = Phaser.Math.Clamp(this.state.playerVelocityY * 3, -30, 45);
+    // Stone wall behind gate
+    g.fillStyle(STONE_DARK, 1);
+    g.fillRect(x, y, w, h);
 
-    this.birdBody.setPosition(80, by);
-    this.birdEye.setPosition(86, by - 4);
+    // Stone texture blocks
+    g.fillStyle(STONE_MID, 0.6);
+    const blockH = 18;
+    for (let by2 = y; by2 < y + h; by2 += blockH) {
+      const offset = ((by2 / blockH) % 2 === 0) ? 0 : w / 2;
+      g.fillRect(x + offset,       by2, w / 2 - 1, blockH - 1);
+      g.fillRect(x + offset + w / 2, by2, w / 2 - 1, blockH - 1);
+    }
 
-    // Animated wing flap
-    this.wingAngle = Math.sin(this.scene.time.now / 80) * 20;
-    this.birdWing.setPosition(74, by - 4 + Math.sin(this.scene.time.now / 80) * 4);
-    this.birdWing.setAngle(this.wingAngle);
+    // Iron gate bars (vertical)
+    const barCount = 4;
+    const barSpacing = w / (barCount + 1);
+    g.fillStyle(GATE_BAR, 1);
+    for (let b = 1; b <= barCount; b++) {
+      g.fillRect(x + barSpacing * b - 2, y, 4, h);
+    }
 
-    this.birdBody.setAngle(tilt);
-    this.birdEye.setAngle(tilt);
+    // Horizontal cross-bars
+    g.lineStyle(3, GATE_RUST, 0.8);
+    const crossCount = Math.max(1, Math.floor(h / 28));
+    for (let c = 1; c <= crossCount; c++) {
+      const crossY = isTop ? y + h - (c * h / (crossCount + 1)) : y + (c * h / (crossCount + 1));
+      g.beginPath();
+      g.moveTo(x, crossY);
+      g.lineTo(x + w, crossY);
+      g.strokePath();
+    }
+
+    // Gate cap / arch at the gap edge
+    const capH  = 14;
+    const toothW = 7;
+    g.fillStyle(STONE_LIGHT, 1);
+    if (isTop) {
+      g.fillRect(x - 4, y + h - capH, w + 8, capH);
+      // Pointed arch teeth
+      for (let tx = x - 4; tx < x + w + 4; tx += toothW * 2) {
+        g.fillTriangle(tx, y + h, tx + toothW / 2, y + h - 10, tx + toothW, y + h);
+      }
+    } else {
+      g.fillRect(x - 4, y, w + 8, capH);
+      // Upward teeth
+      for (let tx = x - 4; tx < x + w + 4; tx += toothW * 2) {
+        g.fillTriangle(tx, y + capH, tx + toothW / 2, y + capH + 10, tx + toothW, y + capH);
+      }
+    }
+
+    // Torchlight glow on gate edge
+    const glowY = isTop ? y + h : y;
+    g.fillStyle(TORCH_ORANGE, 0.07);
+    g.fillRect(x - 2, glowY - 8, w + 4, 16);
+  }
+
+  private renderWizard(): void {
+    if (!this.state || !this.wizBody || !this.wizHead || !this.wizHat || !this.wizBroom) return;
+
+    const by   = this.state.playerY;
+    const tilt = Phaser.Math.Clamp(this.state.playerVelocityY * 2.5, -25, 40);
+    const t    = this.scene.time.now;
+
+    // Broomstick wobble
+    this.wizBroom.setPosition(76, by + 10).setAngle(tilt * 0.6);
+
+    // Body
+    this.wizBody.setPosition(80, by).setAngle(tilt);
+
+    // Head
+    this.wizHead.setPosition(80, by - 16).setAngle(tilt);
+
+    // Hat bobs slightly
+    const hatBob = Math.sin(t / 180) * 1.5;
+    this.wizHat.setPosition(80, by - 28 + hatBob).setAngle(tilt);
+
+    // Robe colour pulses slightly with magic glow
+    const glow = Math.floor(0x4a + Math.sin(t / 300) * 0x10);
+    this.wizBody.fillColor = (glow << 16) | 0x0a8a;
   }
 
   private updateHUD(): void {
     if (!this.state) return;
     this.multiplierText?.setText(`x${this.state.multiplier.toFixed(2)}`);
-    this.pipesText?.setText(`PIPES: ${this.state.pipesCleared}`);
-    this.distanceText?.setText(`DIST: ${Math.floor(this.state.distanceTravelled)}`);
+    this.gatesText?.setText(`GATES: ${this.state.pipesCleared}`);
   }
 
   // ─── Actions ──────────────────────────────────────────────────────────────
@@ -363,8 +457,7 @@ export class FlapFortuneUI {
     const { worldWidth, worldHeight } = this.config;
     const btn = this.scene.add
       .rectangle(worldWidth / 2, worldHeight * 0.55, 180, 50, GOLD)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(20);
+      .setInteractive({ useHandCursor: true }).setDepth(20);
     this.scene.add
       .text(worldWidth / 2, worldHeight * 0.55, 'PLAY AGAIN', {
         fontFamily: 'monospace', fontSize: '14px', color: '#0d0d0d',
@@ -378,7 +471,7 @@ export class FlapFortuneUI {
     const by = this.state?.playerY ?? this.config.worldHeight / 2;
 
     for (let ring = 0; ring < 3; ring++) {
-      const circle = this.scene.add.arc(bx, by, 10, 0, 360, false, 0xff6600, 0.9);
+      const circle = this.scene.add.arc(bx, by, 10, 0, 360, false, 0xff6600, 0.9).setDepth(8);
       this.scene.tweens.add({
         targets: circle,
         scaleX: (ring + 1) * 4,
@@ -390,10 +483,10 @@ export class FlapFortuneUI {
       });
     }
 
-    if (this.birdBody) this.birdBody.fillColor = 0xff4400;
+    if (this.wizBody) this.wizBody.fillColor = 0xff4400;
 
     this.scene.time.delayedCall(250, () => {
-      this.statusText?.setText('COMBUSTION!\nWINGS FAILED').setColor('#ff6600');
+      this.statusText?.setText('SPELL BACKFIRED!\nBROOM FAILED').setColor('#ff6600');
       this.scene.time.delayedCall(600, () => this.showPlayAgain());
     });
   }

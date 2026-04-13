@@ -37,10 +37,10 @@ const CARDS: GameCard[] = [
   {
     key: 'FlapFortuneScene',
     title: 'FLAP FORTUNE',
-    subtitle: 'Flap through the pipes.\nDistance = multiplier.',
-    color: 0x0d1a0d,
-    accentStr: '#44cc44',
-    emoji: '🐦',
+    subtitle: 'Fly the wizard through gates.\nDistance = multiplier.',
+    color: 0x1a0a2e,
+    accentStr: '#c9a84c',
+    emoji: '🧙',
   },
 ];
 
