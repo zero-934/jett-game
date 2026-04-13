@@ -109,12 +109,28 @@ export class HomeScene extends Phaser.Scene {
         accentStr: GOLD_STR,
         drawIcon: (scene, x, y) => scene.drawWizardCard(x, y),
       },
+      {
+        key: 'DiceScene',
+        title: 'DICE',
+        subtitle: 'Pick 2×, 5×, or 10× odds.\nRoll and win instantly.',
+        accent: 0xff6644,
+        accentStr: '#ff6644',
+        drawIcon: (scene, x, y) => scene.drawDiceCard(x, y),
+      },
+      {
+        key: 'MinesScene',
+        title: 'MINES',
+        subtitle: 'Reveal safe tiles on a 5×5 grid.\nOne wrong click ends it all.',
+        accent: 0x44ffaa,
+        accentStr: '#44ffaa',
+        drawIcon: (scene, x, y) => scene.drawMinesCard(x, y),
+      },
     ];
 
-    const cardH      = 130;
+    const cardH      = 112;
     const cardW      = width * 0.9;
-    const firstCardY = height * 0.285;
-    const gap        = 14;
+    const firstCardY = height * 0.255;
+    const gap        = 10;
 
     cards.forEach((card, i) => {
       this.buildCard(width / 2, firstCardY + i * (cardH + gap), cardW, cardH, card);
@@ -388,6 +404,55 @@ export class HomeScene extends Phaser.Scene {
     g.fillCircle(cx - 25, cy - 8, 1.5);
     g.fillCircle(cx - 27, cy - 2, 1);
     g.fillCircle(cx - 23, cy - 12, 1);
+  }
+
+  /** Dice icon — three dice faces */
+  drawDiceCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    const s = 0.9;
+    const drawDie = (x: number, y: number, val: number) => {
+      g.fillStyle(0x1a0808, 1);
+      g.fillRoundedRect(x - 14 * s, y - 14 * s, 28 * s, 28 * s, 5 * s);
+      g.lineStyle(1.5, 0xff6644, 0.8);
+      g.strokeRoundedRect(x - 14 * s, y - 14 * s, 28 * s, 28 * s, 5 * s);
+      g.fillStyle(0xff6644, 1);
+      const dots: [number, number][] = [];
+      if (val >= 1) dots.push([0, 0]);
+      if (val >= 2) { dots.push([-6 * s, -6 * s]); dots.push([6 * s, 6 * s]); }
+      if (val >= 4) { dots.push([6 * s, -6 * s]); dots.push([-6 * s, 6 * s]); }
+      if (val === 6) { dots.push([-6 * s, 0]); dots.push([6 * s, 0]); }
+      for (const [dx, dy] of dots) g.fillCircle(x + dx, y + dy, 3 * s);
+    };
+    drawDie(cx - 22, cy, 6);
+    drawDie(cx,      cy - 8, 4);
+    drawDie(cx + 22, cy + 6, 2);
+  }
+
+  /** Mines icon — grid with a bomb */
+  drawMinesCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    const s = 0.85;
+    // Mini 3×3 grid
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        const tx = cx - 20 * s + c * 20 * s;
+        const ty = cy - 20 * s + r * 20 * s;
+        const isBomb = r === 1 && c === 1;
+        g.fillStyle(isBomb ? 0x1a0808 : 0x080818, 1);
+        g.fillRoundedRect(tx - 8 * s, ty - 8 * s, 16 * s, 16 * s, 3 * s);
+        g.lineStyle(1, isBomb ? 0x44ffaa : 0x44ffaa, isBomb ? 0.9 : 0.25);
+        g.strokeRoundedRect(tx - 8 * s, ty - 8 * s, 16 * s, 16 * s, 3 * s);
+        if (isBomb) {
+          // Draw bomb circle
+          g.fillStyle(0x44ffaa, 0.8);
+          g.fillCircle(tx, ty, 5 * s);
+          // Fuse
+          g.lineStyle(1.5, 0x44ffaa, 0.9);
+          g.beginPath(); g.moveTo(tx, ty - 5 * s); g.lineTo(tx + 4 * s, ty - 9 * s); g.strokePath();
+          g.fillCircle(tx + 4 * s, ty - 9 * s, 2 * s);
+        }
+      }
+    }
   }
 
   // ─── Scrolling ticker ────────────────────────────────────────────────────
