@@ -118,11 +118,19 @@ export function tickFlapFortune(
   state.playerY         += state.playerVelocityY;
   state.distanceTravelled += scrollSpeed;
 
-  // Boundary
+  // Boundary — top = death, bottom = cash out
   const halfH = state.playerHeight / 2;
-  if (state.playerY < halfH || state.playerY > config.worldHeight - halfH) {
+  if (state.playerY < halfH) {
+    // Hit ceiling — crash, no payout
     state.isAlive = false;
     state.payout  = 0;
+    return state;
+  }
+  if (state.playerY > config.worldHeight - halfH) {
+    // Flew out the bottom — cash out with current multiplier
+    state.isAlive   = false;
+    state.cashedOut = true;
+    state.payout    = parseFloat((state.bet * state.multiplier).toFixed(2));
     return state;
   }
 

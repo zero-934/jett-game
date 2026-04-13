@@ -9,7 +9,7 @@
 
 import * as Phaser from 'phaser';
 import type { FlapFortuneConfig } from './FlapFortuneLogic';
-import { createFlapFortuneState, tickFlapFortune, cashOutFlapFortune } from './FlapFortuneLogic';
+import { createFlapFortuneState, tickFlapFortune } from './FlapFortuneLogic';
 
 const GOLD     = 0xc9a84c;
 const GOLD_STR = '#c9a84c';
@@ -54,8 +54,8 @@ export class FlapFortuneUI {
   private multiplierText: Phaser.GameObjects.Text      | null = null;
   private gatesText:      Phaser.GameObjects.Text      | null = null;
   private statusText:     Phaser.GameObjects.Text      | null = null;
-  private cashOutButton:  Phaser.GameObjects.Rectangle | null = null;
-  private cashOutLabel:   Phaser.GameObjects.Text      | null = null;
+  private exitStrip:      Phaser.GameObjects.Graphics  | null = null;
+  private exitLabel:      Phaser.GameObjects.Text      | null = null;
   private homeButton:     Phaser.GameObjects.Text      | null = null;
 
   private isFlapping = false;
@@ -94,8 +94,8 @@ export class FlapFortuneUI {
     this.multiplierText?.destroy();
     this.gatesText?.destroy();
     this.statusText?.destroy();
-    this.cashOutButton?.destroy();
-    this.cashOutLabel?.destroy();
+    this.exitStrip?.destroy();
+    this.exitLabel?.destroy();
     this.homeButton?.destroy();
     this.state = null;
   }
@@ -179,23 +179,30 @@ export class FlapFortuneUI {
       })
       .setOrigin(0.5).setDepth(10);
 
-    this.cashOutButton = this.scene.add
-      .rectangle(worldWidth - 70, 30, 124, 44, GOLD)
-      .setInteractive({ useHandCursor: true }).setDepth(10)
-      .on('pointerdown', () => this.handleCashOut());
+    // Gold exit strip at the bottom — fly down here to cash out
+    this.exitStrip = this.scene.add.graphics().setDepth(9);
+    this.exitStrip.fillStyle(GOLD, 0.18);
+    this.exitStrip.fillRect(0, worldHeight - 32, worldWidth, 32);
+    this.exitStrip.lineStyle(2, GOLD, 0.7);
+    this.exitStrip.beginPath();
+    this.exitStrip.moveTo(0, worldHeight - 32);
+    this.exitStrip.lineTo(worldWidth, worldHeight - 32);
+    this.exitStrip.strokePath();
 
-    this.cashOutLabel = this.scene.add
-      .text(worldWidth - 70, 30, 'CASH OUT', {
-        fontFamily: 'monospace', fontSize: '11px', color: '#0d0d0d',
+    // Dashed arrow indicators pointing down
+    this.exitLabel = this.scene.add
+      .text(worldWidth / 2, worldHeight - 16, '▼  DIVE TO CASH OUT  ▼', {
+        fontFamily: 'monospace', fontSize: '11px', color: '#c9a84c',
+        stroke: '#000000', strokeThickness: 2,
       })
       .setOrigin(0.5).setDepth(10);
 
     this.homeButton = this.scene.add
-      .text(worldWidth / 2, worldHeight - 16, '[ HOME ]', {
-        fontFamily: 'monospace', fontSize: '11px', color: '#888866',
+      .text(worldWidth - 16, worldHeight - 16, '[ HOME ]', {
+        fontFamily: 'monospace', fontSize: '10px', color: '#666644',
         stroke: '#000000', strokeThickness: 2,
       })
-      .setOrigin(0.5).setDepth(10)
+      .setOrigin(1, 0.5).setDepth(10)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
   }
@@ -226,7 +233,11 @@ export class FlapFortuneUI {
     if (!this.state.isAlive) {
       this.tickTimer?.remove();
       this.tickTimer = null;
-      if (this.state.combusted) {
+      if (this.state.cashedOut) {
+        // Flew out the bottom — successful escape
+        this.statusText?.setText(`ESCAPED!\n${this.state.payout.toFixed(2)} credits`).setColor(GOLD_STR);
+        this.scene.time.delayedCall(600, () => this.showPlayAgain());
+      } else if (this.state.combusted) {
         this.triggerCombustion();
       } else {
         this.statusText?.setText('GATE CRASHED!\nFLY HIGHER').setColor('#ff4444');
@@ -443,15 +454,6 @@ export class FlapFortuneUI {
   }
 
   // ─── Actions ──────────────────────────────────────────────────────────────
-
-  private handleCashOut(): void {
-    if (!this.state) return;
-    const payout = cashOutFlapFortune(this.state);
-    this.tickTimer?.remove();
-    this.tickTimer = null;
-    this.statusText?.setText(`PAID OUT\n${payout.toFixed(2)} credits`).setColor(GOLD_STR);
-    this.scene.time.delayedCall(600, () => this.showPlayAgain());
-  }
 
   private showPlayAgain(): void {
     const { worldWidth, worldHeight } = this.config;

@@ -27,7 +27,7 @@ export class FlapFortuneScene extends Phaser.Scene {
       gravity: 0.45,
       flapStrength: -7.5,
       pipeSpacing: 230,
-      pipeGapHeight: 135,
+      pipeGapHeight: 158,
       scrollSpeed: 3,
       houseEdge: 0.03,
       combustionChancePerTick: 0.0003,
