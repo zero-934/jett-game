@@ -170,7 +170,12 @@ export function tickJett(
   }
 
   // Combustion (house edge mechanic)
-  const scaledChance = combustionChance * (1 + state.altitude / 4000);
+  // Base rate = 0.0005 (0.05% per frame = ~1 in 2000) — noticeable but not frustrating.
+  // Scales up with altitude so higher multipliers carry real risk.
+  // This ensures: (a) house edge is always present, (b) occasional instant failures
+  // create psychological tension from frame 1, (c) no multiplier ever feels "safe".
+  const BASE_COMBUSTION = 0.0005;
+  const scaledChance = Math.max(BASE_COMBUSTION, combustionChance * (1 + state.altitude / 4000));
   if (rng() < scaledChance) {
     state.isAlive   = false;
     state.combusted = true;
