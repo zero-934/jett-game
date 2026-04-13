@@ -12,7 +12,6 @@ import * as Phaser from 'phaser';
 const CORRECT_PASSWORD = '9340';
 const STORAGE_KEY      = 'jg_auth';
 const SESSION_KEY      = 'jg_auth_time';
-const SESSION_TTL_MS   = 1000 * 60 * 60 * 8; // 8 hours
 const GOLD             = 0xc9a84c;
 const GOLD_STR         = '#c9a84c';
 
@@ -25,17 +24,15 @@ export class LockScene extends Phaser.Scene {
   constructor() { super({ key: 'LockScene' }); }
 
   create(): void {
-    // If already authed recently, skip straight to home
-    const authed = localStorage.getItem(STORAGE_KEY) === 'ok';
-    const authTime = parseInt(localStorage.getItem(SESSION_KEY) ?? '0', 10);
-    const expired = Date.now() - authTime > SESSION_TTL_MS;
-    if (authed && !expired) {
+    // Use sessionStorage — resets every time the tab/browser is closed
+    // Also clear any old localStorage auth that may be lingering
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(SESSION_KEY);
+
+    if (sessionStorage.getItem(STORAGE_KEY) === 'ok') {
       this.scene.start('HomeScene');
       return;
     }
-    // Clear any stale auth
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(SESSION_KEY);
 
     const { width, height } = this.scale;
 
@@ -192,8 +189,7 @@ export class LockScene extends Phaser.Scene {
 
   private submit(): void {
     if (this.inputCode === CORRECT_PASSWORD) {
-      localStorage.setItem(STORAGE_KEY, 'ok');
-      localStorage.setItem(SESSION_KEY, Date.now().toString());
+      sessionStorage.setItem(STORAGE_KEY, 'ok');
       // Flash gold then go
       this.cameras.main.flash(300, 201, 168, 76);
       this.time.delayedCall(320, () => this.scene.start('HomeScene'));
