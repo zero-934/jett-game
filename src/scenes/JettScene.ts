@@ -28,8 +28,6 @@ export class JettScene extends Phaser.Scene {
       worldWidth: width,
       screenHeight: height,
       houseEdge: 0.03,
-      obstacleSpacing: 200,
-      obstacleGapWidth: 150,
       combustionChancePerTick: 0.0004,
     });
 
