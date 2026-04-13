@@ -1,7 +1,7 @@
 /**
  * @file HomeScene.ts
- * @purpose Home screen — bold bubble font, drawn icons (jetpack, glass tile, wizard),
- *          scrolling ticker banner, futuristic clean layout.
+ * @purpose Home screen — crypto casino inspired, clean dark UI, large bold icons,
+ *          Fredoka One bubble font, scrolling ticker.
  * @author Agent 934
  * @date 2026-04-12
  * @license Proprietary – available for licensing
@@ -9,448 +9,437 @@
 
 import * as Phaser from 'phaser';
 
-const GOLD       = 0xc9a84c;
-const GOLD_STR   = '#c9a84c';
-const ICE_STR    = '#88ccff';
-const ICE        = 0x88ccff;
-const WHITE_STR  = '#ffffff';
-const DIM_STR    = '#444455';
-const DARK_BG    = 0x080810;
+const GOLD     = 0xc9a84c;
+const GOLD_STR = '#c9a84c';
+const ICE      = 0x7ec8e3;
+const ICE_STR  = '#7ec8e3';
 
 interface CardDef {
   key: string;
   title: string;
   subtitle: string;
-  accentColor: number;
+  accent: number;
   accentStr: string;
-  drawIcon: (g: Phaser.GameObjects.Graphics, cx: number, cy: number) => void;
+  drawIcon: (scene: HomeScene, x: number, y: number) => void;
 }
 
 export class HomeScene extends Phaser.Scene {
-  private bannerGroup: Phaser.GameObjects.Container | null = null;
-  private bannerItems: Phaser.GameObjects.Text[] = [];
-
-
-  constructor() {
-    super({ key: 'HomeScene' });
-  }
+  constructor() { super({ key: 'HomeScene' }); }
 
   create(): void {
     const { width, height } = this.scale;
 
-    // ── Background ──────────────────────────────────────────────────────────
-    this.add.rectangle(width / 2, height / 2, width, height, 0x000000);
+    // ── Deep background ────────────────────────────────────────────────────
+    this.add.rectangle(width / 2, height / 2, width, height, 0x050508);
 
-    // Grid
+    // Subtle noise grid
     const grid = this.add.graphics();
-    grid.lineStyle(0.4, 0x111120, 1);
-    for (let x = 0; x <= width; x += 44) {
+    grid.lineStyle(0.3, 0x0d0d1a, 1);
+    for (let x = 0; x <= width; x += 40) {
       grid.beginPath(); grid.moveTo(x, 0); grid.lineTo(x, height); grid.strokePath();
     }
-    for (let y = 0; y <= height; y += 44) {
+    for (let y = 0; y <= height; y += 40) {
       grid.beginPath(); grid.moveTo(0, y); grid.lineTo(width, y); grid.strokePath();
     }
 
-    // Top gold glow bar
+    // Gold top accent bar
     const topBar = this.add.graphics();
     topBar.fillStyle(GOLD, 1);
     topBar.fillRect(0, 0, width, 3);
-    topBar.fillStyle(GOLD, 0.07);
-    topBar.fillRect(0, 0, width, 30);
+    topBar.fillGradientStyle(GOLD, GOLD, 0x050508, 0x050508, 0.15, 0.15, 0, 0);
+    topBar.fillRect(0, 3, width, 36);
 
-    // ── Logo ────────────────────────────────────────────────────────────────
-    // Jetpack icon (drawn)
-    const logoIcon = this.add.graphics();
-    this.drawJetpackIcon(logoIcon, width / 2 - 80, height * 0.09, 38);
+    // ── Logo ───────────────────────────────────────────────────────────────
+    const logoY = height * 0.1;
 
-    // JETT.GAME wordmark
-    this.add.text(width / 2 - 30, height * 0.068, 'JETT', {
-      fontFamily: '"Fredoka One", monospace',
-      fontSize: '52px',
+    // Jetpack glyph left of wordmark
+    this.drawLargeJetpack(width / 2 - 72, logoY);
+
+    this.add.text(width / 2 - 42, logoY - 18, 'JETT', {
+      fontFamily: '"Fredoka One", sans-serif',
+      fontSize: '54px',
       color: GOLD_STR,
-    }).setOrigin(0, 0.5);
+    }).setOrigin(0, 0);
 
-    this.add.text(width / 2 - 30, height * 0.123, '.GAME', {
-      fontFamily: '"Fredoka One", monospace',
-      fontSize: '22px',
-      color: WHITE_STR,
-    }).setOrigin(0, 0.5);
+    this.add.text(width / 2 - 40, logoY + 38, '.GAME', {
+      fontFamily: '"Fredoka One", sans-serif',
+      fontSize: '20px',
+      color: '#cccccc',
+    }).setOrigin(0, 0);
 
     // Tagline
-    this.add.text(width / 2, height * 0.175, 'SKILL · STRATEGY · REWARD', {
-      fontFamily: '"Fredoka", monospace',
-      fontSize: '11px',
-      color: DIM_STR,
+    this.add.text(width / 2, height * 0.195, 'SKILL  ·  STRATEGY  ·  REWARD', {
+      fontFamily: '"Fredoka", sans-serif',
+      fontSize: '12px',
+      color: '#383848',
       letterSpacing: 3,
     }).setOrigin(0.5);
 
-    // Divider
+    // Thin divider
     const div = this.add.graphics();
-    div.lineStyle(1, 0x1e1e30, 1);
+    div.lineStyle(1, 0x16161e, 1);
     div.beginPath();
-    div.moveTo(width * 0.1, height * 0.205);
-    div.lineTo(width * 0.9, height * 0.205);
+    div.moveTo(width * 0.08, height * 0.225);
+    div.lineTo(width * 0.92, height * 0.225);
     div.strokePath();
 
-    // ── Cards ────────────────────────────────────────────────────────────────
+    // ── Game Cards ─────────────────────────────────────────────────────────
     const cards: CardDef[] = [
       {
         key: 'JettScene',
         title: 'JETT',
-        subtitle: 'Dodge asteroids with your jetpack.\nHigher altitude = bigger reward.',
-        accentColor: GOLD,
+        subtitle: 'Dodge asteroids. Go higher.\nCash out before you combust.',
+        accent: GOLD,
         accentStr: GOLD_STR,
-        drawIcon: (g, cx, cy) => this.drawJetpackIcon(g, cx, cy, 22),
+        drawIcon: (scene, x, y) => scene.drawJetpackCard(x, y),
       },
       {
         key: 'ShatterStepScene',
         title: 'SHATTER STEP',
-        subtitle: 'Pick a tile. 50/50 odds.\nCash out before the glass breaks.',
-        accentColor: ICE,
+        subtitle: 'Pick left or right. 50/50.\nCash out before the glass breaks.',
+        accent: ICE,
         accentStr: ICE_STR,
-        drawIcon: (g, cx, cy) => this.drawShatterIcon(g, cx, cy, 22),
+        drawIcon: (scene, x, y) => scene.drawGlassTileCard(x, y),
       },
       {
         key: 'FlapFortuneScene',
         title: 'FLAP FORTUNE',
-        subtitle: 'Wizard through the gates.\nDive to collect your winnings.',
-        accentColor: GOLD,
+        subtitle: 'Fly the wizard through gates.\nDive down to collect your gold.',
+        accent: GOLD,
         accentStr: GOLD_STR,
-        drawIcon: (g, cx, cy) => this.drawWizardIcon(g, cx, cy, 22),
+        drawIcon: (scene, x, y) => scene.drawWizardCard(x, y),
       },
     ];
 
-    const cardH      = 132;
+    const cardH      = 130;
     const cardW      = width * 0.9;
-    const firstCardY = height * 0.295;
-    const spacing    = cardH + 13;
+    const firstCardY = height * 0.285;
+    const gap        = 14;
 
     cards.forEach((card, i) => {
-      this.buildCard(width / 2, firstCardY + i * spacing, cardW, cardH, card);
+      this.buildCard(width / 2, firstCardY + i * (cardH + gap), cardW, cardH, card);
     });
 
-    // ── Scrolling banner ─────────────────────────────────────────────────────
-    this.buildScrollingBanner(width, height);
+    // ── Scrolling ticker ───────────────────────────────────────────────────
+    this.buildTicker(width, height);
 
-    // ── Footer ───────────────────────────────────────────────────────────────
-    this.add.text(width / 2, height * 0.972, 'v0.1  prototype', {
-      fontFamily: '"Fredoka", monospace',
+    // Version
+    this.add.text(width / 2, height * 0.975, 'v0.1  prototype', {
+      fontFamily: '"Fredoka", sans-serif',
       fontSize: '10px',
-      color: '#222233',
+      color: '#1c1c28',
     }).setOrigin(0.5);
   }
 
-  // ─── Scrolling Banner ────────────────────────────────────────────────────
+  // ─── Card builder ─────────────────────────────────────────────────────────
 
-  private buildScrollingBanner(width: number, height: number): void {
-    const bannerY  = height * 0.932;
-    const bannerH  = 28;
-
-    // Banner background
-    const bannerBg = this.add.graphics();
-    bannerBg.fillStyle(GOLD, 0.1);
-    bannerBg.fillRect(0, bannerY - bannerH / 2, width, bannerH);
-    bannerBg.lineStyle(1, GOLD, 0.35);
-    bannerBg.beginPath();
-    bannerBg.moveTo(0, bannerY - bannerH / 2);
-    bannerBg.lineTo(width, bannerY - bannerH / 2);
-    bannerBg.strokePath();
-    bannerBg.beginPath();
-    bannerBg.moveTo(0, bannerY + bannerH / 2);
-    bannerBg.lineTo(width, bannerY + bannerH / 2);
-    bannerBg.strokePath();
-
-    // Mask so text clips at edges
-    const mask = this.add.graphics();
-    mask.fillStyle(0xffffff, 1);
-    mask.fillRect(0, bannerY - bannerH / 2, width, bannerH);
-    const geomMask = mask.createGeometryMask();
-
-    // Banner text — repeat to fill width
-    const message = '  ✦  JETT.GAME  —  WORLD\'S FIRST CRYPTO SKILL GAME  ';
-    this.bannerGroup = this.add.container(0, bannerY).setMask(geomMask);
-
-    let totalWidth = 0;
-    this.bannerItems = [];
-
-    for (let repeat = 0; repeat < 3; repeat++) {
-      const txt = this.add.text(totalWidth, 0, message, {
-        fontFamily: '"Fredoka One", monospace',
-        fontSize: '13px',
-        color: GOLD_STR,
-        letterSpacing: 1,
-      }).setOrigin(0, 0.5);
-
-      this.bannerGroup.add(txt);
-      this.bannerItems.push(txt);
-      totalWidth += txt.width;
-    }
-
-    // Animate scroll
-    this.time.addEvent({
-      delay: 16,
-      loop: true,
-      callback: () => {
-        if (!this.bannerGroup || !this.bannerItems.length) return;
-        const speed = 1.2;
-        for (const item of this.bannerItems) {
-          item.x -= speed;
-        }
-        // Recycle first item when it scrolls off-screen
-        const first = this.bannerItems[0];
-        const last  = this.bannerItems[this.bannerItems.length - 1];
-        if (first.x + first.width < 0) {
-          first.x = last.x + last.width;
-          this.bannerItems.push(this.bannerItems.shift()!);
-        }
-      },
-    });
-  }
-
-  // ─── Card ─────────────────────────────────────────────────────────────────
-
-  private buildCard(
-    cx: number, cy: number, w: number, h: number, card: CardDef
-  ): void {
+  private buildCard(cx: number, cy: number, w: number, h: number, card: CardDef): void {
     const x = cx - w / 2;
     const y = cy - h / 2;
-    const r = 12;
+    const r = 14;
 
     const bg = this.add.graphics();
-    this.drawCardBg(bg, cx, cy, w, h, card.accentColor, false);
+    this.paintCard(bg, cx, cy, w, h, card.accent, false);
 
-    const hit = this.add
-      .rectangle(cx, cy, w, h, 0x000000, 0)
-      .setInteractive({ useHandCursor: true });
+    this.add.rectangle(cx, cy, w, h, 0, 0)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => this.paintCard(bg, cx, cy, w, h, card.accent, true))
+      .on('pointerout',  () => this.paintCard(bg, cx, cy, w, h, card.accent, false))
+      .on('pointerdown', () => this.scene.start(card.key));
 
-    // Left accent bar
-    const bar = this.add.graphics();
-    bar.fillStyle(card.accentColor, 1);
-    bar.fillRect(x + 1, y + r, 3, h - r * 2);
+    // Left accent strip
+    const strip = this.add.graphics();
+    strip.fillStyle(card.accent, 1);
+    strip.fillRect(x + 1, y + r, 4, h - r * 2);
 
-    // Drawn icon
-    const iconG = this.add.graphics();
-    card.drawIcon(iconG, x + 36, cy);
+    // Icon area — right side, vertically centered
+    const iconX = cx + w / 2 - 52;
+    card.drawIcon(this, iconX, cy);
 
     // Title
-    this.add.text(x + 62, cy - 24, card.title, {
-      fontFamily: '"Fredoka One", monospace',
-      fontSize: '20px',
+    this.add.text(x + 22, cy - 26, card.title, {
+      fontFamily: '"Fredoka One", sans-serif',
+      fontSize: '22px',
       color: card.accentStr,
     }).setOrigin(0, 0.5);
 
     // Subtitle
-    this.add.text(x + 62, cy + 14, card.subtitle, {
-      fontFamily: '"Fredoka", monospace',
-      fontSize: '11px',
-      color: '#555566',
-      lineSpacing: 4,
+    this.add.text(x + 22, cy + 12, card.subtitle, {
+      fontFamily: '"Fredoka", sans-serif',
+      fontSize: '12px',
+      color: '#4a4a60',
+      lineSpacing: 5,
     }).setOrigin(0, 0.5);
 
     // Arrow
-    this.add.text(cx + w / 2 - 18, cy, '›', {
-      fontFamily: '"Fredoka One", monospace',
-      fontSize: '26px',
-      color: '#333344',
+    this.add.text(cx + w / 2 - 16, cy, '›', {
+      fontFamily: '"Fredoka One", sans-serif',
+      fontSize: '28px',
+      color: '#2a2a3a',
     }).setOrigin(0.5);
-
-    hit.on('pointerover', () => this.drawCardBg(bg, cx, cy, w, h, card.accentColor, true));
-    hit.on('pointerout',  () => this.drawCardBg(bg, cx, cy, w, h, card.accentColor, false));
-    hit.on('pointerdown', () => this.scene.start(card.key));
   }
 
-  private drawCardBg(
-    g: Phaser.GameObjects.Graphics,
-    cx: number, cy: number, w: number, h: number,
-    accent: number, hovered: boolean
-  ): void {
+  private paintCard(g: Phaser.GameObjects.Graphics, cx: number, cy: number, w: number, h: number, accent: number, hovered: boolean): void {
     g.clear();
-    const x = cx - w / 2;
-    const y = cy - h / 2;
-    g.fillStyle(hovered ? 0x0e0e1c : DARK_BG, 1);
-    g.fillRoundedRect(x, y, w, h, 12);
-    g.lineStyle(1, accent, hovered ? 0.45 : 0.1);
-    g.strokeRoundedRect(x, y, w, h, 12);
+    g.fillStyle(hovered ? 0x0c0c18 : 0x080812, 1);
+    g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 14);
+    g.lineStyle(1, accent, hovered ? 0.5 : 0.12);
+    g.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, 14);
     if (hovered) {
       g.fillStyle(accent, 0.04);
-      g.fillRoundedRect(x, y, w, h * 0.45, 12);
+      g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h * 0.5, 14);
     }
   }
 
   // ─── Icons ────────────────────────────────────────────────────────────────
 
-  /**
-   * Draws a clean jetpack + stick figure icon.
-   *
-   * @param g - Graphics object to draw on.
-   * @param cx - Center X.
-   * @param cy - Center Y.
-   * @param scale - Base scale unit.
-   */
-  private drawJetpackIcon(
-    g: Phaser.GameObjects.Graphics,
-    cx: number, cy: number,
-    scale: number = 22
-  ): void {
-    const s = scale / 22;
-    g.clear();
-
-    // Jetpack body (rounded rect behind figure)
-    g.fillStyle(0x4455aa, 1);
-    g.fillRoundedRect(cx + 4 * s, cy - 12 * s, 10 * s, 20 * s, 3 * s);
-
-    // Jetpack nozzle
-    g.fillStyle(0x8899cc, 1);
-    g.fillRect(cx + 6 * s, cy + 8 * s, 3 * s, 5 * s);
-    g.fillRect(cx + 11 * s, cy + 8 * s, 3 * s, 5 * s);
-
-    // Flame
-    g.fillStyle(GOLD, 0.9);
-    g.fillTriangle(
-      cx + 6 * s,  cy + 13 * s,
-      cx + 9 * s,  cy + 13 * s,
-      cx + 7.5 * s, cy + 20 * s
-    );
-    g.fillStyle(0xff6600, 0.8);
-    g.fillTriangle(
-      cx + 11 * s, cy + 13 * s,
-      cx + 14 * s, cy + 13 * s,
-      cx + 12.5 * s, cy + 20 * s
-    );
-
-    // Stick figure head
-    g.fillStyle(GOLD, 1);
-    g.fillCircle(cx, cy - 14 * s, 5 * s);
-
-    // Body
-    g.fillStyle(GOLD, 1);
-    g.fillRect(cx - 2 * s, cy - 9 * s, 4 * s, 14 * s);
-
-    // Arms
-    g.lineStyle(2 * s, GOLD, 1);
-    g.beginPath(); g.moveTo(cx - 2 * s, cy - 6 * s); g.lineTo(cx - 7 * s, cy - 2 * s); g.strokePath();
-    g.beginPath(); g.moveTo(cx + 2 * s, cy - 6 * s); g.lineTo(cx + 4 * s, cy - 2 * s); g.strokePath();
-
-    // Legs
-    g.beginPath(); g.moveTo(cx - 1 * s, cy + 5 * s); g.lineTo(cx - 5 * s, cy + 12 * s); g.strokePath();
-    g.beginPath(); g.moveTo(cx + 1 * s, cy + 5 * s); g.lineTo(cx + 4 * s, cy + 12 * s); g.strokePath();
+  /** Large jetpack glyph for the logo */
+  private drawLargeJetpack(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    const s = 1.6;
+    this.paintJetpack(g, cx, cy, s);
   }
 
-  /**
-   * Draws a glass tile with crack and stick figure holding a money bag.
-   *
-   * @param g - Graphics object to draw on.
-   * @param cx - Center X.
-   * @param cy - Center Y.
-   * @param scale - Base scale unit.
-   */
-  private drawShatterIcon(
-    g: Phaser.GameObjects.Graphics,
-    cx: number, cy: number,
-    scale: number = 22
-  ): void {
-    const s  = scale / 22;
-    const tw = 36 * s;
-    const th = 28 * s;
-    g.clear();
+  /** Jetpack icon for the Jett card */
+  drawJetpackCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    this.paintJetpack(g, cx, cy, 1.1);
+  }
 
-    // Glass tile
-    g.fillStyle(0x88ccee, 0.18);
-    g.fillRoundedRect(cx - tw / 2, cy - th / 2, tw, th, 4 * s);
-    g.lineStyle(1.5, 0xaaddff, 0.7);
-    g.strokeRoundedRect(cx - tw / 2, cy - th / 2, tw, th, 4 * s);
+  private paintJetpack(g: Phaser.GameObjects.Graphics, cx: number, cy: number, s: number): void {
+    // Main pack body
+    g.fillStyle(0x2a3a6a, 1);
+    g.fillRoundedRect(cx - 11 * s, cy - 18 * s, 22 * s, 30 * s, 5 * s);
 
-    // Shine
-    g.fillStyle(0xffffff, 0.18);
-    g.fillRoundedRect(cx - tw / 2 + 3 * s, cy - th / 2 + 2 * s, tw - 6 * s, th * 0.3, 2 * s);
+    // Pack highlight
+    g.fillStyle(0x4466aa, 0.6);
+    g.fillRoundedRect(cx - 8 * s, cy - 16 * s, 8 * s, 12 * s, 3 * s);
 
-    // Crack
-    g.lineStyle(1.2, 0xffffff, 0.85);
+    // Side boosters
+    g.fillStyle(0x1a2a50, 1);
+    g.fillRoundedRect(cx - 18 * s, cy - 10 * s, 8 * s, 20 * s, 3 * s);
+    g.fillRoundedRect(cx + 10 * s,  cy - 10 * s, 8 * s, 20 * s, 3 * s);
+
+    // Booster nozzles
+    g.fillStyle(0x8899bb, 1);
+    g.fillRect(cx - 17 * s, cy + 10 * s, 6 * s, 4 * s);
+    g.fillRect(cx + 11 * s,  cy + 10 * s, 6 * s, 4 * s);
+    g.fillRect(cx - 7 * s,  cy + 12 * s, 14 * s, 4 * s);
+
+    // Flames — left booster
+    g.fillStyle(0xff6600, 0.95);
+    g.fillTriangle(cx - 17 * s, cy + 14 * s, cx - 11 * s, cy + 14 * s, cx - 14 * s, cy + 26 * s);
+    g.fillStyle(GOLD, 0.9);
+    g.fillTriangle(cx - 16 * s, cy + 14 * s, cx - 12 * s, cy + 14 * s, cx - 14 * s, cy + 22 * s);
+
+    // Flames — right booster
+    g.fillStyle(0xff6600, 0.95);
+    g.fillTriangle(cx + 11 * s, cy + 14 * s, cx + 17 * s, cy + 14 * s, cx + 14 * s, cy + 26 * s);
+    g.fillStyle(GOLD, 0.9);
+    g.fillTriangle(cx + 12 * s, cy + 14 * s, cx + 16 * s, cy + 14 * s, cx + 14 * s, cy + 22 * s);
+
+    // Flames — center
+    g.fillStyle(0xff6600, 0.9);
+    g.fillTriangle(cx - 6 * s, cy + 16 * s, cx + 6 * s, cy + 16 * s, cx, cy + 30 * s);
+    g.fillStyle(GOLD, 1);
+    g.fillTriangle(cx - 3 * s, cy + 16 * s, cx + 3 * s, cy + 16 * s, cx, cy + 24 * s);
+
+    // Center circle / reactor
+    g.fillStyle(GOLD, 0.9);
+    g.fillCircle(cx, cy, 5 * s);
+    g.fillStyle(0xffffff, 0.6);
+    g.fillCircle(cx, cy, 2.5 * s);
+
+    // Strap lines
+    g.lineStyle(1.5 * s, 0x6677aa, 0.7);
+    g.beginPath(); g.moveTo(cx - 11 * s, cy - 10 * s); g.lineTo(cx - 18 * s, cy - 10 * s); g.strokePath();
+    g.beginPath(); g.moveTo(cx + 11 * s, cy - 10 * s); g.lineTo(cx + 18 * s, cy - 10 * s); g.strokePath();
+  }
+
+  /** Large clear glass tile with crack + figure holding money bag */
+  drawGlassTileCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    const tw = 52;
+    const th = 44;
+
+    // Outer glow
+    g.fillStyle(ICE, 0.06);
+    g.fillRoundedRect(cx - tw / 2 - 4, cy - th / 2 - 4, tw + 8, th + 8, 10);
+
+    // Glass tile body — very transparent
+    g.fillStyle(0xaaddff, 0.10);
+    g.fillRoundedRect(cx - tw / 2, cy - th / 2, tw, th, 8);
+
+    // Glass border
+    g.lineStyle(1.5, ICE, 0.8);
+    g.strokeRoundedRect(cx - tw / 2, cy - th / 2, tw, th, 8);
+
+    // Inner shine strip (top third)
+    g.fillStyle(0xffffff, 0.2);
+    g.fillRoundedRect(cx - tw / 2 + 4, cy - th / 2 + 3, tw - 8, th * 0.28, 4);
+
+    // Secondary shine (bottom-right corner glint)
+    g.fillStyle(0xffffff, 0.12);
+    g.fillCircle(cx + tw / 2 - 7, cy + th / 2 - 6, 5);
+
+    // Crack lines
+    g.lineStyle(1.2, 0xffffff, 0.9);
     g.beginPath();
-    g.moveTo(cx - 2 * s, cy - th * 0.4);
-    g.lineTo(cx + 5 * s, cy);
-    g.lineTo(cx - 1 * s, cy + th * 0.38);
+    g.moveTo(cx - 4, cy - th * 0.38);
+    g.lineTo(cx + 8, cy + 2);
+    g.lineTo(cx - 2, cy + th * 0.38);
+    g.strokePath();
+    g.lineStyle(0.8, 0xffffff, 0.6);
+    g.beginPath();
+    g.moveTo(cx + 8, cy + 2);
+    g.lineTo(cx + 18, cy - 4);
     g.strokePath();
     g.beginPath();
-    g.moveTo(cx + 5 * s, cy);
-    g.lineTo(cx + 12 * s, cy - 3 * s);
+    g.moveTo(cx + 8, cy + 2);
+    g.lineTo(cx + 14, cy + 12);
     g.strokePath();
 
-    // Mini stick figure on tile
+    // Stick figure ON the tile (sitting on top edge)
+    const fy = cy - th / 2 - 2;
     g.fillStyle(ICE, 1);
-    g.fillCircle(cx - 10 * s, cy - 8 * s, 3.5 * s);
-    g.fillRect(cx - 11.5 * s, cy - 4 * s, 3 * s, 9 * s);
+    // Head
+    g.fillCircle(cx - 14, fy - 7, 4);
+    // Body
+    g.fillRect(cx - 16, fy - 3, 4, 10);
+    // Legs (sitting)
+    g.lineStyle(1.5, ICE, 1);
+    g.beginPath(); g.moveTo(cx - 14, fy + 7); g.lineTo(cx - 10, fy + 12); g.strokePath();
+    g.beginPath(); g.moveTo(cx - 14, fy + 7); g.lineTo(cx - 18, fy + 12); g.strokePath();
 
     // Money bag
     g.fillStyle(GOLD, 1);
-    g.fillCircle(cx - 3 * s, cy - 2 * s, 4 * s);
-    // $ drawn via scene text — skip direct fillText on Graphics
-    // Bag neck
-    g.fillStyle(GOLD, 1);
-    g.fillRect(cx - 4 * s, cy - 7 * s, 2 * s, 3 * s);
+    g.fillCircle(cx - 6, fy - 2, 6);
+    g.fillRect(cx - 8, fy - 9, 4, 5);
+    // $ symbol (small gold rect)
+    g.fillStyle(0x0d0d0d, 1);
+    g.fillRect(cx - 8, fy - 4, 4, 1);
+    g.fillRect(cx - 8, fy - 2, 4, 1);
+    g.fillRect(cx - 7, fy - 5, 2, 5);
 
-    // Arm holding bag
+    // Arm reaching to bag
     g.lineStyle(1.5, ICE, 1);
-    g.beginPath();
-    g.moveTo(cx - 10 * s, cy - 2 * s);
-    g.lineTo(cx - 4 * s, cy - 3 * s);
-    g.strokePath();
+    g.beginPath(); g.moveTo(cx - 13, fy); g.lineTo(cx - 7, fy - 1); g.strokePath();
   }
 
-  /**
-   * Draws a wizard on a broomstick icon.
-   *
-   * @param g - Graphics object to draw on.
-   * @param cx - Center X.
-   * @param cy - Center Y.
-   * @param scale - Base scale unit.
-   */
-  private drawWizardIcon(
-    g: Phaser.GameObjects.Graphics,
-    cx: number, cy: number,
-    scale: number = 22
-  ): void {
-    const s = scale / 22;
-    g.clear();
+  /** Bold clean wizard on broomstick */
+  drawWizardCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
 
     // Broomstick
-    g.fillStyle(0x8b6914, 1);
-    g.fillRect(cx - 18 * s, cy + 6 * s, 36 * s, 4 * s);
+    g.fillStyle(0x9b7928, 1);
+    g.fillRoundedRect(cx - 26, cy + 8, 52, 6, 3);
     // Bristles
-    g.fillStyle(0xaa8833, 0.7);
-    for (let i = 0; i < 5; i++) {
-      g.fillRect(cx + 10 * s + i * 2.5 * s, cy + 6 * s, 2 * s, 8 * s);
+    for (let i = 0; i < 6; i++) {
+      g.fillStyle(0xc4982a, 0.8);
+      g.fillRect(cx + 14 + i * 4, cy + 9, 3, 10 + (i % 2) * 4);
     }
 
-    // Robe / body
-    g.fillStyle(0x4a0a8a, 1);
-    g.fillTriangle(
-      cx - 6 * s, cy - 8 * s,
-      cx + 6 * s, cy - 8 * s,
-      cx + 4 * s, cy + 6 * s
-    );
-    g.fillTriangle(
-      cx - 6 * s, cy - 8 * s,
-      cx - 4 * s, cy + 6 * s,
-      cx + 4 * s, cy + 6 * s
-    );
+    // Robe — bold triangle shape
+    g.fillStyle(0x5511aa, 1);
+    g.fillTriangle(cx - 10, cy + 8, cx + 10, cy + 8, cx + 7, cy - 10);
+    g.fillTriangle(cx - 10, cy + 8, cx - 7, cy - 10, cx + 7, cy - 10);
+    // Robe highlight
+    g.fillStyle(0x7722cc, 0.5);
+    g.fillTriangle(cx - 5, cy + 8, cx + 5, cy + 8, cx + 3, cy - 6);
+
+    // Belt
+    g.fillStyle(GOLD, 0.8);
+    g.fillRect(cx - 8, cy - 2, 16, 3);
 
     // Head
-    g.fillStyle(0xf4c48a, 1);
-    g.fillCircle(cx, cy - 12 * s, 5 * s);
+    g.fillStyle(0xf5c08a, 1);
+    g.fillCircle(cx, cy - 16, 9);
+    // Face — eyes
+    g.fillStyle(0x333333, 1);
+    g.fillCircle(cx - 3, cy - 17, 1.5);
+    g.fillCircle(cx + 3, cy - 17, 1.5);
+    // Beard
+    g.fillStyle(0xffffff, 0.8);
+    g.fillTriangle(cx - 4, cy - 10, cx + 4, cy - 10, cx, cy - 5);
 
-    // Hat
-    g.fillStyle(0x2a0a5a, 1);
-    g.fillTriangle(
-      cx - 7 * s, cy - 16 * s,
-      cx + 7 * s, cy - 16 * s,
-      cx,          cy - 26 * s
-    );
-    g.fillRect(cx - 8 * s, cy - 18 * s, 16 * s, 3 * s);
+    // Hat — tall and bold
+    g.fillStyle(0x330a66, 1);
+    g.fillTriangle(cx - 11, cy - 24, cx + 11, cy - 24, cx, cy - 48);
+    // Hat brim
+    g.fillStyle(0x440d88, 1);
+    g.fillRoundedRect(cx - 13, cy - 26, 26, 6, 3);
+    // Hat band
+    g.fillStyle(GOLD, 0.9);
+    g.fillRect(cx - 10, cy - 25, 20, 3);
 
     // Stars on hat
     g.fillStyle(GOLD, 1);
-    g.fillCircle(cx - 2 * s, cy - 21 * s, 1.5 * s);
-    g.fillCircle(cx + 3 * s, cy - 19 * s, 1.2 * s);
+    g.fillCircle(cx - 4, cy - 36, 2);
+    g.fillCircle(cx + 5, cy - 32, 1.5);
+    g.fillCircle(cx,     cy - 42, 1.5);
+
+    // Magic wand in hand
+    g.fillStyle(0xffffff, 1);
+    g.fillRect(cx - 20, cy - 4, 12, 2);
+    g.fillStyle(GOLD, 1);
+    g.fillCircle(cx - 20, cy - 3, 3);
+    // Sparkles
+    g.fillStyle(0xffffff, 0.9);
+    g.fillCircle(cx - 25, cy - 8, 1.5);
+    g.fillCircle(cx - 27, cy - 2, 1);
+    g.fillCircle(cx - 23, cy - 12, 1);
+  }
+
+  // ─── Scrolling ticker ────────────────────────────────────────────────────
+
+  private buildTicker(width: number, height: number): void {
+    const ty   = height * 0.927;
+    const barH = 30;
+    const msg  = '  ✦  JETT.GAME  —  WORLD\'S FIRST CRYPTO SKILL GAME  ·  SKILL  ·  STRATEGY  ·  REWARD  ';
+
+    // Background bar
+    const bar = this.add.graphics();
+    bar.fillStyle(GOLD, 0.08);
+    bar.fillRect(0, ty - barH / 2, width, barH);
+    bar.lineStyle(1, GOLD, 0.3);
+    bar.beginPath(); bar.moveTo(0, ty - barH / 2); bar.lineTo(width, ty - barH / 2); bar.strokePath();
+    bar.beginPath(); bar.moveTo(0, ty + barH / 2); bar.lineTo(width, ty + barH / 2); bar.strokePath();
+
+    // Create clipping mask
+    const maskShape = this.add.graphics();
+    maskShape.fillStyle(0xffffff);
+    maskShape.fillRect(0, ty - barH / 2, width, barH);
+    const geomMask = maskShape.createGeometryMask();
+
+    // Build enough text copies to fill width × 2
+    const container = this.add.container(0, ty).setMask(geomMask);
+    const items: Phaser.GameObjects.Text[] = [];
+    let totalW = 0;
+
+    while (totalW < width * 2.5) {
+      const t = this.add.text(totalW, 0, msg, {
+        fontFamily: '"Fredoka One", sans-serif',
+        fontSize: '12px',
+        color: GOLD_STR,
+      }).setOrigin(0, 0.5);
+      container.add(t);
+      items.push(t);
+      totalW += t.width;
+    }
+
+    // Scroll
+    this.time.addEvent({
+      delay: 16,
+      loop: true,
+      callback: () => {
+        for (const item of items) item.x -= 1.3;
+        const first = items[0];
+        const last  = items[items.length - 1];
+        if (first.x + first.width < 0) {
+          first.x = last.x + last.width;
+          items.push(items.shift()!);
+        }
+      },
+    });
   }
 }
