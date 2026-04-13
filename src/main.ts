@@ -7,6 +7,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { LockScene } from './scenes/LockScene';
 import { HomeScene } from './scenes/HomeScene';
 import { JettScene } from './scenes/JettScene';
 import { ShatterStepScene } from './scenes/ShatterStepScene';
@@ -17,7 +18,7 @@ const config: Phaser.Types.Core.GameConfig = {
   width: 390,
   height: 844,
   backgroundColor: '#000000',
-  scene: [HomeScene, JettScene, ShatterStepScene, FlapFortuneScene],
+  scene: [LockScene, HomeScene, JettScene, ShatterStepScene, FlapFortuneScene],
   parent: 'app',
   scale: {
     mode: Phaser.Scale.FIT,

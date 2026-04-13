@@ -395,7 +395,7 @@ export class HomeScene extends Phaser.Scene {
   private buildTicker(width: number, height: number): void {
     const ty   = height * 0.927;
     const barH = 30;
-    const msg  = '  ✦  JETT.GAME  —  WORLD\'S FIRST CRYPTO SKILL GAME  ·  SKILL  ·  STRATEGY  ·  REWARD  ';
+    const msg  = '  ✦  JETT.GAME  ·  SKILL  ·  STRATEGY  ·  REWARD  ✦  COMING SOON  ·  ';
 
     // Background bar
     const bar = this.add.graphics();
