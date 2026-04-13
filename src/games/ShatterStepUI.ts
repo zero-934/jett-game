@@ -323,6 +323,7 @@ export class ShatterStepUI {
       if (this.state.cashedOut) {
         this.statusText?.setText(`✓ PAID OUT: ${this.state.payout.toFixed(2)}`).setColor(GOLD_STR);
         this.lockAllTiles();
+        this.scene.time.delayedCall(600, () => this.showPlayAgain());
       }
     } else {
       // Wrong pick — crack the chosen tile, then shatter + fall
@@ -341,6 +342,7 @@ export class ShatterStepUI {
       this.lockAllTiles();
       this.scene.time.delayedCall(900, () => {
         this.statusText?.setText('✗ SHATTERED').setColor('#ff4444');
+        this.scene.time.delayedCall(400, () => this.showPlayAgain());
       });
     }
   }
@@ -351,7 +353,23 @@ export class ShatterStepUI {
     if (payout > 0) {
       this.lockAllTiles();
       this.statusText?.setText(`✓ PAID OUT: ${payout.toFixed(2)}`).setColor(GOLD_STR);
+      this.scene.time.delayedCall(600, () => this.showPlayAgain());
     }
+  }
+
+  private showPlayAgain(): void {
+    const cx = this.worldWidth / 2;
+    const cy = this.worldHeight * 0.88;
+    const btn = this.scene.add
+      .rectangle(cx, cy, 180, 50, GOLD)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(20);
+    this.scene.add
+      .text(cx, cy, 'PLAY AGAIN', {
+        fontFamily: 'monospace', fontSize: '14px', color: '#0d0d0d',
+      })
+      .setOrigin(0.5).setDepth(21);
+    btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
   }
 
   // ─── Visual FX ────────────────────────────────────────────────────────────

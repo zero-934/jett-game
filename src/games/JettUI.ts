@@ -366,10 +366,26 @@ export class JettUI {
     this.tickTimer?.remove();
     this.tickTimer = null;
     this.statusText?.setText(`PAID OUT\n${payout.toFixed(2)} credits`).setColor(GOLD_STR);
+    this.scene.time.delayedCall(600, () => this.showPlayAgain());
+  }
+
+  private showPlayAgain(): void {
+    const { worldWidth, screenHeight } = this.config;
+    const btn = this.scene.add
+      .rectangle(worldWidth / 2, screenHeight * 0.55, 180, 50, GOLD)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(20);
+    this.scene.add
+      .text(worldWidth / 2, screenHeight * 0.55, 'PLAY AGAIN', {
+        fontFamily: 'monospace', fontSize: '14px', color: '#0d0d0d',
+      })
+      .setOrigin(0.5).setDepth(21);
+    btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
   }
 
   private showCrash(): void {
     this.statusText?.setText('ASTEROID HIT!\nGAME OVER').setColor('#ff4444');
+    this.scene.time.delayedCall(600, () => this.showPlayAgain());
   }
 
   private triggerCombustion(): void {
@@ -409,6 +425,7 @@ export class JettUI {
 
     this.scene.time.delayedCall(300, () => {
       this.statusText?.setText('COMBUSTION!\nJETPACK FAILED').setColor('#ff6600');
+      this.scene.time.delayedCall(600, () => this.showPlayAgain());
     });
   }
 }
