@@ -14,13 +14,14 @@ import { ShatterStepScene } from './scenes/ShatterStepScene';
 import { FlapFortuneScene } from './scenes/FlapFortuneScene';
 import { DiceScene } from './scenes/DiceScene';
 import { MinesScene } from './scenes/MinesScene';
+import { BallDropScene } from './scenes/BallDropScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   width: 390,
   height: 844,
   backgroundColor: '#000000',
-  scene: [LockScene, HomeScene, JettScene, ShatterStepScene, FlapFortuneScene, DiceScene, MinesScene],
+  scene: [LockScene, HomeScene, JettScene, ShatterStepScene, FlapFortuneScene, DiceScene, MinesScene, BallDropScene],
   parent: 'app',
   scale: {
     mode: Phaser.Scale.FIT,

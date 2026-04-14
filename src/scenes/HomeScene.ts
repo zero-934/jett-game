@@ -125,6 +125,14 @@ export class HomeScene extends Phaser.Scene {
         accentStr: '#44ffaa',
         drawIcon: (scene, x, y) => scene.drawMinesCard(x, y),
       },
+      {
+        key: 'BallDropScene',
+        title: 'BALL DROP',
+        subtitle: 'Drop & nudge through the pegs.\nEdge slots pay up to ×5!',
+        accent: 0xffd200,
+        accentStr: '#ffd200',
+        drawIcon: (scene, x, y) => scene.drawBallDropCard(x, y),
+      },
     ];
 
     const cardH      = 112;
@@ -426,6 +434,42 @@ export class HomeScene extends Phaser.Scene {
     drawDie(cx - 22, cy, 6);
     drawDie(cx,      cy - 8, 4);
     drawDie(cx + 22, cy + 6, 2);
+  }
+
+  /** Ball Drop icon — pegs + falling ball */
+  drawBallDropCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+
+    // Pegs — 3 rows, offset
+    const pegColor = 0x6677aa;
+    const pegPositions: [number, number][] = [
+      // row 1 (3 pegs)
+      [cx - 18, cy - 14], [cx, cy - 14], [cx + 18, cy - 14],
+      // row 2 (2 pegs, offset)
+      [cx - 9, cy - 2], [cx + 9, cy - 2],
+      // row 3 (3 pegs)
+      [cx - 18, cy + 10], [cx, cy + 10], [cx + 18, cy + 10],
+    ];
+    g.fillStyle(pegColor, 1);
+    for (const [px, py] of pegPositions) g.fillCircle(px, py, 3);
+
+    // Ball — golden, falling between pegs
+    g.fillStyle(0xc0392b, 1);
+    g.fillCircle(cx - 4, cy - 20, 6);
+    g.fillStyle(0xf7971e, 1);
+    g.fillCircle(cx - 4, cy - 20, 4);
+    g.fillStyle(0xffe066, 1);
+    g.fillCircle(cx - 6, cy - 22, 2);
+
+    // Slots at bottom (3 mini slots)
+    const slotColors = [0xe74c3c, 0xffd200, 0xe74c3c];
+    for (let i = 0; i < 3; i++) {
+      const sx = cx - 20 + i * 20;
+      g.fillStyle(slotColors[i], 0.25);
+      g.fillRect(sx - 8, cy + 16, 16, 10);
+      g.lineStyle(1, slotColors[i], 0.9);
+      g.strokeRect(sx - 8, cy + 16, 16, 10);
+    }
   }
 
   /** Mines icon — grid with a bomb */
