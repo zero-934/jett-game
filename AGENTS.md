@@ -185,6 +185,50 @@ jett-game/
 
 ---
 
+## Character System (NFT-Ready)
+
+Characters are defined in `src/shared/`:
+
+| File | Purpose |
+|------|---------|
+| `src/shared/CharacterDef.ts` | The `CharacterDef` interface — the universal character "socket" |
+| `src/shared/characters.ts` | Central registry of all characters (one per game) |
+
+### How it works
+- Every game has a character entry in `characters.ts`
+- Characters are currently **placeholders** (code-drawn in each UI file)
+- When AI-generated art is ready: set `imageUrl` on the character — done
+- When NFTs are ready: set `nftId` + `nftContractAddress` — done
+
+### To swap a character for real art
+1. Generate image (128×128 or 256×256 transparent PNG recommended)
+2. Host it (Vercel `/public`, CDN, or IPFS for NFTs)
+3. Open `src/shared/characters.ts`
+4. Set `imageUrl` on the relevant character object
+5. That's it — the game uses it automatically via `renderCharacter()`
+
+### CharacterDef fields
+```ts
+{
+  key: string                // unique Phaser texture key
+  name: string               // display name
+  imageUrl?: string          // AI art / NFT image URL (set when ready)
+  fallbackDraw?: Function    // code-drawn placeholder renderer
+  tint?: number              // palette swap tint (Phaser hex)
+  nftId?: string             // NFT token ID (future)
+  nftContractAddress?: string // NFT contract (future)
+  walletAddress?: string     // owner wallet (future)
+  meta?: Record<string, unknown> // design notes, traits, etc.
+}
+```
+
+### AI Agent rule
+- Do NOT hardcode character visuals deep in game logic
+- Always check `CHARACTER_REGISTRY` before drawing a character
+- New games must add an entry to `characters.ts`
+
+---
+
 ## Context Recovery Checklist
 
 If you are an AI agent that lost context, do this in order:
