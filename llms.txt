@@ -1,0 +1,80 @@
+# jett.game — LLM Context File
+
+> This file follows the emerging llms.txt standard (https://llmstxt.org).
+> It provides a structured, token-efficient summary for AI language models.
+
+## Project
+
+- **Name:** jett.game
+- **Type:** Mobile-first web casino game platform
+- **Live:** https://dist-omega-henna.vercel.app
+- **Repo:** https://github.com/zero-934/jett-game (private)
+- **Owner:** C Lee (GitHub: zero-934) — first-time developer
+- **Stack:** Phaser 3 + TypeScript (strict) + Vite + Jest
+- **Deploy:** Vercel, auto-deploy on push to `main`
+- **Aesthetic:** Midnight Luxury — charcoal #0d0d0d, gold #c9a84c
+
+## Architecture
+
+Every game = exactly 3 files:
+- `src/games/<Name>Logic.ts` — pure TypeScript, no Phaser, all game math/RNG/state
+- `src/games/<Name>UI.ts` — Phaser rendering + input, calls Logic only
+- `src/scenes/<Name>Scene.ts` — wires Logic+UI, registered in Phaser config
+
+New scenes must be added to `src/main.ts` scene array AND `HomeScene.ts` cards array.
+
+## Games
+
+1. **Jett** (JettScene) — vertical scroller, dodge asteroids, multiplier rises with altitude, combustion mechanic, cash-out anytime
+2. **Shatter Step** (ShatterStepScene) — 10-row ladder, 50/50 L/R each row, multiplier ×1.5 per row, cash-out after any safe row
+3. **Flap Fortune** (FlapFortuneScene) — horizontal scroller, flap through pipe gaps, distance multiplier, cash-out anytime
+4. **Dice** (DiceScene) — single roll, pick 2×/5×/10× odds, instant result
+5. **Mines** (MinesScene) — 5×5 grid, 3/5/10 bombs, reveal safe tiles, multiplier grows, cash-out anytime
+6. **Ball Drop** (BallDropScene) — peg-board drop, player nudges ball mid-fall, edge slots ×5 / centre ×0.3
+
+## Standards
+
+- TypeScript strict mode enforced
+- Every public function: JSDoc with @param, @returns, @example
+- File header: @file, @purpose, @author, @date, @license
+- RTP target: 97% (3% house edge) on all games
+- House edge in Logic.ts only, never in UI or Scene
+- Tests: Jest + ts-jest, no Phaser mocking needed (Logic is pure TS)
+
+## Key Rules for AI Agents
+
+- NEVER import Phaser in a Logic.ts file
+- NEVER put RNG or payout math in UI.ts or Scene.ts
+- ALWAYS add a test file for every new Logic.ts
+- ALWAYS add the new scene to main.ts AND HomeScene.ts cards[]
+- NEVER push to main directly — branch + PR only
+- Branch: feat/<game-name> | PR title: feat(<game-name>): initial prototype
+
+## File Locations
+
+- AI agent rules: AGENTS.md (primary), AGENT_RULES.md (legacy)
+- Entry point: src/main.ts
+- Home screen: src/scenes/HomeScene.ts
+- Game logic: src/games/*Logic.ts
+- Game rendering: src/games/*UI.ts
+- Scenes: src/scenes/*Scene.ts
+- Tests: src/tests/*Logic.test.ts
+
+## Commands
+
+```bash
+npm install       # install deps
+npm run dev       # dev server (localhost:5173)
+npm run build     # production build
+npm test          # run all Jest tests
+```
+
+## Context Recovery (for AI agents)
+
+Lost context? Do this:
+1. Read AGENTS.md
+2. Run: npm test
+3. Read src/main.ts (scene list)
+4. Read src/scenes/HomeScene.ts (game cards)
+5. Read one Logic.ts to understand code style
+6. Ask the user what to work on next
