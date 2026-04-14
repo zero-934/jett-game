@@ -1,9 +1,9 @@
 /**
  * @file HomeScene.ts
  * @purpose Home screen — crypto casino inspired, clean dark UI, large bold icons,
- *          Fredoka One bubble font, scrolling ticker.
+ *          Fredoka One bubble font, scrolling ticker, touch-scrollable game card list.
  * @author Agent 934
- * @date 2026-04-12
+ * @date 2026-04-14
  * @license Proprietary – available for licensing
  */
 
@@ -13,6 +13,11 @@ const GOLD     = 0xc9a84c;
 const GOLD_STR = '#c9a84c';
 const ICE      = 0x7ec8e3;
 const ICE_STR  = '#7ec8e3';
+
+// Header height that stays fixed (logo + tagline area)
+const HEADER_H = 190;
+// Bottom ticker bar height
+const TICKER_H = 36;
 
 interface CardDef {
   key: string;
@@ -24,16 +29,25 @@ interface CardDef {
 }
 
 export class HomeScene extends Phaser.Scene {
+  // Scroll state
+  private scrollY      = 0;
+  private dragStartY   = 0;
+  private dragScrollY  = 0;
+  private isDragging   = false;
+  private scrollVel    = 0;
+  private maxScrollY   = 0;
+  private scrollContainer: Phaser.GameObjects.Container | null = null;
+
   constructor() { super({ key: 'HomeScene' }); }
 
   create(): void {
     const { width, height } = this.scale;
 
-    // ── Deep background ────────────────────────────────────────────────────
-    this.add.rectangle(width / 2, height / 2, width, height, 0x050508);
+    // ── Deep background (fixed) ────────────────────────────────────────────
+    this.add.rectangle(width / 2, height / 2, width, height, 0x050508).setScrollFactor(0);
 
-    // Subtle noise grid
-    const grid = this.add.graphics();
+    // Subtle noise grid (fixed)
+    const grid = this.add.graphics().setScrollFactor(0);
     grid.lineStyle(0.3, 0x0d0d1a, 1);
     for (let x = 0; x <= width; x += 40) {
       grid.beginPath(); grid.moveTo(x, 0); grid.lineTo(x, height); grid.strokePath();
@@ -42,46 +56,11 @@ export class HomeScene extends Phaser.Scene {
       grid.beginPath(); grid.moveTo(0, y); grid.lineTo(width, y); grid.strokePath();
     }
 
-    // Gold top accent bar
-    const topBar = this.add.graphics();
-    topBar.fillStyle(GOLD, 1);
-    topBar.fillRect(0, 0, width, 3);
-    topBar.fillGradientStyle(GOLD, GOLD, 0x050508, 0x050508, 0.15, 0.15, 0, 0);
-    topBar.fillRect(0, 3, width, 36);
+    // ── Scrollable content container ──────────────────────────────────────
+    this.scrollContainer = this.add.container(0, 0);
 
-    // ── Logo ───────────────────────────────────────────────────────────────
-    const logoY = height * 0.1;
-
-    // Jetpack glyph left of wordmark
-    this.drawLargeJetpack(width / 2 - 72, logoY);
-
-    this.add.text(width / 2 - 42, logoY - 18, 'JETT', {
-      fontFamily: '"Fredoka One", sans-serif',
-      fontSize: '54px',
-      color: GOLD_STR,
-    }).setOrigin(0, 0);
-
-    this.add.text(width / 2 - 40, logoY + 38, '.GAME', {
-      fontFamily: '"Fredoka One", sans-serif',
-      fontSize: '20px',
-      color: '#cccccc',
-    }).setOrigin(0, 0);
-
-    // Tagline
-    this.add.text(width / 2, height * 0.195, 'SKILL  ·  STRATEGY  ·  REWARD', {
-      fontFamily: '"Fredoka", sans-serif',
-      fontSize: '12px',
-      color: '#383848',
-      letterSpacing: 3,
-    }).setOrigin(0.5);
-
-    // Thin divider
-    const div = this.add.graphics();
-    div.lineStyle(1, 0x16161e, 1);
-    div.beginPath();
-    div.moveTo(width * 0.08, height * 0.225);
-    div.lineTo(width * 0.92, height * 0.225);
-    div.strokePath();
+    // ── Header (inside scroll container — scrolls with content) ───────────
+    this.buildHeader(width);
 
     // ── Game Cards ─────────────────────────────────────────────────────────
     const cards: CardDef[] = [
@@ -135,24 +114,81 @@ export class HomeScene extends Phaser.Scene {
       },
     ];
 
-    const cardH      = 112;
+    const cardH      = 108;
     const cardW      = width * 0.9;
-    const firstCardY = height * 0.255;
+    const firstCardY = HEADER_H + 8;
     const gap        = 10;
 
     cards.forEach((card, i) => {
-      this.buildCard(width / 2, firstCardY + i * (cardH + gap), cardW, cardH, card);
+      this.buildCard(width / 2, firstCardY + i * (cardH + gap) + cardH / 2, cardW, cardH, card);
     });
 
-    // ── Scrolling ticker ───────────────────────────────────────────────────
+    // Total scrollable height
+    const totalContentH = firstCardY + cards.length * (cardH + gap) + 24;
+    this.maxScrollY = Math.max(0, totalContentH - (height - TICKER_H));
+
+    // ── Fixed header overlay (logo + gold bar, always on top) ─────────────
+    this.buildFixedHeader(width, height);
+
+    // ── Fixed ticker ───────────────────────────────────────────────────────
     this.buildTicker(width, height);
 
-    // Version
-    this.add.text(width / 2, height * 0.975, 'v0.1  prototype', {
+    // ── Touch / Mouse scroll input ─────────────────────────────────────────
+    this.registerScrollInput(width, height);
+
+    // ── Per-frame update for momentum scrolling ────────────────────────────
+    this.events.on('update', this.onUpdate, this);
+  }
+
+  // ─── Header ───────────────────────────────────────────────────────────────
+
+  private buildHeader(width: number): void {
+    const logoY = 80;
+
+    this.drawLargeJetpack(width / 2 - 72, logoY);
+
+    const title = this.add.text(width / 2 - 42, logoY - 18, 'JETT', {
+      fontFamily: '"Fredoka One", sans-serif',
+      fontSize: '54px',
+      color: GOLD_STR,
+    }).setOrigin(0, 0);
+
+    const subtitle = this.add.text(width / 2 - 40, logoY + 38, '.GAME', {
+      fontFamily: '"Fredoka One", sans-serif',
+      fontSize: '20px',
+      color: '#cccccc',
+    }).setOrigin(0, 0);
+
+    const tagline = this.add.text(width / 2, 158, 'SKILL  ·  STRATEGY  ·  REWARD', {
       fontFamily: '"Fredoka", sans-serif',
-      fontSize: '10px',
-      color: '#1c1c28',
+      fontSize: '12px',
+      color: '#383848',
+      letterSpacing: 3,
     }).setOrigin(0.5);
+
+    const divG = this.add.graphics();
+    divG.lineStyle(1, 0x16161e, 1);
+    divG.beginPath();
+    divG.moveTo(width * 0.08, HEADER_H - 2);
+    divG.lineTo(width * 0.92, HEADER_H - 2);
+    divG.strokePath();
+
+    this.scrollContainer?.add([title, subtitle, tagline, divG]);
+  }
+
+  private buildFixedHeader(width: number, _height: number): void {
+    // Gold top accent bar — fixed, always on top
+    const topBar = this.add.graphics().setDepth(20).setScrollFactor(0);
+    topBar.fillStyle(GOLD, 1);
+    topBar.fillRect(0, 0, width, 3);
+    topBar.fillGradientStyle(GOLD, GOLD, 0x050508, 0x050508, 0.15, 0.15, 0, 0);
+    topBar.fillRect(0, 3, width, 28);
+
+    // Fade overlay at bottom of card list (above ticker)
+    const fadeBar = this.add.graphics().setDepth(20).setScrollFactor(0);
+    const fadeY = _height - TICKER_H - 40;
+    fadeBar.fillGradientStyle(0x050508, 0x050508, 0x050508, 0x050508, 0, 0, 0.95, 0.95);
+    fadeBar.fillRect(0, fadeY, width, 40);
   }
 
   // ─── Card builder ─────────────────────────────────────────────────────────
@@ -165,42 +201,50 @@ export class HomeScene extends Phaser.Scene {
     const bg = this.add.graphics();
     this.paintCard(bg, cx, cy, w, h, card.accent, false);
 
-    this.add.rectangle(cx, cy, w, h, 0, 0)
+    // Invisible hit rect — must be in the scene (not container) for pointer events with scroll
+    const hit = this.add.rectangle(cx, cy, w, h, 0, 0)
       .setInteractive({ useHandCursor: true })
-      .on('pointerover', () => this.paintCard(bg, cx, cy, w, h, card.accent, true))
-      .on('pointerout',  () => this.paintCard(bg, cx, cy, w, h, card.accent, false))
-      .on('pointerdown', () => this.scene.start(card.key));
+      .on('pointerup', () => {
+        // Only navigate if we weren't dragging
+        if (!this.isDragging && Math.abs(this.scrollVel) < 1) {
+          this.scene.start(card.key);
+        }
+      })
+      .on('pointerover', () => { if (!this.isDragging) this.paintCard(bg, cx, cy, w, h, card.accent, true); })
+      .on('pointerout',  () => this.paintCard(bg, cx, cy, w, h, card.accent, false));
 
     // Left accent strip
     const strip = this.add.graphics();
     strip.fillStyle(card.accent, 1);
     strip.fillRect(x + 1, y + r, 4, h - r * 2);
 
-    // Icon area — right side, vertically centered
+    // Icon
     const iconX = cx + w / 2 - 52;
     card.drawIcon(this, iconX, cy);
 
     // Title
-    this.add.text(x + 22, cy - 26, card.title, {
+    const titleText = this.add.text(x + 22, cy - 22, card.title, {
       fontFamily: '"Fredoka One", sans-serif',
-      fontSize: '22px',
+      fontSize: '20px',
       color: card.accentStr,
     }).setOrigin(0, 0.5);
 
     // Subtitle
-    this.add.text(x + 22, cy + 12, card.subtitle, {
+    const subText = this.add.text(x + 22, cy + 14, card.subtitle, {
       fontFamily: '"Fredoka", sans-serif',
       fontSize: '12px',
       color: '#4a4a60',
-      lineSpacing: 5,
+      lineSpacing: 4,
     }).setOrigin(0, 0.5);
 
     // Arrow
-    this.add.text(cx + w / 2 - 16, cy, '›', {
+    const arrow = this.add.text(cx + w / 2 - 16, cy, '›', {
       fontFamily: '"Fredoka One", sans-serif',
       fontSize: '28px',
       color: '#2a2a3a',
     }).setOrigin(0.5);
+
+    this.scrollContainer?.add([bg, hit, strip, titleText, subText, arrow]);
   }
 
   private paintCard(g: Phaser.GameObjects.Graphics, cx: number, cy: number, w: number, h: number, accent: number, hovered: boolean): void {
@@ -215,206 +259,167 @@ export class HomeScene extends Phaser.Scene {
     }
   }
 
-  // ─── Icons ────────────────────────────────────────────────────────────────
+  // ─── Scroll Input ─────────────────────────────────────────────────────────
 
-  /** Large jetpack glyph for the logo */
-  private drawLargeJetpack(cx: number, cy: number): void {
-    const g = this.add.graphics();
-    const s = 1.6;
-    this.paintJetpack(g, cx, cy, s);
+  private registerScrollInput(width: number, height: number): void {
+    // Touch / mouse drag
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      this.isDragging   = false;
+      this.dragStartY   = p.y;
+      this.dragScrollY  = this.scrollY;
+      this.scrollVel    = 0;
+    });
+
+    this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
+      if (!p.isDown) return;
+      const dy = this.dragStartY - p.y;
+      if (Math.abs(dy) > 5) this.isDragging = true;
+      if (this.isDragging) {
+        this.scrollY  = Phaser.Math.Clamp(this.dragScrollY + dy, 0, this.maxScrollY);
+        this.scrollVel = p.velocity.y * -0.016; // carry velocity for momentum
+      }
+    });
+
+    this.input.on('pointerup', () => {
+      // Momentum handled in onUpdate
+      this.time.delayedCall(50, () => { this.isDragging = false; });
+    });
+
+    // Mouse wheel
+    this.input.on('wheel', (_p: Phaser.Input.Pointer, _gos: unknown, _dx: number, dy: number) => {
+      this.scrollY   = Phaser.Math.Clamp(this.scrollY + dy * 0.5, 0, this.maxScrollY);
+      this.scrollVel = 0;
+    });
+
+    // Prevent unused var warning
+    void width; void height;
   }
 
-  /** Jetpack icon for the Jett card */
+  private onUpdate(): void {
+    // Momentum scrolling
+    if (!this.isDragging && Math.abs(this.scrollVel) > 0.1) {
+      this.scrollY   = Phaser.Math.Clamp(this.scrollY + this.scrollVel * 16, 0, this.maxScrollY);
+      this.scrollVel *= 0.92; // friction
+    } else if (!this.isDragging) {
+      this.scrollVel = 0;
+    }
+
+    // Apply scroll to container
+    if (this.scrollContainer) {
+      this.scrollContainer.y = -this.scrollY;
+    }
+  }
+
+  // ─── Icons ────────────────────────────────────────────────────────────────
+
+  private drawLargeJetpack(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    this.paintJetpack(g, cx, cy, 1.6);
+    this.scrollContainer?.add(g);
+  }
+
   drawJetpackCard(cx: number, cy: number): void {
     const g = this.add.graphics();
     this.paintJetpack(g, cx, cy, 1.1);
+    this.scrollContainer?.add(g);
   }
 
   private paintJetpack(g: Phaser.GameObjects.Graphics, cx: number, cy: number, s: number): void {
-    // Main pack body
     g.fillStyle(0x2a3a6a, 1);
     g.fillRoundedRect(cx - 11 * s, cy - 18 * s, 22 * s, 30 * s, 5 * s);
-
-    // Pack highlight
     g.fillStyle(0x4466aa, 0.6);
     g.fillRoundedRect(cx - 8 * s, cy - 16 * s, 8 * s, 12 * s, 3 * s);
-
-    // Side boosters
     g.fillStyle(0x1a2a50, 1);
     g.fillRoundedRect(cx - 18 * s, cy - 10 * s, 8 * s, 20 * s, 3 * s);
     g.fillRoundedRect(cx + 10 * s,  cy - 10 * s, 8 * s, 20 * s, 3 * s);
-
-    // Booster nozzles
     g.fillStyle(0x8899bb, 1);
     g.fillRect(cx - 17 * s, cy + 10 * s, 6 * s, 4 * s);
     g.fillRect(cx + 11 * s,  cy + 10 * s, 6 * s, 4 * s);
     g.fillRect(cx - 7 * s,  cy + 12 * s, 14 * s, 4 * s);
-
-    // Flames — left booster
     g.fillStyle(0xff6600, 0.95);
     g.fillTriangle(cx - 17 * s, cy + 14 * s, cx - 11 * s, cy + 14 * s, cx - 14 * s, cy + 26 * s);
     g.fillStyle(GOLD, 0.9);
     g.fillTriangle(cx - 16 * s, cy + 14 * s, cx - 12 * s, cy + 14 * s, cx - 14 * s, cy + 22 * s);
-
-    // Flames — right booster
     g.fillStyle(0xff6600, 0.95);
     g.fillTriangle(cx + 11 * s, cy + 14 * s, cx + 17 * s, cy + 14 * s, cx + 14 * s, cy + 26 * s);
     g.fillStyle(GOLD, 0.9);
     g.fillTriangle(cx + 12 * s, cy + 14 * s, cx + 16 * s, cy + 14 * s, cx + 14 * s, cy + 22 * s);
-
-    // Flames — center
     g.fillStyle(0xff6600, 0.9);
     g.fillTriangle(cx - 6 * s, cy + 16 * s, cx + 6 * s, cy + 16 * s, cx, cy + 30 * s);
     g.fillStyle(GOLD, 1);
     g.fillTriangle(cx - 3 * s, cy + 16 * s, cx + 3 * s, cy + 16 * s, cx, cy + 24 * s);
-
-    // Center circle / reactor
     g.fillStyle(GOLD, 0.9);
     g.fillCircle(cx, cy, 5 * s);
     g.fillStyle(0xffffff, 0.6);
     g.fillCircle(cx, cy, 2.5 * s);
-
-    // Strap lines
     g.lineStyle(1.5 * s, 0x6677aa, 0.7);
     g.beginPath(); g.moveTo(cx - 11 * s, cy - 10 * s); g.lineTo(cx - 18 * s, cy - 10 * s); g.strokePath();
     g.beginPath(); g.moveTo(cx + 11 * s, cy - 10 * s); g.lineTo(cx + 18 * s, cy - 10 * s); g.strokePath();
   }
 
-  /** Large clear glass tile with crack + figure holding money bag */
   drawGlassTileCard(cx: number, cy: number): void {
     const g = this.add.graphics();
-    const tw = 52;
-    const th = 44;
-
-    // Outer glow
+    const tw = 52; const th = 44;
     g.fillStyle(ICE, 0.06);
     g.fillRoundedRect(cx - tw / 2 - 4, cy - th / 2 - 4, tw + 8, th + 8, 10);
-
-    // Glass tile body — very transparent
     g.fillStyle(0xaaddff, 0.10);
     g.fillRoundedRect(cx - tw / 2, cy - th / 2, tw, th, 8);
-
-    // Glass border
     g.lineStyle(1.5, ICE, 0.8);
     g.strokeRoundedRect(cx - tw / 2, cy - th / 2, tw, th, 8);
-
-    // Inner shine strip (top third)
     g.fillStyle(0xffffff, 0.2);
     g.fillRoundedRect(cx - tw / 2 + 4, cy - th / 2 + 3, tw - 8, th * 0.28, 4);
-
-    // Secondary shine (bottom-right corner glint)
     g.fillStyle(0xffffff, 0.12);
     g.fillCircle(cx + tw / 2 - 7, cy + th / 2 - 6, 5);
-
-    // Crack lines
     g.lineStyle(1.2, 0xffffff, 0.9);
-    g.beginPath();
-    g.moveTo(cx - 4, cy - th * 0.38);
-    g.lineTo(cx + 8, cy + 2);
-    g.lineTo(cx - 2, cy + th * 0.38);
-    g.strokePath();
+    g.beginPath(); g.moveTo(cx - 4, cy - th * 0.38); g.lineTo(cx + 8, cy + 2); g.lineTo(cx - 2, cy + th * 0.38); g.strokePath();
     g.lineStyle(0.8, 0xffffff, 0.6);
-    g.beginPath();
-    g.moveTo(cx + 8, cy + 2);
-    g.lineTo(cx + 18, cy - 4);
-    g.strokePath();
-    g.beginPath();
-    g.moveTo(cx + 8, cy + 2);
-    g.lineTo(cx + 14, cy + 12);
-    g.strokePath();
-
-    // Stick figure ON the tile (sitting on top edge)
+    g.beginPath(); g.moveTo(cx + 8, cy + 2); g.lineTo(cx + 18, cy - 4); g.strokePath();
+    g.beginPath(); g.moveTo(cx + 8, cy + 2); g.lineTo(cx + 14, cy + 12); g.strokePath();
     const fy = cy - th / 2 - 2;
     g.fillStyle(ICE, 1);
-    // Head
     g.fillCircle(cx - 14, fy - 7, 4);
-    // Body
     g.fillRect(cx - 16, fy - 3, 4, 10);
-    // Legs (sitting)
     g.lineStyle(1.5, ICE, 1);
     g.beginPath(); g.moveTo(cx - 14, fy + 7); g.lineTo(cx - 10, fy + 12); g.strokePath();
     g.beginPath(); g.moveTo(cx - 14, fy + 7); g.lineTo(cx - 18, fy + 12); g.strokePath();
-
-    // Money bag
     g.fillStyle(GOLD, 1);
     g.fillCircle(cx - 6, fy - 2, 6);
     g.fillRect(cx - 8, fy - 9, 4, 5);
-    // $ symbol (small gold rect)
     g.fillStyle(0x0d0d0d, 1);
     g.fillRect(cx - 8, fy - 4, 4, 1);
     g.fillRect(cx - 8, fy - 2, 4, 1);
     g.fillRect(cx - 7, fy - 5, 2, 5);
-
-    // Arm reaching to bag
     g.lineStyle(1.5, ICE, 1);
     g.beginPath(); g.moveTo(cx - 13, fy); g.lineTo(cx - 7, fy - 1); g.strokePath();
+    this.scrollContainer?.add(g);
   }
 
-  /** Bold clean wizard on broomstick */
   drawWizardCard(cx: number, cy: number): void {
     const g = this.add.graphics();
-
-    // Broomstick
     g.fillStyle(0x9b7928, 1);
     g.fillRoundedRect(cx - 26, cy + 8, 52, 6, 3);
-    // Bristles
-    for (let i = 0; i < 6; i++) {
-      g.fillStyle(0xc4982a, 0.8);
-      g.fillRect(cx + 14 + i * 4, cy + 9, 3, 10 + (i % 2) * 4);
-    }
-
-    // Robe — bold triangle shape
+    for (let i = 0; i < 6; i++) { g.fillStyle(0xc4982a, 0.8); g.fillRect(cx + 14 + i * 4, cy + 9, 3, 10 + (i % 2) * 4); }
     g.fillStyle(0x5511aa, 1);
     g.fillTriangle(cx - 10, cy + 8, cx + 10, cy + 8, cx + 7, cy - 10);
     g.fillTriangle(cx - 10, cy + 8, cx - 7, cy - 10, cx + 7, cy - 10);
-    // Robe highlight
     g.fillStyle(0x7722cc, 0.5);
     g.fillTriangle(cx - 5, cy + 8, cx + 5, cy + 8, cx + 3, cy - 6);
-
-    // Belt
-    g.fillStyle(GOLD, 0.8);
-    g.fillRect(cx - 8, cy - 2, 16, 3);
-
-    // Head
-    g.fillStyle(0xf5c08a, 1);
-    g.fillCircle(cx, cy - 16, 9);
-    // Face — eyes
-    g.fillStyle(0x333333, 1);
-    g.fillCircle(cx - 3, cy - 17, 1.5);
-    g.fillCircle(cx + 3, cy - 17, 1.5);
-    // Beard
-    g.fillStyle(0xffffff, 0.8);
-    g.fillTriangle(cx - 4, cy - 10, cx + 4, cy - 10, cx, cy - 5);
-
-    // Hat — tall and bold
-    g.fillStyle(0x330a66, 1);
-    g.fillTriangle(cx - 11, cy - 24, cx + 11, cy - 24, cx, cy - 48);
-    // Hat brim
-    g.fillStyle(0x440d88, 1);
-    g.fillRoundedRect(cx - 13, cy - 26, 26, 6, 3);
-    // Hat band
-    g.fillStyle(GOLD, 0.9);
-    g.fillRect(cx - 10, cy - 25, 20, 3);
-
-    // Stars on hat
+    g.fillStyle(GOLD, 0.8); g.fillRect(cx - 8, cy - 2, 16, 3);
+    g.fillStyle(0xf5c08a, 1); g.fillCircle(cx, cy - 16, 9);
+    g.fillStyle(0x333333, 1); g.fillCircle(cx - 3, cy - 17, 1.5); g.fillCircle(cx + 3, cy - 17, 1.5);
+    g.fillStyle(0xffffff, 0.8); g.fillTriangle(cx - 4, cy - 10, cx + 4, cy - 10, cx, cy - 5);
+    g.fillStyle(0x330a66, 1); g.fillTriangle(cx - 11, cy - 24, cx + 11, cy - 24, cx, cy - 48);
+    g.fillStyle(0x440d88, 1); g.fillRoundedRect(cx - 13, cy - 26, 26, 6, 3);
+    g.fillStyle(GOLD, 0.9); g.fillRect(cx - 10, cy - 25, 20, 3);
     g.fillStyle(GOLD, 1);
-    g.fillCircle(cx - 4, cy - 36, 2);
-    g.fillCircle(cx + 5, cy - 32, 1.5);
-    g.fillCircle(cx,     cy - 42, 1.5);
-
-    // Magic wand in hand
-    g.fillStyle(0xffffff, 1);
-    g.fillRect(cx - 20, cy - 4, 12, 2);
-    g.fillStyle(GOLD, 1);
-    g.fillCircle(cx - 20, cy - 3, 3);
-    // Sparkles
+    g.fillCircle(cx - 4, cy - 36, 2); g.fillCircle(cx + 5, cy - 32, 1.5); g.fillCircle(cx, cy - 42, 1.5);
+    g.fillStyle(0xffffff, 1); g.fillRect(cx - 20, cy - 4, 12, 2);
+    g.fillStyle(GOLD, 1); g.fillCircle(cx - 20, cy - 3, 3);
     g.fillStyle(0xffffff, 0.9);
-    g.fillCircle(cx - 25, cy - 8, 1.5);
-    g.fillCircle(cx - 27, cy - 2, 1);
-    g.fillCircle(cx - 23, cy - 12, 1);
+    g.fillCircle(cx - 25, cy - 8, 1.5); g.fillCircle(cx - 27, cy - 2, 1); g.fillCircle(cx - 23, cy - 12, 1);
+    this.scrollContainer?.add(g);
   }
 
-  /** Dice icon — three dice faces */
   drawDiceCard(cx: number, cy: number): void {
     const g = this.add.graphics();
     const s = 0.9;
@@ -431,52 +436,34 @@ export class HomeScene extends Phaser.Scene {
       if (val === 6) { dots.push([-6 * s, 0]); dots.push([6 * s, 0]); }
       for (const [dx, dy] of dots) g.fillCircle(x + dx, y + dy, 3 * s);
     };
-    drawDie(cx - 22, cy, 6);
-    drawDie(cx,      cy - 8, 4);
-    drawDie(cx + 22, cy + 6, 2);
+    drawDie(cx - 22, cy, 6); drawDie(cx, cy - 8, 4); drawDie(cx + 22, cy + 6, 2);
+    this.scrollContainer?.add(g);
   }
 
-  /** Ball Drop icon — pegs + falling ball */
   drawBallDropCard(cx: number, cy: number): void {
     const g = this.add.graphics();
-
-    // Pegs — 3 rows, offset
-    const pegColor = 0x6677aa;
     const pegPositions: [number, number][] = [
-      // row 1 (3 pegs)
       [cx - 18, cy - 14], [cx, cy - 14], [cx + 18, cy - 14],
-      // row 2 (2 pegs, offset)
-      [cx - 9, cy - 2], [cx + 9, cy - 2],
-      // row 3 (3 pegs)
-      [cx - 18, cy + 10], [cx, cy + 10], [cx + 18, cy + 10],
+      [cx - 9,  cy - 2 ], [cx + 9,  cy - 2 ],
+      [cx - 18, cy + 10], [cx,      cy + 10], [cx + 18, cy + 10],
     ];
-    g.fillStyle(pegColor, 1);
+    g.fillStyle(0x6677aa, 1);
     for (const [px, py] of pegPositions) g.fillCircle(px, py, 3);
-
-    // Ball — golden, falling between pegs
-    g.fillStyle(0xc0392b, 1);
-    g.fillCircle(cx - 4, cy - 20, 6);
-    g.fillStyle(0xf7971e, 1);
-    g.fillCircle(cx - 4, cy - 20, 4);
-    g.fillStyle(0xffe066, 1);
-    g.fillCircle(cx - 6, cy - 22, 2);
-
-    // Slots at bottom (3 mini slots)
+    g.fillStyle(0xc0392b, 1); g.fillCircle(cx - 4, cy - 20, 6);
+    g.fillStyle(0xf7971e, 1); g.fillCircle(cx - 4, cy - 20, 4);
+    g.fillStyle(0xffe066, 1); g.fillCircle(cx - 6, cy - 22, 2);
     const slotColors = [0xe74c3c, 0xffd200, 0xe74c3c];
     for (let i = 0; i < 3; i++) {
       const sx = cx - 20 + i * 20;
-      g.fillStyle(slotColors[i], 0.25);
-      g.fillRect(sx - 8, cy + 16, 16, 10);
-      g.lineStyle(1, slotColors[i], 0.9);
-      g.strokeRect(sx - 8, cy + 16, 16, 10);
+      g.fillStyle(slotColors[i], 0.25); g.fillRect(sx - 8, cy + 16, 16, 10);
+      g.lineStyle(1, slotColors[i], 0.9); g.strokeRect(sx - 8, cy + 16, 16, 10);
     }
+    this.scrollContainer?.add(g);
   }
 
-  /** Mines icon — grid with a bomb */
   drawMinesCard(cx: number, cy: number): void {
     const g = this.add.graphics();
     const s = 0.85;
-    // Mini 3×3 grid
     for (let r = 0; r < 3; r++) {
       for (let c = 0; c < 3; c++) {
         const tx = cx - 20 * s + c * 20 * s;
@@ -484,44 +471,40 @@ export class HomeScene extends Phaser.Scene {
         const isBomb = r === 1 && c === 1;
         g.fillStyle(isBomb ? 0x1a0808 : 0x080818, 1);
         g.fillRoundedRect(tx - 8 * s, ty - 8 * s, 16 * s, 16 * s, 3 * s);
-        g.lineStyle(1, isBomb ? 0x44ffaa : 0x44ffaa, isBomb ? 0.9 : 0.25);
+        g.lineStyle(1, 0x44ffaa, isBomb ? 0.9 : 0.25);
         g.strokeRoundedRect(tx - 8 * s, ty - 8 * s, 16 * s, 16 * s, 3 * s);
         if (isBomb) {
-          // Draw bomb circle
-          g.fillStyle(0x44ffaa, 0.8);
-          g.fillCircle(tx, ty, 5 * s);
-          // Fuse
+          g.fillStyle(0x44ffaa, 0.8); g.fillCircle(tx, ty, 5 * s);
           g.lineStyle(1.5, 0x44ffaa, 0.9);
           g.beginPath(); g.moveTo(tx, ty - 5 * s); g.lineTo(tx + 4 * s, ty - 9 * s); g.strokePath();
           g.fillCircle(tx + 4 * s, ty - 9 * s, 2 * s);
         }
       }
     }
+    this.scrollContainer?.add(g);
   }
 
-  // ─── Scrolling ticker ────────────────────────────────────────────────────
+  // ─── Fixed ticker ────────────────────────────────────────────────────────
 
   private buildTicker(width: number, height: number): void {
-    const ty   = height * 0.927;
-    const barH = 30;
+    const ty   = height - TICKER_H / 2;
+    const barH = TICKER_H;
     const msg  = '  ✦  JETT.GAME  ·  SKILL  ·  STRATEGY  ·  REWARD  ✦  COMING SOON  ·  ';
 
-    // Background bar
-    const bar = this.add.graphics();
+    const bar = this.add.graphics().setScrollFactor(0).setDepth(20);
+    bar.fillStyle(0x050508, 1);
+    bar.fillRect(0, height - barH, width, barH);
     bar.fillStyle(GOLD, 0.08);
-    bar.fillRect(0, ty - barH / 2, width, barH);
+    bar.fillRect(0, height - barH, width, barH);
     bar.lineStyle(1, GOLD, 0.3);
-    bar.beginPath(); bar.moveTo(0, ty - barH / 2); bar.lineTo(width, ty - barH / 2); bar.strokePath();
-    bar.beginPath(); bar.moveTo(0, ty + barH / 2); bar.lineTo(width, ty + barH / 2); bar.strokePath();
+    bar.beginPath(); bar.moveTo(0, height - barH); bar.lineTo(width, height - barH); bar.strokePath();
 
-    // Create clipping mask
-    const maskShape = this.add.graphics();
+    const maskShape = this.add.graphics().setScrollFactor(0).setDepth(19);
     maskShape.fillStyle(0xffffff);
-    maskShape.fillRect(0, ty - barH / 2, width, barH);
+    maskShape.fillRect(0, height - barH, width, barH);
     const geomMask = maskShape.createGeometryMask();
 
-    // Build enough text copies to fill width × 2
-    const container = this.add.container(0, ty).setMask(geomMask);
+    const container = this.add.container(0, ty).setScrollFactor(0).setDepth(21).setMask(geomMask);
     const items: Phaser.GameObjects.Text[] = [];
     let totalW = 0;
 
@@ -536,10 +519,8 @@ export class HomeScene extends Phaser.Scene {
       totalW += t.width;
     }
 
-    // Scroll
     this.time.addEvent({
-      delay: 16,
-      loop: true,
+      delay: 16, loop: true,
       callback: () => {
         for (const item of items) item.x -= 1.3;
         const first = items[0];
@@ -550,5 +531,9 @@ export class HomeScene extends Phaser.Scene {
         }
       },
     });
+  }
+
+  shutdown(): void {
+    this.events.off('update', this.onUpdate, this);
   }
 }
