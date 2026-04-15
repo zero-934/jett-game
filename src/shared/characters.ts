@@ -161,6 +161,75 @@ export const ballDropper: CharacterDef = {
   },
 };
 
+// ─── Fruit Fiesta ────────────────────────────────────────────────────────
+// Used in: FruitFiestaUI.ts
+// Appearance: Fruit-themed character / mascot
+// To replace: set imageUrl to a 128×128 PNG of your character
+
+/**
+ * Default character for the Tropical Fruit Fiesta game.
+ * Placeholder: code-drawn stylized fruit (gold accents).
+ */
+export const fruitFiestaCharacter: CharacterDef = {
+  key: 'fruit-fiesta-default',
+  name: 'Fiesta Fruity',
+  // imageUrl: undefined,  ← set this when AI art is ready
+  fallbackDraw: undefined, // UI handles drawing if imageUrl is not set
+  tint: GOLD,
+  meta: {
+    game: 'Tropical Fruit Fiesta',
+    role: 'mascot',
+    description: 'A vibrant fruit mascot inviting players to the fiesta.',
+    designNotes: 'Stylized, friendly fruit, maybe a sombrero or maracas. Bright colors with gold.',
+  },
+};
+
+// ─── Cosmic Quest ────────────────────────────────────────────────────────
+// Used in: CosmicQuestUI.ts
+// Appearance: Astronaut / Alien / Space-themed character
+// To replace: set imageUrl to a 128×128 PNG of your character
+
+/**
+ * Default character for the Cosmic Quest game.
+ * Placeholder: code-drawn astronaut/rocket (gold).
+ */
+export const cosmicQuestCharacter: CharacterDef = {
+  key: 'cosmic-quest-default',
+  name: 'Cosmic Explorer',
+  // imageUrl: undefined,  ← set this when AI art is ready
+  fallbackDraw: undefined, // UI handles drawing if imageUrl is not set
+  tint: GOLD,
+  meta: {
+    game: 'Cosmic Quest',
+    role: 'explorer',
+    description: 'A fearless explorer navigating the cosmos.',
+    designNotes: 'Astronaut suit, rocket motifs, gold accents, futuristic design.',
+  },
+};
+
+// ─── Wild Frontier ─────────────────────────────────────────────────────────
+// Used in: WildFrontierUI.ts
+// Appearance: Cowboy/Indigenous Guide themed character
+// To replace: set imageUrl to a 128×128 PNG of your character
+
+/**
+ * Default character for the Wild Frontier game.
+ * Placeholder: code-drawn cowboy hat / star badge (gold).
+ */
+export const wildFrontierCharacter: CharacterDef = {
+  key: 'wild-frontier-default',
+  name: 'Wild Frontiersman',
+  // imageUrl: undefined,  ← set this when AI art is ready
+  fallbackDraw: undefined, // UI handles drawing if imageUrl is not set
+  tint: GOLD,
+  meta: {
+    game: 'Wild Frontier',
+    role: 'explorer',
+    description: 'A brave explorer seeking gold in the frontier.',
+    designNotes: 'Classic cowboy hat, sheriff star badge, earthy tones with gold accents.',
+  },
+};
+
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
 /**
@@ -178,4 +247,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterDef> = {
   dice:      diceDealer,
   mines:     minesExplorer,
   ballDrop:  ballDropper,
+  wildFrontier: wildFrontierCharacter,
+  cosmicQuest: cosmicQuestCharacter,
+  fruitFiesta: fruitFiestaCharacter,
 };

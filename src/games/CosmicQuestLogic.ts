@@ -1,6 +1,6 @@
 /**
- * @file WildFrontierLogic.ts
- * @purpose Pure game logic for Wild Frontier slot — symbol definitions, paylines,
+ * @file CosmicQuestLogic.ts
+ * @purpose Pure game logic for Cosmic Quest slot — symbol definitions, paylines,
  *          RNG reel stops, win evaluation, and payout calculation. No Phaser.
  * @author C-3PO
  * @date 2026-04-14
@@ -9,24 +9,24 @@
 
 import { getRandomSeedableRNG } from '../utils/RNG'; // Assuming a central RNG utility
 
-/** Types of symbols on the reels. */
-export type WildFrontierSymbol =
-  'COWBOY' | 'INDIGENOUS_GUIDE' | 'HORSE' | 'BUFFALO' | 'GOLD_NUGGET' |
+/** Types of symbols on the reels for Cosmic Quest. */
+export type CosmicQuestSymbol =
+  'ROCKET' | 'ALIEN' | 'PLANET' | 'STAR' | 'MOON' |
   'A' | 'K' | 'Q' | 'J' | '10' |
   'WILD' | 'SCATTER';
 
-/** Configuration for a Wild Frontier slot instance. */
-export interface WildFrontierConfig {
+/** Configuration for a Cosmic Quest slot instance. */
+export interface CosmicQuestConfig {
   houseEdge?: number; // 0.04 for 96% RTP
   rng?: () => number;
-  overrideReelStops?: WildFrontierSymbol[][]; // For deterministic testing
+  overrideReelStops?: CosmicQuestSymbol[][]; // For deterministic testing
 }
 
-/** Full Wild Frontier slot game state. */
-export interface WildFrontierState {
+/** Full Cosmic Quest slot game state. */
+export interface CosmicQuestState {
   bet: number;
   linesBet: number; // Number of active paylines (e.g., 25)
-  reelStops: WildFrontierSymbol[][]; // Final symbols visible on reels (e.g., 5x3 grid)
+  reelStops: CosmicQuestSymbol[][]; // Final symbols visible on reels (e.g., 5x3 grid)
   totalWin: number;
   isComplete: boolean;
   freeSpinsRemaining: number;
@@ -38,20 +38,20 @@ const ROWS_COUNT         = 3;
 const TOTAL_PAYLINES     = 25; // Example, will define actual payline patterns later
 
 // All symbols, ordered by rough frequency (common to rare)
-const SYMBOLS: WildFrontierSymbol[] = [
+const SYMBOLS: CosmicQuestSymbol[] = [
   '10', 'J', 'Q', 'K', 'A',
-  'GOLD_NUGGET', 'BUFFALO', 'HORSE',
-  'INDIGENOUS_GUIDE', 'COWBOY',
+  'MOON', 'STAR', 'PLANET',
+  'ALIEN', 'ROCKET',
   'WILD', 'SCATTER',
 ];
 
 // Mapping symbols to their values for payouts (conceptual, will be refined)
-const SYMBOL_PAYOUTS: { [key in WildFrontierSymbol]: number } = {
-  'COWBOY': 500,
-  'INDIGENOUS_GUIDE': 400,
-  'HORSE': 300,
-  'BUFFALO': 200,
-  'GOLD_NUGGET': 150,
+const SYMBOL_PAYOUTS: { [key in CosmicQuestSymbol]: number } = {
+  'ROCKET': 600,
+  'ALIEN': 500,
+  'PLANET': 400,
+  'STAR': 300,
+  'MOON': 200,
   'A': 100,
   'K': 75,
   'Q': 50,
@@ -62,23 +62,20 @@ const SYMBOL_PAYOUTS: { [key in WildFrontierSymbol]: number } = {
 };
 
 // Reel strip definitions (simplified for now, will be more complex for actual RTP)
-// Each array represents a reel, with symbols appearing in sequence.
-// Real slots use much longer strips and weighting.
-const REEL_STRIPS: WildFrontierSymbol[][] = [
-  // Reel 1 (Leftmost)
-  ['10', 'J', 'Q', 'K', 'A', 'GOLD_NUGGET', 'BUFFALO', 'HORSE', 'WILD', 'SCATTER', '10', 'J', 'Q', 'K', 'A', 'COWBOY', 'INDIGENOUS_GUIDE'],
+const REEL_STRIPS: CosmicQuestSymbol[][] = [
+  // Reel 1
+  ['10', 'J', 'Q', 'K', 'A', 'MOON', 'STAR', 'WILD', 'SCATTER', '10', 'J', 'Q', 'K', 'A', 'ROCKET', 'ALIEN'],
   // Reel 2
-  ['J', 'Q', 'K', 'A', 'GOLD_NUGGET', 'BUFFALO', 'HORSE', 'INDIGENOUS_GUIDE', 'WILD', '10', 'J', 'Q', 'K', 'A', 'COWBOY', 'SCATTER'],
-  // Reel 3 (Center)
-  ['Q', 'K', 'A', 'GOLD_NUGGET', 'BUFFALO', 'HORSE', 'COWBOY', 'WILD', 'SCATTER', '10', 'J', 'Q', 'K', 'A', 'INDIGENOUS_GUIDE'],
+  ['J', 'Q', 'K', 'A', 'MOON', 'STAR', 'PLANET', 'WILD', '10', 'J', 'Q', 'K', 'A', 'ROCKET', 'SCATTER'],
+  // Reel 3
+  ['Q', 'K', 'A', 'MOON', 'STAR', 'ALIEN', 'WILD', 'SCATTER', '10', 'J', 'Q', 'K', 'A', 'PLANET', 'ROCKET'],
   // Reel 4
-  ['K', 'A', 'GOLD_NUGGET', 'BUFFALO', 'HORSE', 'INDIGENOUS_GUIDE', 'WILD', '10', 'J', 'Q', 'K', 'A', 'COWBOY', 'SCATTER'],
-  // Reel 5 (Rightmost)
-  ['A', 'GOLD_NUGGET', 'BUFFALO', 'HORSE', 'COWBOY', 'WILD', 'SCATTER', '10', 'J', 'Q', 'K', 'A', 'INDIGENOUS_GUIDE'],
+  ['K', 'A', 'MOON', 'STAR', 'PLANET', 'ALIEN', 'WILD', '10', 'J', 'Q', 'K', 'A', 'ROCKET', 'SCATTER'],
+  // Reel 5
+  ['A', 'MOON', 'STAR', 'ALIEN', 'ROCKET', 'WILD', 'SCATTER', '10', 'J', 'Q', 'K', 'A', 'PLANET'],
 ];
 
-// Definition of 25 paylines for a 5x3 grid
-// Each payline is an array of [reelIndex, rowIndex] coordinates
+// Payline definitions (same as Wild Frontier for now, can be customized later)
 const PAYLINES: [number, number][][] = [
   // Horizontal lines
   [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]], // Top Row
@@ -101,7 +98,7 @@ const PAYLINES: [number, number][][] = [
   [[0, 0], [1, 1], [2, 0], [3, 1], [4, 0]],
   [[0, 2], [1, 1], [2, 2], [3, 1], [4, 2]],
 
-  // More complex patterns to reach 25 (example patterns, will need refining)
+  // More complex patterns to reach 25
   [[0, 0], [1, 0], [2, 0], [3, 1], [4, 1]],
   [[0, 0], [1, 1], [2, 1], [3, 1], [4, 0]],
   [[0, 1], [1, 0], [2, 1], [3, 2], [4, 1]],
@@ -120,16 +117,13 @@ const PAYLINES: [number, number][][] = [
 
 
 /**
- * Creates an initial Wild Frontier slot game state.
+ * Creates an initial Cosmic Quest slot game state.
  *
  * @param bet - Wager in credits per line.
  * @param linesBet - Number of active paylines.
- * @returns Fresh WildFrontierState.
- *
- * @example
- * const state = createWildFrontierState(1, 25);
+ * @returns Fresh CosmicQuestState.
  */
-export function createWildFrontierState(bet: number, linesBet: number): WildFrontierState {
+export function createCosmicQuestState(bet: number, linesBet: number): CosmicQuestState {
   return {
     bet,
     linesBet: Math.min(linesBet, TOTAL_PAYLINES),
@@ -141,16 +135,13 @@ export function createWildFrontierState(bet: number, linesBet: number): WildFron
 }
 
 /**
- * Executes a single spin and determines wins.
+ * Executes a single spin and determines wins for Cosmic Quest.
  *
  * @param state - Current game state (mutated).
  * @param config - Game configuration.
  * @returns Updated state with spin result.
- *
- * @example
- * spinWildFrontier(state, { houseEdge: 0.04 });
  */
-export function spinWildFrontier(state: WildFrontierState, config: WildFrontierConfig = {}): WildFrontierState {
+export function spinCosmicQuest(state: CosmicQuestState, config: CosmicQuestConfig = {}): CosmicQuestState {
   if (state.isComplete && state.freeSpinsRemaining <= 0) return state; // Only allow spin if not complete or in free spins
 
   const houseEdge = config.houseEdge ?? DEFAULT_HOUSE_EDGE;
@@ -169,7 +160,7 @@ export function spinWildFrontier(state: WildFrontierState, config: WildFrontierC
   // Evaluate wins
   state.totalWin = 0;
   let scattersHit = 0;
-  const currentSymbolsOnGrid: WildFrontierSymbol[][] = state.reelStops;
+  const currentSymbolsOnGrid: CosmicQuestSymbol[][] = state.reelStops;
 
   // Count scatters
   currentSymbolsOnGrid.forEach(reel => {
@@ -180,43 +171,35 @@ export function spinWildFrontier(state: WildFrontierState, config: WildFrontierC
     });
   });
 
-  // Trigger free spins
-  if (scattersHit >= 3) { // Typically 3+ scatters for free spins
-    state.freeSpinsRemaining += 10; // Example: 10 free spins
-    // Scatter payout could also be added here if desired
+  // Trigger free spins (e.g., 3+ scatters for 12 free spins in Cosmic Quest)
+  if (scattersHit >= 3) {
+    state.freeSpinsRemaining += 12; // Cosmic Quest awards 12 free spins
   }
 
   // Evaluate paylines
   for (let i = 0; i < state.linesBet; i++) {
     const payline = PAYLINES[i];
-    if (!payline) continue; // Should not happen if linesBet is capped
+    if (!payline) continue;
 
-    let lineSymbols: WildFrontierSymbol[] = [];
+    let lineSymbols: CosmicQuestSymbol[] = [];
     for (const [reelIdx, rowIdx] of payline) {
       if (currentSymbolsOnGrid[reelIdx] && currentSymbolsOnGrid[reelIdx][rowIdx]) {
         lineSymbols.push(currentSymbolsOnGrid[reelIdx][rowIdx]);
       } else {
-        // Handle cases where a symbol might be missing (shouldn't happen with 5x3)
-        lineSymbols.push('10'); // Default to a low value symbol
+        lineSymbols.push('10');
       }
     }
 
-    // Evaluate the line for a win
-    const winAmount = evaluatePayline(lineSymbols); // Will need houseEdge passed in to evaluate
-    state.totalWin += winAmount; // This part needs refinement with houseEdge
+    const winAmount = evaluateCosmicQuestPayline(lineSymbols);
+    state.totalWin += winAmount;
   }
 
-  // Apply house edge to the total win for this spin.
-  // This is a simplified application for RTP calculation in simulation.
-  // Real slots apply house edge through symbol probabilities and payout table design.
-  // For now, we simulate this by reducing the final payout slightly for the spin.
-  // This will be refined as the symbol distribution and paytable are balanced for 96% RTP.
+  // Apply house edge
   state.totalWin = parseFloat((state.totalWin * (1 - houseEdge)).toFixed(2));
 
   // Handle free spins logic
   if (state.freeSpinsRemaining > 0) {
     state.freeSpinsRemaining--;
-    // If it was a free spin, it's not "complete" yet if more spins remain
     state.isComplete = (state.freeSpinsRemaining === 0);
   } else {
     state.isComplete = true;
@@ -226,17 +209,15 @@ export function spinWildFrontier(state: WildFrontierState, config: WildFrontierC
 }
 
 /**
- * Evaluates a single payline for a win and returns the payout.
- * This function will be the core of RTP balancing.
+ * Evaluates a single payline for a win and returns the payout for Cosmic Quest.
  *
  * @param lineSymbols - Array of symbols on the payline.
  * @returns Payout amount for this line.
  */
-function evaluatePayline(lineSymbols: WildFrontierSymbol[]): number {
-  if (lineSymbols.length !== REELS_COUNT) return 0; // Must be a full line
+function evaluateCosmicQuestPayline(lineSymbols: CosmicQuestSymbol[]): number {
+  if (lineSymbols.length !== REELS_COUNT) return 0;
 
-  // Determine the primary symbol for evaluation (first non-wild)
-  let primarySymbol: WildFrontierSymbol | null = null;
+  let primarySymbol: CosmicQuestSymbol | null = null;
   for (const symbol of lineSymbols) {
     if (symbol !== 'WILD') {
       primarySymbol = symbol;
@@ -245,8 +226,8 @@ function evaluatePayline(lineSymbols: WildFrontierSymbol[]): number {
   }
 
   if (!primarySymbol) {
-    // All wilds on the line, evaluate as highest paying symbol (COWBOY)
-    primarySymbol = 'COWBOY';
+    // All wilds, evaluate as highest paying symbol (ROCKET)
+    primarySymbol = 'ROCKET';
   }
 
   let count = 0;
@@ -254,20 +235,16 @@ function evaluatePayline(lineSymbols: WildFrontierSymbol[]): number {
     if (lineSymbols[i] === primarySymbol || lineSymbols[i] === 'WILD') {
       count++;
     } else {
-      break; // Streak broken
+      break;
     }
   }
 
-  // Payout based on count and primary symbol (simplified example)
-  if (count >= 3) { // Minimum 3 symbols for a win
+  if (count >= 3) {
     const basePayout = SYMBOL_PAYOUTS[primarySymbol] || 0;
-    // This is a highly simplified payout calculation.
-    // Real slots use a complex paytable for each symbol combo (3-of-a-kind, 4-of-a-kind, 5-of-a-kind).
-    // This will need extensive refinement and balancing for the target RTP.
     switch (count) {
-      case 3: return basePayout * 0.1; // Example: small payout for 3
-      case 4: return basePayout * 0.5; // Example: medium payout for 4
-      case 5: return basePayout * 1.0; // Example: full payout for 5
+      case 3: return basePayout * 0.1;
+      case 4: return basePayout * 0.5;
+      case 5: return basePayout * 1.0;
       default: return 0;
     }
   }
@@ -276,8 +253,7 @@ function evaluatePayline(lineSymbols: WildFrontierSymbol[]): number {
 
 
 /**
- * Simulates many rounds to estimate RTP for a specific bet.
- * This is crucial for balancing the game to 96% RTP.
+ * Simulates many rounds to estimate RTP for Cosmic Quest.
  *
  * @param rounds - Number of rounds to simulate.
  * @param betPerLine - Bet amount per line.
@@ -285,17 +261,17 @@ function evaluatePayline(lineSymbols: WildFrontierSymbol[]): number {
  * @param config - Game config (including houseEdge).
  * @returns Estimated RTP as a fraction (0-1).
  */
-export function simulateWildFrontierRTP(
+export function simulateCosmicQuestRTP(
   rounds: number,
   betPerLine: number,
   linesBet: number,
-  config: WildFrontierConfig = {}
+  config: CosmicQuestConfig = {}
 ): number {
   let totalBet    = 0;
   let totalPayout = 0;
   for (let i = 0; i < rounds; i++) {
-    const state = createWildFrontierState(betPerLine, linesBet);
-    spinWildFrontier(state, config); // Spin once
+    const state = createCosmicQuestState(betPerLine, linesBet);
+    spinCosmicQuest(state, config);
     totalBet    += (betPerLine * linesBet);
     totalPayout += state.totalWin;
   }

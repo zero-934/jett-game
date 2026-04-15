@@ -1,28 +1,28 @@
 /**
- * @file WildFrontierScene.ts
- * @purpose Phaser scene for the Wild Frontier slot game, wiring Logic and UI.
+ * @file FruitFiestaScene.ts
+ * @purpose Phaser scene for the Tropical Fruit Fiesta slot game, wiring Logic and UI.
  * @author Agent 934
  * @date 2026-04-14
  * @license Proprietary – available for licensing
  */
 
 import Phaser from 'phaser';
-import { WildFrontierUI } from '../games/WildFrontierUI';
-import { WildFrontierConfig } from '../games/WildFrontierLogic';
+import { FruitFiestaUI } from '../games/FruitFiestaUI';
+import { FruitFiestaConfig } from '../games/FruitFiestaLogic';
 
 /**
- * Scene that integrates the Wild Frontier game logic with its UI.
+ * Scene that integrates the Tropical Fruit Fiesta game logic with its UI.
  */
-export class WildFrontierScene extends Phaser.Scene {
-  public static readonly KEY = 'WildFrontierScene';
-  private wildFrontierUI?: WildFrontierUI;
+export class FruitFiestaScene extends Phaser.Scene {
+  public static readonly KEY = 'FruitFiestaScene';
+  private fruitFiestaUI?: FruitFiestaUI;
 
   constructor() {
-    super(WildFrontierScene.KEY);
+    super(FruitFiestaScene.KEY);
   }
 
   preload() {
-    // Load any assets specific to Wild Frontier (e.g., character images, reel symbols)
+    // Load any assets specific to Tropical Fruit Fiesta (e.g., character images, reel symbols)
     // This will be expanded when actual assets are available.
   }
 
@@ -30,10 +30,10 @@ export class WildFrontierScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(0x0d0d0d); // Midnight Luxury background
 
     // Instantiate the UI, passing in a basic game config
-    const gameConfig: WildFrontierConfig = {
+    const gameConfig: FruitFiestaConfig = {
       houseEdge: 0.03, // Use the mandated 97% RTP
     };
-    this.wildFrontierUI = new WildFrontierUI(this, 1, 25, gameConfig);
+    this.fruitFiestaUI = new FruitFiestaUI(this, 1, 25, gameConfig);
 
     // Add a simple back button for navigation
     const backButton = this.add.text(this.sys.game.canvas.width - 100, 30, 'BACK', {
@@ -47,7 +47,7 @@ export class WildFrontierScene extends Phaser.Scene {
   }
 
   update() {
-    // UI updates are primarily handled within WildFrontierUI and its event listeners.
+    // UI updates are primarily handled within FruitFiestaUI and its event listeners.
     // This update loop can be used for any continuous scene-level animations or checks if needed.
   }
 }

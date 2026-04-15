@@ -1,26 +1,26 @@
 /**
- * @file WildFrontierUI.ts
- * @purpose Phaser rendering and input handling for the Wild Frontier slot game.
+ * @file CosmicQuestUI.ts
+ * @purpose Phaser rendering and input handling for the Cosmic Quest slot game.
  * @author Agent 934
  * @date 2026-04-14
  * @license Proprietary – available for licensing
  */
 
 import Phaser from 'phaser';
-import { WildFrontierState, spinWildFrontier, createWildFrontierState, WildFrontierConfig } from './WildFrontierLogic';
+import { CosmicQuestState, spinCosmicQuest, createCosmicQuestState, CosmicQuestConfig } from './CosmicQuestLogic';
 import { CHARACTER_REGISTRY } from '../shared/characters';
 
 const GOLD = 0xc9a84c;
 
 /**
- * Renders the character for Wild Frontier.
+ * Renders the character for Cosmic Quest.
  * This function adheres to the CHARACTER_REGISTRY rules.
  * @param scene The Phaser scene.
  * @param x X coordinate.
  * @param y Y coordinate.
  */
-function renderWildFrontierCharacter(scene: Phaser.Scene, x: number, y: number) {
-  const character = CHARACTER_REGISTRY.wildFrontier;
+function renderCosmicQuestCharacter(scene: Phaser.Scene, x: number, y: number) {
+  const character = CHARACTER_REGISTRY.cosmicQuest; // Assuming a key 'cosmicQuest'
   if (character && character.imageUrl) {
     // Assuming the image is preloaded and has a key matching character.key
     scene.add.image(x, y, character.key);
@@ -29,26 +29,26 @@ function renderWildFrontierCharacter(scene: Phaser.Scene, x: number, y: number) 
   } else {
     // Default placeholder if no specific fallback is provided
     scene.add.circle(x, y, 30, GOLD).setStrokeStyle(2, 0xffffff);
-    scene.add.text(x, y, 'WF', { fontSize: '24px', color: '#c9a84c' }).setOrigin(0.5);
+    scene.add.text(x, y, 'CQ', { fontSize: '24px', color: '#c9a84c' }).setOrigin(0.5);
   }
 }
 
 /**
- * Manages the UI elements and interactions for the Wild Frontier game.
+ * Manages the UI elements and interactions for the Cosmic Quest game.
  */
-export class WildFrontierUI {
+export class CosmicQuestUI {
   private scene: Phaser.Scene;
-  private state: WildFrontierState;
+  private state: CosmicQuestState;
   private spinButton: Phaser.GameObjects.Text;
   private reelsDisplay: Phaser.GameObjects.Text[][]; // Placeholder for reel visuals
   private winText: Phaser.GameObjects.Text;
   private freeSpinsText: Phaser.GameObjects.Text;
-  private gameConfig: WildFrontierConfig;
+  private gameConfig: CosmicQuestConfig;
 
-  constructor(scene: Phaser.Scene, bet: number, linesBet: number, gameConfig: WildFrontierConfig = {}) {
+  constructor(scene: Phaser.Scene, bet: number, linesBet: number, gameConfig: CosmicQuestConfig = {}) {
     this.scene = scene;
     this.gameConfig = gameConfig;
-    this.state = createWildFrontierState(bet, linesBet);
+    this.state = createCosmicQuestState(bet, linesBet);
 
     this.reelsDisplay = Array(5).fill(null).map(() => 
       Array(3).fill(null).map(() => 
@@ -70,7 +70,7 @@ export class WildFrontierUI {
 
     // Initial render of reels and character
     this.updateUI();
-    renderWildFrontierCharacter(scene, 100, 100); // Example position
+    renderCosmicQuestCharacter(scene, 100, 100); // Example position
   }
 
   /**
@@ -78,7 +78,7 @@ export class WildFrontierUI {
    */
   private handleSpin() {
     if (this.state.isComplete === false || this.state.freeSpinsRemaining > 0) {
-      spinWildFrontier(this.state, this.gameConfig);
+      spinCosmicQuest(this.state, this.gameConfig);
       this.updateUI();
     } else {
       // Game complete and no free spins, perhaps offer a 'Play Again' or reset
@@ -112,17 +112,17 @@ export class WildFrontierUI {
 
   /**
    * Returns the current game state.
-   * @returns The current WildFrontierState.
+   * @returns The current CosmicQuestState.
    */
-  public getState(): WildFrontierState {
+  public getState(): CosmicQuestState {
     return this.state;
   }
 
   /**
    * Allows setting a new game configuration.
-   * @param config The new WildFrontierConfig.
+   * @param config The new CosmicQuestConfig.
    */
-  public setConfig(config: WildFrontierConfig) {
+  public setConfig(config: CosmicQuestConfig) {
     this.gameConfig = config;
   }
 }

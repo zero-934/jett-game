@@ -120,6 +120,14 @@ export class HomeScene extends Phaser.Scene {
         accentStr: GOLD_STR,
         drawIcon: (scene, x, y) => scene.drawWildFrontierCard(x, y),
       },
+      {
+        key: 'CosmicQuestScene',
+        title: 'COSMIC QUEST',
+        subtitle: '5x3 Reels · 25 Paylines\nExplore the stars for bonus spins!',
+        accent: GOLD,
+        accentStr: GOLD_STR,
+        drawIcon: (scene, x, y) => scene.drawCosmicQuestCard(x, y),
+      },
     ];
 
     const cardH      = 108;
@@ -516,6 +524,70 @@ export class HomeScene extends Phaser.Scene {
     // Rope (subtle detail)
     g.lineStyle(2 * s, 0x8b4513, 0.6); // Saddle brown rope
     g.beginPath(); g.moveTo(cx - 20 * s, cy + 10 * s); g.bezierCurveTo(cx - 10 * s, cy + 20 * s, cx + 10 * s, cy + 20 * s, cx + 20 * s, cy + 10 * s); g.strokePath();
+
+    this.scrollContainer?.add(g);
+  }
+
+  drawCosmicQuestCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    const s = 0.9;
+
+    // Background planet
+    g.fillStyle(0x3a2d5e, 1); // Dark purple planet
+    g.fillCircle(cx, cy, 30 * s);
+    g.fillStyle(0x6a5d8e, 1); // Lighter purple ring
+    g.fillEllipse(cx, cy + 5 * s, 50 * s, 10 * s);
+    g.fillStyle(0x8a7db3, 0.4); // Even lighter, transparent ring
+    g.fillEllipse(cx, cy + 5 * s, 55 * s, 12 * s);
+
+    // Rocket
+    g.fillStyle(0xc0392b, 1); // Red rocket body
+    g.fillTriangle(cx - 8 * s, cy + 20 * s, cx + 8 * s, cy + 20 * s, cx, cy - 10 * s);
+    g.fillStyle(0xe74c3c, 1); // Lighter red tip
+    g.fillTriangle(cx - 4 * s, cy + 10 * s, cx + 4 * s, cy + 10 * s, cx, cy - 15 * s);
+
+    // Fins
+    g.fillStyle(0x95a5a6, 1); // Grey fins
+    g.fillTriangle(cx - 8 * s, cy + 20 * s, cx - 18 * s, cy + 10 * s, cx - 8 * s, cy + 10 * s);
+    g.fillTriangle(cx + 8 * s, cy + 20 * s, cx + 18 * s, cy + 10 * s, cx + 8 * s, cy + 10 * s);
+
+    // Window
+    g.fillStyle(0xadd8e6, 1); // Light blue window
+    g.fillCircle(cx, cy + 5 * s, 5 * s);
+    g.fillStyle(0x2c3e50, 1); // Dark border
+    g.lineStyle(1 * s, 0x2c3e50, 1);
+    g.strokeCircle(cx, cy + 5 * s, 5 * s);
+
+    // Star trails
+    g.fillStyle(GOLD, 0.8);
+    g.fillTriangle(cx + 10 * s, cy + 20 * s, cx + 15 * s, cy + 25 * s, cx + 5 * s, cy + 25 * s);
+    g.fillTriangle(cx - 10 * s, cy + 20 * s, cx - 15 * s, cy + 25 * s, cx - 5 * s, cy + 25 * s);
+
+    this.scrollContainer?.add(g);
+  }
+
+  drawFruitFiestaCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    const s = 0.9;
+
+    // Main fruit shape (e.g., a stylized apple/cherry composite)
+    g.fillStyle(0xc0392b, 1); // Red for a main fruit
+    g.fillRoundedRect(cx - 20 * s, cy - 25 * s, 40 * s, 40 * s, 15 * s);
+    g.fillStyle(0xe74c3c, 1); // Lighter red highlight
+    g.fillCircle(cx + 10 * s, cy - 15 * s, 8 * s);
+
+    // Leaf
+    g.fillStyle(0x27ae60, 1); // Green leaf
+    g.fillEllipse(cx + 5 * s, cy - 30 * s, 15 * s, 8 * s);
+
+    // Gold accent (symbolizing bonus/jackpot)
+    g.fillStyle(GOLD, 1);
+    g.fillCircle(cx - 10 * s, cy + 10 * s, 6 * s);
+    g.fillCircle(cx + 15 * s, cy - 5 * s, 4 * s);
+
+    // Small sparkle
+    g.fillStyle(0xffffff, 0.8);
+    g.fillCircle(cx - 12 * s, cy + 8 * s, 2 * s);
 
     this.scrollContainer?.add(g);
   }
