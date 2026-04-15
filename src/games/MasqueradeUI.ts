@@ -1,41 +1,50 @@
 /**
  * @file MasqueradeUI.ts
- * @purpose Phaser rendering for Midnight Masquerade slot — symbol grid, spin button,
- *          HUD, masked-symbol animation, and win highlights.
+ * @purpose Phaser rendering for Midnight Masquerade slot — symbol grid, spinning reel animation,
+ *          big win flash overlay, masked-symbol reveal, and HUD.
  * @author Agent 934
  * @date 2026-04-15
  * @license Proprietary – available for licensing
  */
 
 import * as Phaser from 'phaser';
-import type { MasqueradeSymbol, MasqueradeState, WinLine } from './MasqueradeLogic';
-import { REELS_COUNT, ROWS_COUNT, GOLD, GOLD_STR, DARK, DARK_STR, BET_PER_LINE, LINES_COUNT } from './MasqueradeLogic';
-import { createMasqueradeState, spinMasquerade } from './MasqueradeLogic';
+import type { MasqueradeSymbol, WinLine } from './MasqueradeLogic';
+import {
+  REELS_COUNT, ROWS_COUNT,
+  GOLD, GOLD_STR, DARK, DARK_STR,
+  BET_PER_LINE, LINES_COUNT,
+  createMasqueradeState, spinMasquerade,
+} from './MasqueradeLogic';
+import type { MasqueradeState } from './MasqueradeLogic';
 
-// ─── UI Constants ─────────────────────────────────────────────────────────────
-const SYMBOL_SIZE    = 90;
-const REEL_GAP       = 8;
-const FONT_PRIMARY   = '"Georgia", serif';
-const FONT_UI        = '"Fredoka One", sans-serif';
+// ─── Layout constants ─────────────────────────────────────────────────────────
+const SYM         = 70;   // symbol cell size (px) — fits 5 reels on 390px wide
+const REEL_GAP    = 4;
+const GRID_TOP    = 200;  // y where reel grid starts (below title)
+const SPIN_ROWS   = 12;   // extra symbol rows rendered off-top for blur illusion
+const REEL_DELAY  = 120;  // ms between each reel stopping
 
-// Symbol fill colors
+// ─── Visual constants ─────────────────────────────────────────────────────────
+const FONT_TITLE  = '"Georgia", serif';
+const FONT_UI     = 'Arial, sans-serif';
+
 const SYMBOL_COLORS: Record<MasqueradeSymbol, number> = {
   GOLDEN_MASK: GOLD,
-  CHAMPAGNE:   0xadd8e6,
+  CHAMPAGNE:   0x90c8e0,
   PEACOCK:     0x008080,
-  GLOVES:      0x6a0dad,
-  CLOCK:       0xb0b0b0,
-  SLIPPER:     0xff91a4,
-  INVITATION:  0xffd700,
-  MUSIC:       0x87ceeb,
-  WILD:        DARK,
+  GLOVES:      0x7b2fbe,
+  CLOCK:       0xa8a8a8,
+  SLIPPER:     0xe87c8a,
+  INVITATION:  0xe8c44a,
+  MUSIC:       0x6ab0d8,
+  WILD:        0x0a0a1a,
   SCATTER:     GOLD,
-  MASKED:      0x4b0082,
+  MASKED:      0x3a0068,
 };
 
-const SYMBOL_LABELS: Record<MasqueradeSymbol, string> = {
+const SYMBOL_LABEL: Record<MasqueradeSymbol, string> = {
   GOLDEN_MASK: 'MASK',
-  CHAMPAGNE:   'CHAMP',
+  CHAMPAGNE:   'CHMP',
   PEACOCK:     'PCCK',
   GLOVES:      'GLVS',
   CLOCK:       'CLK',
@@ -43,217 +52,393 @@ const SYMBOL_LABELS: Record<MasqueradeSymbol, string> = {
   INVITATION:  'INVT',
   MUSIC:       'MUSC',
   WILD:        'WILD',
-  SCATTER:     'SCAT',
+  SCATTER:     '✦',
   MASKED:      '?',
 };
 
-// ─── MasqueradeUI Class ───────────────────────────────────────────────────────
+// Ordered list for random blur symbols during spin animation
+const ALL_SYMS: MasqueradeSymbol[] = [
+  'MUSIC','INVITATION','SLIPPER','CLOCK','GLOVES','PEACOCK','CHAMPAGNE','GOLDEN_MASK','WILD','SCATTER',
+];
+
+// ─── MasqueradeUI ─────────────────────────────────────────────────────────────
 
 export class MasqueradeUI {
-  private scene:        Phaser.Scene;
-  private config:       Parameters<typeof spinMasquerade>[1];
-  private state:        MasqueradeState | null = null;
+  private scene:  Phaser.Scene;
+  private config: Parameters<typeof spinMasquerade>[1];
+  private state:  MasqueradeState | null = null;
+  private spinning = false;
 
-  // Grid of containers — [reel][row]
-  private symbolGrid:   Phaser.GameObjects.Container[][] = [];
+  // Reel columns — each holds SPIN_ROWS + ROWS_COUNT containers that scroll
+  private reelCols: Phaser.GameObjects.Container[][] = []; // [reel][symbolIdx]
+  private reelMasks: Phaser.GameObjects.Graphics[]   = []; // clipping masks
 
-  private spinButton:   Phaser.GameObjects.Container | null = null;
-  private spinLabel:    Phaser.GameObjects.Text       | null = null;
-  private winText:      Phaser.GameObjects.Text       | null = null;
-  private betText:      Phaser.GameObjects.Text       | null = null;
-  private freeSpinText: Phaser.GameObjects.Text       | null = null;
-  private homeButton:   Phaser.GameObjects.Text       | null = null;
-  private messageText:  Phaser.GameObjects.Text       | null = null;
+  // HUD
+  private spinBtn:      Phaser.GameObjects.Container | null = null;
+
+  private spinBtnLabel: Phaser.GameObjects.Text      | null = null;
+  private winDisplay:   Phaser.GameObjects.Text      | null = null;
+  private betDisplay:   Phaser.GameObjects.Text      | null = null;
+  private fsDisplay:    Phaser.GameObjects.Text      | null = null;
+  private homeBtn:      Phaser.GameObjects.Text      | null = null;
+
+  // Big flash overlay
+  private flashOverlay: Phaser.GameObjects.Container | null = null;
 
   constructor(scene: Phaser.Scene, config: Parameters<typeof spinMasquerade>[1] = {}) {
     this.scene  = scene;
     this.config = config;
   }
 
-  // ─── Lifecycle ──────────────────────────────────────────────────────────────
+  // ─── Lifecycle ───────────────────────────────────────────────────────────────
 
   public start(): void {
     this.cleanup();
     this.state = createMasqueradeState(BET_PER_LINE * LINES_COUNT, LINES_COUNT);
-    this.buildGrid();
-    this.buildSpinButton();
+    this.buildReelFrame();
+    this.buildReels();
     this.buildHUD();
-    this.renderReels(this.state.reelStops, []);
+    this.buildFlashOverlay();
+    this.snapReels(this.state.reelStops, []);
   }
 
   public cleanup(): void {
-    this.symbolGrid.forEach(col => col.forEach(c => c.destroy()));
-    this.symbolGrid = [];
-    this.spinButton?.destroy();
-    this.winText?.destroy();
-    this.betText?.destroy();
-    this.freeSpinText?.destroy();
-    this.homeButton?.destroy();
-    this.messageText?.destroy();
-    this.spinButton   = null;
-    this.spinLabel    = null;
-    this.winText      = null;
-    this.betText      = null;
-    this.freeSpinText = null;
-    this.homeButton   = null;
-    this.messageText  = null;
+    this.reelCols.forEach(col => col.forEach(c => c.destroy()));
+    this.reelMasks.forEach(m => m.destroy());
+    this.reelCols  = [];
+    this.reelMasks = [];
+    this.spinBtn?.destroy();
+    this.winDisplay?.destroy();
+    this.betDisplay?.destroy();
+    this.fsDisplay?.destroy();
+    this.homeBtn?.destroy();
+    this.flashOverlay?.destroy();
+    this.spinBtn      = null;
+
+    this.spinBtnLabel = null;
+    this.winDisplay   = null;
+    this.betDisplay   = null;
+    this.fsDisplay    = null;
+    this.homeBtn      = null;
+    this.flashOverlay = null;
     this.state        = null;
+    this.spinning     = false;
   }
 
-  // ─── Build UI ───────────────────────────────────────────────────────────────
+  // ─── Build ───────────────────────────────────────────────────────────────────
 
-  private buildGrid(): void {
-    const { width, height } = this.scene.scale;
-    const totalW = REELS_COUNT * SYMBOL_SIZE + (REELS_COUNT - 1) * REEL_GAP;
-    const totalH = ROWS_COUNT  * SYMBOL_SIZE + (ROWS_COUNT  - 1) * REEL_GAP;
-    const startX = (width  - totalW) / 2;
-    const startY = (height - totalH) / 2 - 20;
+  private get gridW(): number { return REELS_COUNT * SYM + (REELS_COUNT - 1) * REEL_GAP; }
+  private get gridH(): number { return ROWS_COUNT  * SYM + (ROWS_COUNT  - 1) * REEL_GAP; }
+  private get gridX(): number { return (this.scene.scale.width - this.gridW) / 2; }
+
+  /** Decorative frame around the reel grid */
+  private buildReelFrame(): void {
+    const { width } = this.scene.scale;
+    const gx = this.gridX - 8;
+    const gy = GRID_TOP   - 8;
+    const gw = this.gridW  + 16;
+    const gh = this.gridH  + 16;
+
+    const frame = this.scene.add.graphics();
+    frame.fillStyle(0x1a0033, 1);
+    frame.fillRoundedRect(gx, gy, gw, gh, 10);
+    frame.lineStyle(2, GOLD, 0.8);
+    frame.strokeRoundedRect(gx, gy, gw, gh, 10);
+
+    // Mask strips on each side to clip reel overflow
+    const leftBar  = this.scene.add.graphics();
+    const rightBar = this.scene.add.graphics();
+    leftBar.fillStyle(0x080812, 1);
+    leftBar.fillRect(0, GRID_TOP - 10, gx, this.gridH + 20);
+    rightBar.fillStyle(0x080812, 1);
+    rightBar.fillRect(gx + gw, GRID_TOP - 10, width - (gx + gw), this.gridH + 20);
+  }
+
+  /** Builds SPIN_ROWS + ROWS_COUNT symbol containers per reel for scroll animation */
+  private buildReels(): void {
+    const totalRows = SPIN_ROWS + ROWS_COUNT;
 
     for (let r = 0; r < REELS_COUNT; r++) {
-      this.symbolGrid[r] = [];
-      for (let row = 0; row < ROWS_COUNT; row++) {
-        const x = startX + r   * (SYMBOL_SIZE + REEL_GAP);
-        const y = startY + row * (SYMBOL_SIZE + REEL_GAP);
-        const container = this.scene.add.container(x, y);
-        container.setSize(SYMBOL_SIZE, SYMBOL_SIZE);
-        this.symbolGrid[r][row] = container;
+      this.reelCols[r] = [];
+      const reelX = this.gridX + r * (SYM + REEL_GAP);
+
+      for (let i = 0; i < totalRows; i++) {
+        const container = this.scene.add.container(reelX, 0);
+        container.setSize(SYM, SYM);
+        this.reelCols[r].push(container);
       }
     }
   }
 
-  private buildSpinButton(): void {
-    const { width, height } = this.scene.scale;
-    const cx = width / 2;
-    const cy = height * 0.88;
-
-    const bg = this.scene.add.graphics();
-    bg.fillStyle(GOLD, 1);
-    bg.fillRoundedRect(-90, -28, 180, 56, 14);
-
-    const label = this.scene.add.text(0, 0, 'SPIN', {
-      fontFamily: FONT_UI, fontSize: '32px', color: DARK_STR,
-    }).setOrigin(0.5);
-
-    this.spinButton = this.scene.add.container(cx, cy, [bg, label])
-      .setSize(180, 56)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.handleSpin())
-      .on('pointerover',  () => { bg.clear(); bg.fillStyle(0xddb83a, 1); bg.fillRoundedRect(-90, -28, 180, 56, 14); })
-      .on('pointerout',   () => { bg.clear(); bg.fillStyle(GOLD,    1); bg.fillRoundedRect(-90, -28, 180, 56, 14); });
-
-    this.spinLabel = label;
-  }
-
   private buildHUD(): void {
     const { width, height } = this.scene.scale;
+    const hudY = GRID_TOP + this.gridH + 16;
 
-    this.betText = this.scene.add.text(20, height * 0.82, `BET: ${BET_PER_LINE * LINES_COUNT}`, {
-      fontFamily: FONT_UI, fontSize: '18px', color: GOLD_STR,
+    // BET label
+    this.betDisplay = this.scene.add.text(16, hudY, `BET  ${BET_PER_LINE * LINES_COUNT}`, {
+      fontFamily: FONT_UI, fontSize: '14px', color: GOLD_STR,
     });
 
-    this.winText = this.scene.add.text(width - 20, height * 0.82, 'WIN: 0', {
-      fontFamily: FONT_UI, fontSize: '18px', color: GOLD_STR,
+    // WIN label
+    this.winDisplay = this.scene.add.text(width - 16, hudY, 'WIN  —', {
+      fontFamily: FONT_UI, fontSize: '14px', color: GOLD_STR,
     }).setOrigin(1, 0);
 
-    this.freeSpinText = this.scene.add.text(width / 2, height * 0.82, '', {
-      fontFamily: FONT_UI, fontSize: '20px', color: '#cc44ff',
+    // Free spins counter (centred)
+    this.fsDisplay = this.scene.add.text(width / 2, hudY, '', {
+      fontFamily: FONT_UI, fontSize: '14px', color: '#cc88ff',
     }).setOrigin(0.5, 0);
 
-    this.messageText = this.scene.add.text(width / 2, height * 0.14, '', {
-      fontFamily: FONT_UI, fontSize: '22px', color: '#cc44ff',
+    // SPIN button
+    const btnY = hudY + 56;
+    const bg   = this.scene.add.graphics();
+    this.drawBtnBg(bg, false);
+
+    const label = this.scene.add.text(0, 0, 'SPIN', {
+      fontFamily: FONT_UI, fontSize: '28px', color: DARK_STR, fontStyle: 'bold',
     }).setOrigin(0.5);
 
-    this.homeButton = this.scene.add.text(width / 2, height - 18, '‹ HOME', {
-      fontFamily: FONT_UI, fontSize: '14px', color: '#555566',
+    this.spinBtn = this.scene.add.container(width / 2, btnY, [bg, label])
+      .setSize(160, 50)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this.handleSpin())
+      .on('pointerover',  () => this.drawBtnBg(bg, true))
+      .on('pointerout',   () => this.drawBtnBg(bg, false));
+
+
+    this.spinBtnLabel = label;
+
+    // HOME
+    this.homeBtn = this.scene.add.text(width / 2, height - 16, '‹ HOME', {
+      fontFamily: FONT_UI, fontSize: '13px', color: '#444455',
     }).setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
   }
 
-  // ─── Render Symbols ──────────────────────────────────────────────────────────
+  private drawBtnBg(g: Phaser.GameObjects.Graphics, hover: boolean): void {
+    g.clear();
+    g.fillStyle(hover ? 0xddb83a : GOLD, 1);
+    g.fillRoundedRect(-80, -25, 160, 50, 12);
+  }
 
-  private drawSymbol(container: Phaser.GameObjects.Container, symbol: MasqueradeSymbol): void {
+  /** Full-screen flash overlay for win / free-spins announcements */
+  private buildFlashOverlay(): void {
+    const { width, height } = this.scene.scale;
+
+    const dim = this.scene.add.graphics();
+    dim.fillStyle(0x000000, 0.65);
+    dim.fillRect(0, 0, width, height);
+
+    const msg = this.scene.add.text(width / 2, height / 2, '', {
+      fontFamily: FONT_TITLE,
+      fontSize:   '52px',
+      color:      GOLD_STR,
+      stroke:     '#000000',
+      strokeThickness: 8,
+      align:      'center',
+    }).setOrigin(0.5);
+
+    const sub = this.scene.add.text(width / 2, height / 2 + 68, '', {
+      fontFamily: FONT_UI,
+      fontSize:   '24px',
+      color:      '#ffffff',
+      align:      'center',
+    }).setOrigin(0.5);
+
+    this.flashOverlay = this.scene.add.container(0, 0, [dim, msg, sub]);
+    this.flashOverlay.setVisible(false);
+    this.flashOverlay.setDepth(100);
+
+    // Store refs so we can update text
+    (this.flashOverlay as unknown as Record<string, unknown>)['_msg'] = msg;
+    (this.flashOverlay as unknown as Record<string, unknown>)['_sub'] = sub;
+  }
+
+  // ─── Symbol Drawing ───────────────────────────────────────────────────────────
+
+  private drawSym(container: Phaser.GameObjects.Container, symbol: MasqueradeSymbol): void {
     container.removeAll(true);
 
     const g    = this.scene.add.graphics();
-    const s    = SYMBOL_SIZE;
-    const half = s / 2;
+    const half = SYM / 2;
     const col  = SYMBOL_COLORS[symbol];
 
     if (symbol === 'MASKED') {
-      // Dark purple circle
       g.fillStyle(col, 1);
-      g.fillCircle(half, half, half - 4);
-      g.lineStyle(2, GOLD, 0.7);
-      g.strokeCircle(half, half, half - 4);
+      g.fillCircle(half, half, half - 3);
+      g.lineStyle(2, GOLD, 0.8);
+      g.strokeCircle(half, half, half - 3);
     } else if (symbol === 'WILD') {
-      // Near-black rectangle with gold outline (mysterious stranger silhouette)
       g.fillStyle(col, 1);
-      g.fillRoundedRect(4, 4, s - 8, s - 8, 6);
+      g.fillRoundedRect(3, 3, SYM - 6, SYM - 6, 6);
       g.lineStyle(2, GOLD, 1);
-      g.strokeRoundedRect(4, 4, s - 8, s - 8, 6);
+      g.strokeRoundedRect(3, 3, SYM - 6, SYM - 6, 6);
     } else if (symbol === 'SCATTER') {
-      // Gold chandelier: hexagon + radiating lines
       g.fillStyle(col, 1);
       g.lineStyle(2, DARK, 1);
       g.beginPath();
       for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 3) * i - Math.PI / 6;
-        const px = half + (half - 10) * Math.cos(angle);
-        const py = half + (half - 10) * Math.sin(angle);
+        const a = (Math.PI / 3) * i - Math.PI / 6;
+        const px = half + (half - 8) * Math.cos(a);
+        const py = half + (half - 8) * Math.sin(a);
         i === 0 ? g.moveTo(px, py) : g.lineTo(px, py);
       }
-      g.closePath();
-      g.fillPath();
-      g.strokePath();
+      g.closePath(); g.fillPath(); g.strokePath();
       for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 3) * i;
-        g.lineBetween(half, half, half + (half - 18) * Math.cos(angle), half + (half - 18) * Math.sin(angle));
+        const a = (Math.PI / 3) * i;
+        g.lineBetween(half, half,
+          half + (half - 16) * Math.cos(a),
+          half + (half - 16) * Math.sin(a));
       }
     } else {
-      // Standard rounded rect per symbol
       g.fillStyle(col, 1);
-      g.fillRoundedRect(4, 4, s - 8, s - 8, 8);
-      g.lineStyle(1, 0x000000, 0.3);
-      g.strokeRoundedRect(4, 4, s - 8, s - 8, 8);
+      g.fillRoundedRect(3, 3, SYM - 6, SYM - 6, 7);
+      g.lineStyle(1, 0x000000, 0.25);
+      g.strokeRoundedRect(3, 3, SYM - 6, SYM - 6, 7);
     }
 
-    const labelColor = (symbol === 'WILD' || symbol === 'MASKED') ? GOLD_STR : DARK_STR;
-    const labelSize  = symbol === 'MASKED' ? '38px' : '20px';
-
-    const label = this.scene.add.text(half, half, SYMBOL_LABELS[symbol], {
-      fontFamily: FONT_PRIMARY,
-      fontSize:   labelSize,
-      color:      labelColor,
+    const isLight = symbol !== 'WILD' && symbol !== 'MASKED';
+    const lbl = this.scene.add.text(half, half, SYMBOL_LABEL[symbol], {
+      fontFamily: FONT_UI,
+      fontSize:   symbol === 'MASKED' ? '30px' : '13px',
+      color:      isLight ? '#111111' : GOLD_STR,
       fontStyle:  'bold',
+      align:      'center',
     }).setOrigin(0.5);
 
-    container.add([g, label]);
+    container.add([g, lbl]);
   }
 
-  // ─── Public Render ───────────────────────────────────────────────────────────
+  // ─── Reel Snap (instant, no animation) ───────────────────────────────────────
 
-  /**
-   * Renders the full reel grid.
-   * @param stops           - The symbol grid to display.
-   * @param maskedPositions - Positions that should render as MASKED.
-   */
-  public renderReels(stops: MasqueradeSymbol[][], maskedPositions: { reel: number; row: number }[]): void {
-    const maskedSet = new Set(maskedPositions.map(p => `${p.reel},${p.row}`));
+  private snapReels(stops: MasqueradeSymbol[][], masked: { reel: number; row: number }[]): void {
+    const maskedSet = new Set(masked.map(p => `${p.reel},${p.row}`));
+    const totalRows = SPIN_ROWS + ROWS_COUNT;
+
     for (let r = 0; r < REELS_COUNT; r++) {
-      for (let row = 0; row < ROWS_COUNT; row++) {
-        const sym = maskedSet.has(`${r},${row}`) ? 'MASKED' : stops[r][row];
-        this.drawSymbol(this.symbolGrid[r][row], sym);
+      for (let i = 0; i < totalRows; i++) {
+        const row    = i - SPIN_ROWS; // negative = above viewport
+        const visRow = row; // 0..ROWS_COUNT-1 are visible
+        const container = this.reelCols[r][i];
+        container.setPosition(
+          this.gridX + r * (SYM + REEL_GAP),
+          GRID_TOP + visRow * (SYM + REEL_GAP)
+        );
+        container.setAlpha(1);
+
+        if (row >= 0 && row < ROWS_COUNT) {
+          const sym = maskedSet.has(`${r},${row}`) ? 'MASKED' : stops[r][row];
+          this.drawSym(container, sym);
+        } else {
+          // Off-screen row — fill with random sym for blur illusion
+          this.drawSym(container, ALL_SYMS[Math.floor(Math.random() * ALL_SYMS.length)]);
+        }
       }
     }
-    if (this.winText) this.winText.setText(`WIN: ${this.state?.totalWin.toFixed(2) ?? '0.00'}`);
   }
 
+  // ─── Reel Spin Animation ──────────────────────────────────────────────────────
+
   /**
-   * Flash-then-reveal animation for unmasking during free spins.
-   * @param revealed   - Array of positions and their revealed symbols.
-   * @param onComplete - Callback when all animations finish.
+   * Spins a single reel with a blur-scroll effect, then snaps to finalSymbols.
+   * Returns a Promise that resolves when the reel stops.
    */
+  private spinReel(
+    reelIndex: number,
+    finalSymbols: MasqueradeSymbol[],
+    masked: { reel: number; row: number }[],
+    spinDuration: number
+  ): Promise<void> {
+    return new Promise(resolve => {
+      const col       = this.reelCols[reelIndex];
+      const totalRows = col.length;
+      const maskedSet = new Set(masked.map(p => `${p.reel},${p.row}`));
+
+      // Fill all off-screen containers with random symbols
+      col.forEach((c, i) => {
+        this.drawSym(c, ALL_SYMS[Math.floor(Math.random() * ALL_SYMS.length)]);
+        // Stack them above the viewport to start
+        c.setPosition(
+          this.gridX + reelIndex * (SYM + REEL_GAP),
+          GRID_TOP - (totalRows - i) * (SYM + REEL_GAP)
+        );
+      });
+
+      // Total distance to travel: bring all rows into view
+      const totalDist = totalRows * (SYM + REEL_GAP);
+      const reelX     = this.gridX + reelIndex * (SYM + REEL_GAP);
+
+      // Tween: scroll all containers down by totalDist
+      this.scene.tweens.add({
+        targets:    col,
+        y:          `+=${totalDist}`,
+        duration:   spinDuration,
+        ease:       'Cubic.easeOut',
+        onUpdate:   () => {
+          // Alpha blur effect — symbols near top/bottom fade
+          col.forEach(c => {
+            const relY = c.y - GRID_TOP;
+            const inGrid = relY >= -SYM && relY <= this.gridH;
+            c.setAlpha(inGrid ? 1 : Math.max(0, 1 - Math.abs(relY - this.gridH / 2) / (this.gridH * 0.8)));
+          });
+        },
+        onComplete: () => {
+          // Snap: position final symbols in the visible rows
+          for (let row = 0; row < ROWS_COUNT; row++) {
+            const container = col[totalRows - ROWS_COUNT + row];
+            const sym = maskedSet.has(`${reelIndex},${row}`) ? 'MASKED' : finalSymbols[row];
+            this.drawSym(container, sym);
+            container.setPosition(reelX, GRID_TOP + row * (SYM + REEL_GAP));
+            container.setAlpha(1);
+          }
+          // Hide off-screen containers
+          for (let i = 0; i < totalRows - ROWS_COUNT; i++) {
+            col[i].setAlpha(0);
+          }
+          resolve();
+        },
+      });
+    });
+  }
+
+  // ─── Flash Overlay ────────────────────────────────────────────────────────────
+
+  private showFlash(message: string, sub: string, durationMs: number, onDone: () => void): void {
+    if (!this.flashOverlay) { onDone(); return; }
+
+    const overlay = this.flashOverlay;
+    const msg     = (overlay as unknown as Record<string, unknown>)['_msg'] as Phaser.GameObjects.Text;
+    const subText = (overlay as unknown as Record<string, unknown>)['_sub'] as Phaser.GameObjects.Text;
+
+    msg.setText(message);
+    subText.setText(sub);
+    overlay.setVisible(true).setAlpha(0);
+
+    this.scene.tweens.add({
+      targets:  overlay,
+      alpha:    1,
+      duration: 180,
+      onComplete: () => {
+        this.scene.time.delayedCall(durationMs, () => {
+          this.scene.tweens.add({
+            targets:  overlay,
+            alpha:    0,
+            duration: 200,
+            onComplete: () => { overlay.setVisible(false); onDone(); },
+          });
+        });
+      },
+    });
+  }
+
+  // ─── Public API ──────────────────────────────────────────────────────────────
+
+  public renderReels(stops: MasqueradeSymbol[][], masked: { reel: number; row: number }[]): void {
+    this.snapReels(stops, masked);
+    this.winDisplay?.setText(`WIN  ${this.state?.totalWin.toFixed(2) ?? '—'}`);
+  }
+
   public animateUnmask(
     revealed: { reel: number; row: number; symbol: MasqueradeSymbol }[],
     onComplete: () => void
@@ -261,89 +446,106 @@ export class MasqueradeUI {
     if (revealed.length === 0) { onComplete(); return; }
     let remaining = revealed.length;
     revealed.forEach(({ reel, row, symbol }) => {
-      const container = this.symbolGrid[reel][row];
+      const totalRows = this.reelCols[reel].length;
+      const container = this.reelCols[reel][totalRows - ROWS_COUNT + row];
       this.scene.tweens.add({
-        targets:  container,
-        alpha:    0.3,
-        duration: 120,
-        yoyo:     true,
-        repeat:   2,
+        targets: container, alpha: 0.2, duration: 100, yoyo: true, repeat: 3,
         onComplete: () => {
           container.setAlpha(1);
-          this.drawSymbol(container, symbol);
+          this.drawSym(container, symbol);
           if (--remaining === 0) onComplete();
         },
       });
     });
   }
 
-  /**
-   * Pulses winning symbol positions.
-   * @param winLines - Winning lines from the game state.
-   */
   public animateWin(winLines: WinLine[]): void {
+    const totalRows = this.reelCols[0].length;
     winLines.forEach(line => {
       line.positions.forEach(({ reel, row }) => {
+        const c = this.reelCols[reel][totalRows - ROWS_COUNT + row];
         this.scene.tweens.add({
-          targets:  this.symbolGrid[reel][row],
-          scaleX:   1.12,
-          scaleY:   1.12,
-          duration: 180,
-          yoyo:     true,
-          repeat:   2,
-          ease:     'Sine.easeInOut',
+          targets: c, scaleX: 1.15, scaleY: 1.15,
+          duration: 160, yoyo: true, repeat: 3, ease: 'Sine.easeInOut',
         });
       });
     });
   }
 
-  // ─── Spin Handler ────────────────────────────────────────────────────────────
+  // ─── Spin Handler ─────────────────────────────────────────────────────────────
 
   private handleSpin(): void {
-    if (!this.state || !this.state.isComplete) return;
+    if (!this.state || !this.state.isComplete || this.spinning) return;
 
+    this.spinning = true;
     this.state.isComplete = false;
-    this.spinButton?.disableInteractive();
-    this.spinLabel?.setText('...');
-    this.winText?.setText('WIN: —');
-    this.messageText?.setText('');
+    this.spinBtn?.disableInteractive();
+    this.spinBtnLabel?.setText('...');
+    this.winDisplay?.setText('WIN  —');
+    this.fsDisplay?.setText('');
 
+    // Run game logic
     this.state = spinMasquerade(this.state, this.config);
     const snap = this.state;
 
-    // Simulate reel spin delay then show results
-    this.scene.time.delayedCall(1200, () => {
-      this.renderReels(snap.reelStops, snap.maskedPositions);
-      this.winText?.setText(`WIN: ${snap.totalWin.toFixed(2)}`);
+    // Kick off reel spin animations — each reel stops REEL_DELAY ms after the previous
+    const baseDuration = 700;
+    const reelPromises: Promise<void>[] = [];
+
+    for (let r = 0; r < REELS_COUNT; r++) {
+      const duration  = baseDuration + r * REEL_DELAY;
+      const finalSyms = snap.reelStops[r];
+      reelPromises.push(
+        new Promise(resolve => {
+          this.scene.time.delayedCall(r * REEL_DELAY, () => {
+            this.spinReel(r, finalSyms, snap.maskedPositions, duration).then(resolve);
+          });
+        })
+      );
+    }
+
+    // After all reels stop
+    Promise.all(reelPromises).then(() => {
+      this.winDisplay?.setText(`WIN  ${snap.totalWin > 0 ? snap.totalWin.toFixed(2) : '—'}`);
 
       if (snap.freeSpinsRemaining > 0) {
-        this.freeSpinText?.setText(`FREE SPINS: ${snap.freeSpinsRemaining}`);
-      } else {
-        this.freeSpinText?.setText('');
+        this.fsDisplay?.setText(`FREE SPINS: ${snap.freeSpinsRemaining}`);
       }
 
-      if (snap.isFreeSpinTriggered) {
-        this.messageText?.setText('🎭 FREE SPINS!');
-      } else if (snap.isFreeSpinRetriggered) {
-        this.messageText?.setText('🎭 RETRIGGER!');
-      }
+      const afterFlash = () => {
+        // Unmask animation (free spins)
+        const afterUnmask = () => {
+          if (snap.winLines.length > 0) {
+            this.animateWin(snap.winLines);
+          }
+          this.scene.time.delayedCall(900, () => {
+            if (this.state) this.state.isComplete = true;
+            this.spinning = false;
+            this.spinBtn?.setInteractive({ useHandCursor: true });
+            this.spinBtnLabel?.setText(snap.freeSpinsRemaining > 0 ? 'FREE' : 'SPIN');
+          });
+        };
 
-      const afterReels = () => {
-        if (snap.winLines.length > 0) {
-          this.animateWin(snap.winLines);
+        if (snap.revealedSymbols.length > 0) {
+          this.animateUnmask(snap.revealedSymbols, afterUnmask);
+        } else {
+          afterUnmask();
         }
-        // Re-enable after win animation
-        this.scene.time.delayedCall(800, () => {
-          if (this.state) this.state.isComplete = true;
-          this.spinButton?.setInteractive({ useHandCursor: true });
-          this.spinLabel?.setText(snap.freeSpinsRemaining > 0 ? 'FREE' : 'SPIN');
-        });
       };
 
-      if (snap.revealedSymbols.length > 0) {
-        this.animateUnmask(snap.revealedSymbols, afterReels);
+      // Big flash announcements
+      if (snap.isFreeSpinTriggered) {
+        this.showFlash('🎭 FREE SPINS!', `${snap.freeSpinsRemaining} spins awarded`, 1400, afterFlash);
+      } else if (snap.isFreeSpinRetriggered) {
+        this.showFlash('🎭 RETRIGGER!', `+${snap.freeSpinsRemaining} more spins`, 1400, afterFlash);
+      } else if (snap.totalWin >= 200) {
+        this.showFlash('✦ MEGA WIN ✦', `+${snap.totalWin.toFixed(0)} credits`, 1600, afterFlash);
+      } else if (snap.totalWin >= 50) {
+        this.showFlash('BIG WIN', `+${snap.totalWin.toFixed(0)} credits`, 1200, afterFlash);
+      } else if (snap.totalWin > 0) {
+        this.showFlash(`WIN  +${snap.totalWin.toFixed(0)}`, '', 900, afterFlash);
       } else {
-        afterReels();
+        afterFlash();
       }
     });
   }
