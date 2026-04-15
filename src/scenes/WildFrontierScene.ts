@@ -9,6 +9,8 @@
 import * as Phaser from 'phaser';
 import { WildFrontierUI } from '../games/WildFrontierUI';
 
+const GOLD_STR = '#c9a84c';
+
 export class WildFrontierScene extends Phaser.Scene {
   private wildFrontierUI: WildFrontierUI | null = null;
 

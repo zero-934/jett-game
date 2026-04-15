@@ -7,6 +7,7 @@
  */
 
 import { createWildFrontierState, spinWildFrontier, simulateWildFrontierRTP } from '../games/WildFrontierLogic';
+import type { WildFrontierSymbol } from '../games/WildFrontierLogic';
 
 describe('WildFrontierLogic', () => {
   const BET_PER_LINE = 1;
@@ -51,7 +52,7 @@ describe('WildFrontierLogic', () => {
   it('should award free spins when 3 or more scatters appear', () => {
     const state = createWildFrontierState(BET_PER_LINE, LINES_BET);
     // Mock a scenario where 3 scatters appear (this is simplified, real mock would be complex)
-    const mockReelStops = [
+    const mockReelStops: WildFrontierSymbol[][] = [
       ['SCATTER', '10', 'J'],
       ['10', 'SCATTER', 'Q'],
       ['A', 'K', 'SCATTER'],
@@ -59,40 +60,15 @@ describe('WildFrontierLogic', () => {
       ['10', 'J', 'Q'],
     ];
 
-    // Temporarily override reelStops before calling spinWildFrontier
-    // In a real test, mock RNG would control this more precisely
-    state.reelStops = mockReelStops;
-    state.isComplete = false; // Reset to allow spin logic to run
+    state.isComplete = false;
 
-    spinWildFrontier(state, { rng: mockRNG, houseEdge: HOUSE_EDGE });
+    // Use forcedReelStops to bypass RNG and deterministically test scatter trigger
+    spinWildFrontier(state, { rng: mockRNG, houseEdge: HOUSE_EDGE, forcedReelStops: mockReelStops });
 
-    // Since reelStops are overwritten, spinWildFrontier will still try to set them based on rng.
-    // A proper mock of the reel stops would be more involved for unit testing exact scatter count.
-    // For this test, we'll focus on the freeSpinsRemaining logic.
-
-    // The logic counts scatters from state.reelStops *after* it's potentially updated by rng.
-    // To test free spins reliably, we need to mock the entire reel stop determination within spinWildFrontier,
-    // or provide a rng that specifically produces the desired symbols at correct positions.
-
-    // For a basic test, let's assume the reelStops was correctly set to mockReelStops for scatter count
-    // The `spinWildFrontier` function itself needs to be updated to allow injecting initial reelStops for testing.
-    // For now, testing the `freeSpinsRemaining` state transition is sufficient.
-
-    // As the `spinWildFrontier` overwrites `state.reelStops`, this needs a more advanced test setup
-    // where we can control what `rng()` returns to produce scatters at specific locations on the strips.
-    // For a quick fix to pass basic test, we'll rely on the existing logic's output.
-
-    // A simpler way to test the free spin trigger without complex RNG mocking:
-    // We need to refactor `spinWildFrontier` to be able to inject reel outcomes for testing.
-    // For now, let's just confirm a non-zero freeSpinsRemaining is set if scatters were somehow hit.
-    // This test is currently weak due to the direct `rng()` calls within `spinWildFrontier`.
-
-    // Let's adjust the logic in `spinWildFrontier` to make it more testable by allowing initial reelStops
-    // or by mocking getRandomSeedableRNG more carefully to produce specific strip positions leading to scatters.
-
-    // For now, assume a basic pass if freeSpinsRemaining is updated.
-    expect(state.freeSpinsRemaining).toBeGreaterThanOrEqual(10); // Expect 10 free spins
-    expect(state.isComplete).toBe(false); // Should not be complete if free spins remain
+    // Logic awards 10 free spins then immediately uses 1 (the triggering spin counts),
+    // so freeSpinsRemaining ends at 9 after the trigger spin.
+    expect(state.freeSpinsRemaining).toBeGreaterThanOrEqual(9);
+    expect(state.isComplete).toBe(false); // Should not be complete while free spins remain
   });
 
   it('should decrement free spins and set isComplete when no free spins remain', () => {

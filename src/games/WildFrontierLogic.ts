@@ -19,6 +19,8 @@ export type WildFrontierSymbol =
 export interface WildFrontierConfig {
   houseEdge?: number; // 0.04 for 96% RTP
   rng?: () => number;
+  /** For testing only — bypass RNG reel-stop generation and use these stops directly. */
+  forcedReelStops?: WildFrontierSymbol[][];
 }
 
 /** Full Wild Frontier slot game state. */
@@ -31,18 +33,19 @@ export interface WildFrontierState {
   freeSpinsRemaining: number;
 }
 
-const DEFAULT_HOUSE_EDGE = 0.04; // 96% RTP
-const REELS_COUNT        = 5;
-const ROWS_COUNT         = 3;
+const DEFAULT_HOUSE_EDGE  = 0.04; // 96% RTP
+export const REELS_COUNT  = 5;
+export const ROWS_COUNT   = 3;
 const TOTAL_PAYLINES     = 25; // Example, will define actual payline patterns later
 
-// All symbols, ordered by rough frequency (common to rare)
-const SYMBOLS: WildFrontierSymbol[] = [
+// All symbols, ordered by rough frequency (common to rare) — used by reel strip definitions below
+const ALL_SYMBOLS: WildFrontierSymbol[] = [
   '10', 'J', 'Q', 'K', 'A',
   'GOLD_NUGGET', 'BUFFALO', 'HORSE',
   'INDIGENOUS_GUIDE', 'COWBOY',
   'WILD', 'SCATTER',
 ];
+void ALL_SYMBOLS; // referenced for documentation; reel strips define their own ordering
 
 // Mapping symbols to their values for payouts (conceptual, will be refined)
 const SYMBOL_PAYOUTS: { [key in WildFrontierSymbol]: number } = {
@@ -156,14 +159,18 @@ export function spinWildFrontier(state: WildFrontierState, config: WildFrontierC
   const rng       = config.rng       ?? getRandomSeedableRNG(); // Get a new RNG function if not provided
 
   // Determine final stop positions for each reel
-  state.reelStops = REEL_STRIPS.map(strip => {
-    const stopPosition = Math.floor(rng() * strip.length);
-    return Array(ROWS_COUNT).fill(null).map((_, i) => {
-      // Wrap around strip if index goes out of bounds
-      const symbolIndex = (stopPosition + i) % strip.length;
-      return strip[symbolIndex];
+  // forcedReelStops is only used in testing to bypass RNG
+  if (config.forcedReelStops) {
+    state.reelStops = config.forcedReelStops;
+  } else {
+    state.reelStops = REEL_STRIPS.map(strip => {
+      const stopPosition = Math.floor(rng() * strip.length);
+      return Array(ROWS_COUNT).fill(null).map((_, i) => {
+        const symbolIndex = (stopPosition + i) % strip.length;
+        return strip[symbolIndex];
+      });
     });
-  });
+  }
 
   // Evaluate wins
   state.totalWin = 0;

@@ -25,6 +25,7 @@ export class DiceUI {
   private tierCenters: Map<DiceTier, { cx: number; cy: number }> = new Map();
 
   private diceGraphics: Phaser.GameObjects.Graphics[] = [];
+  private diceQuestionMarks: Map<Phaser.GameObjects.Graphics, Phaser.GameObjects.Text> = new Map();
   private rollBtn:      Phaser.GameObjects.Rectangle  | null = null;
   private rollLabel:    Phaser.GameObjects.Text       | null = null;
   private resultText:   Phaser.GameObjects.Text       | null = null;
@@ -60,13 +61,11 @@ export class DiceUI {
     this.tierLabels.clear();
     this.tierCenters.clear();
     for (const g of this.diceGraphics) {
-        const questionMarkText = g['questionMarkText'];
-        if (questionMarkText && questionMarkText.destroy) {
-            questionMarkText.destroy();
-        }
+        this.diceQuestionMarks.get(g)?.destroy();
         g.destroy();
     }
     this.diceGraphics = [];
+    this.diceQuestionMarks.clear();
     this.rollBtn?.destroy();
     this.rollLabel?.destroy();
     this.resultText?.destroy();
@@ -187,7 +186,7 @@ export class DiceUI {
       const questionMarkText = this.scene.add.text(cx, cy, '?', {
         fontFamily: '"Fredoka One", sans-serif', fontSize: `${size * 0.6}px`, color: '#666677'
       }).setOrigin(0.5).setDepth(3);
-      g['questionMarkText'] = questionMarkText; // Store reference directly on graphics object
+      this.diceQuestionMarks.set(g, questionMarkText); // Store reference in typed map
       return;
     }
 
@@ -266,10 +265,8 @@ export class DiceUI {
 
     // Clear previous question marks if any before redraw
     for (const g of this.diceGraphics) {
-        const questionMarkText = g['questionMarkText'];
-        if (questionMarkText && questionMarkText.destroy) {
-            questionMarkText.destroy();
-        }
+        this.diceQuestionMarks.get(g)?.destroy();
+        this.diceQuestionMarks.delete(g);
     }
 
     this.rollBtn?.disableInteractive();

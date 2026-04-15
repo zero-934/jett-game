@@ -12,8 +12,7 @@ import { createWildFrontierState, spinWildFrontier, REELS_COUNT, ROWS_COUNT } fr
 
 const GOLD         = 0xc9a84c;
 const GOLD_STR     = '#c9a84c';
-const DARK         = 0x080812;
-const DARK_STR     = '#080812'; // Added for consistent string colors
+const DARK_STR     = '#080812';
 const FONT_PRIMARY = '"Fredoka One", sans-serif';
 // const FONT_SECONDARY = '"Fredoka", sans-serif'; // Removed as it was unused
 
@@ -108,7 +107,7 @@ export class WildFrontierUI {
     for (let i = 0; i < REELS_COUNT; i++) {
       const reelContainer = this.scene.add.container(startX + i * (this.REEL_WIDTH + this.GAP), y);
       reelContainer.setSize(this.REEL_WIDTH, this.SYMBOL_SIZE * ROWS_COUNT);
-      reelContainer.setOrigin(0, 0.5); // Center container origin
+      // Note: Phaser.GameObjects.Container does not support setOrigin; position is already the anchor
       this.reels.push(reelContainer);
 
       const symbolColumn: Phaser.GameObjects.Image[] = [];
@@ -242,7 +241,7 @@ export class WildFrontierUI {
    * @param reelStops - The final symbols to display on the reels.
    * @param animate - Whether to animate the reel spin (true) or just snap (false).
    */
-  public updateReels(reelStops: WildFrontierSymbol[][], animate: boolean): void {
+  public updateReels(reelStops: WildFrontierSymbol[][], _animate: boolean): void {
     // This will be the complex part for animations later.
     // For now, it will simply update the symbols directly.
     reelStops.forEach((column, reelIndex) => {

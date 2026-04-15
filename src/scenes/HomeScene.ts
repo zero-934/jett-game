@@ -515,7 +515,8 @@ export class HomeScene extends Phaser.Scene {
 
     // Rope (subtle detail)
     g.lineStyle(2 * s, 0x8b4513, 0.6); // Saddle brown rope
-    g.beginPath(); g.moveTo(cx - 20 * s, cy + 10 * s); g.bezierCurveTo(cx - 10 * s, cy + 20 * s, cx + 10 * s, cy + 20 * s, cx + 20 * s, cy + 10 * s); g.strokePath();
+    // Rope arc approximated with line segments (bezierCurveTo not available in Phaser Graphics)
+    g.beginPath(); g.moveTo(cx - 20 * s, cy + 10 * s); g.lineTo(cx - 5 * s, cy + 20 * s); g.lineTo(cx + 5 * s, cy + 20 * s); g.lineTo(cx + 20 * s, cy + 10 * s); g.strokePath();
 
     this.scrollContainer?.add(g);
   }
