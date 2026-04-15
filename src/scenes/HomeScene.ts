@@ -120,6 +120,14 @@ export class HomeScene extends Phaser.Scene {
         accentStr: GOLD_STR,
         drawIcon: (scene, x, y) => scene.drawWildFrontierCard(x, y),
       },
+      {
+        key: 'MasqueradeScene',
+        title: 'MIDNIGHT MASQUERADE',
+        subtitle: '5x3 Reels · 25 Paylines\nMasked fortune & free spins!',
+        accent: 0x9b59b6,
+        accentStr: '#9b59b6',
+        drawIcon: (scene, x, y) => scene.drawMasqueradeCard(x, y),
+      },
     ];
 
     const cardH      = 108;
@@ -581,6 +589,25 @@ export class HomeScene extends Phaser.Scene {
         }
       },
     });
+  }
+
+  drawMasqueradeCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    const s = 1.0;
+    // Purple mask shape
+    g.fillStyle(0x9b59b6, 1);
+    g.fillEllipse(cx, cy, 52 * s, 32 * s);
+    // Eye holes
+    g.fillStyle(0x1a0033, 1);
+    g.fillEllipse(cx - 12 * s, cy, 10 * s, 14 * s);
+    g.fillEllipse(cx + 12 * s, cy, 10 * s, 14 * s);
+    // Gold trim
+    g.lineStyle(2 * s, 0xc9a84c, 1);
+    g.strokeEllipse(cx, cy, 52 * s, 32 * s);
+    // Feather
+    g.fillStyle(0xc9a84c, 1);
+    g.fillTriangle(cx + 24 * s, cy - 6 * s, cx + 34 * s, cy - 20 * s, cx + 28 * s, cy - 2 * s);
+    this.scrollContainer?.add(g);
   }
 
   shutdown(): void {

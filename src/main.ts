@@ -15,14 +15,15 @@ import { FlapFortuneScene } from './scenes/FlapFortuneScene';
 import { DiceScene } from './scenes/DiceScene';
 import { MinesScene } from './scenes/MinesScene';
 import { BallDropScene } from './scenes/BallDropScene';
-import { WildFrontierScene } from './scenes/WildFrontierScene'; // <-- NEW
+import { WildFrontierScene } from './scenes/WildFrontierScene';
+import { MasqueradeScene } from './scenes/MasqueradeScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   width: 390,
   height: 844,
   backgroundColor: '#000000',
-  scene: [LockScene, HomeScene, JettScene, ShatterStepScene, FlapFortuneScene, DiceScene, MinesScene, BallDropScene, WildFrontierScene], // <-- NEW
+  scene: [LockScene, HomeScene, JettScene, ShatterStepScene, FlapFortuneScene, DiceScene, MinesScene, BallDropScene, WildFrontierScene, MasqueradeScene],
   parent: 'app',
   scale: {
     mode: Phaser.Scale.FIT,
