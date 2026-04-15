@@ -37,7 +37,7 @@ New scenes must be added to `src/main.ts` scene array AND `HomeScene.ts` cards a
 - TypeScript strict mode enforced
 - Every public function: JSDoc with @param, @returns, @example
 - File header: @file, @purpose, @author, @date, @license
-- RTP target: 97% (3% house edge) on all games
+- RTP target: 96% (4% house edge) on all games
 - House edge in Logic.ts only, never in UI or Scene
 - Tests: Jest + ts-jest, no Phaser mocking needed (Logic is pure TS)
 
@@ -49,6 +49,29 @@ New scenes must be added to `src/main.ts` scene array AND `HomeScene.ts` cards a
 - ALWAYS add the new scene to main.ts AND HomeScene.ts cards[]
 - NEVER push to main directly — branch + PR only
 - Branch: feat/<game-name> | PR title: feat(<game-name>): initial prototype
+
+## Licensing & Business Plan
+
+### Stage 1 (Immediate – Anjouan License)
+- No physical office required. Remote operation from anywhere.
+- No game certification needed for launch. Self-certify RNG via documentation.
+- Focus: launch fast, generate revenue, prove game mechanics.
+- Target markets: all of Africa, Asia, Latin America (geo-block US, UK, EU, Australia).
+
+### Stage 2 (Future – Curaçao, Angola, or other Tier-1 license)
+- Will require formal third-party RNG certification (GLI, iTech Labs, BMM).
+- Each game’s math model, RTP, and payout logic will need lab testing.
+- Platform-level RNG certification can cover all games (cheaper than per-game).
+- Expect local presence requirements (office, staff) for some jurisdictions (e.g., Angola).
+
+### Development rules to follow now (for easy future certification):
+1. Separate game logic (RNG, math, payouts) from UI.
+2. Use a central, well-documented RNG engine that can be certified once.
+3. Document RTP and house edge for every game.
+4. Follow GLI-11 standards where possible.
+5. No hardcoded secrets; use environment variables.
+
+Keep building. We’ll handle licensing details as we scale.
 
 ## File Locations
 

@@ -42,7 +42,7 @@ export class DiceScene extends Phaser.Scene {
       fontSize: '13px', color: '#333344', letterSpacing: 3,
     }).setOrigin(0.5);
 
-    this.diceUI = new DiceUI(this, { houseEdge: 0.03 });
+    this.diceUI = new DiceUI(this, { houseEdge: 0.04 }); // Updated to 4% house edge (96% RTP)
     this.diceUI.start();
   }
 

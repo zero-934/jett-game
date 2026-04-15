@@ -58,7 +58,11 @@ export class DiceUI {
     this.tierBgs.clear();
     this.tierLabels.clear();
     this.tierCenters.clear();
-    for (const g of this.diceGraphics) g.destroy();
+    for (const g of this.diceGraphics) {
+        const questionMark = g.data?.get('questionMark');
+        if (questionMark) questionMark.destroy();
+        g.destroy();
+    }
     this.diceGraphics = [];
     this.rollBtn?.destroy();
     this.rollLabel?.destroy();
@@ -73,14 +77,9 @@ export class DiceUI {
   private buildInstructions(): void {
     const { width, height } = this.scene.scale;
 
-    this.scene.add.text(width / 2, height * 0.205, 'HOW TO PLAY', {
+    this.scene.add.text(width / 2, height * 0.235, 'PICK A MULTIPLIER → ROLL → WIN IF LUCKY!', {
       fontFamily: '"Fredoka One", sans-serif',
-      fontSize: '13px', color: '#333344', letterSpacing: 3,
-    }).setOrigin(0.5);
-
-    this.scene.add.text(width / 2, height * 0.235, 'Pick a multiplier → Roll → Win if lucky!', {
-      fontFamily: '"Fredoka", sans-serif',
-      fontSize: '12px', color: '#444455',
+      fontSize: '20px', color: GOLD_STR, letterSpacing: 2,
     }).setOrigin(0.5);
   }
 
@@ -92,10 +91,7 @@ export class DiceUI {
     const startX              = (width - total) / 2;
     const y                   = height * 0.315;
 
-    this.scene.add.text(width / 2, y - 38, 'PICK YOUR MULTIPLIER', {
-      fontFamily: '"Fredoka One", sans-serif',
-      fontSize: '14px', color: '#444455', letterSpacing: 2,
-    }).setOrigin(0.5);
+    // Removed 'PICK YOUR MULTIPLIER' title
 
     tiers.forEach((tier, i) => {
       const cx = startX + i * (this.BTN_W + this.GAP) + this.BTN_W / 2;
@@ -105,17 +101,18 @@ export class DiceUI {
       this.tierBgs.set(tier, bg);
       this.tierCenters.set(tier, { cx, cy: y });
 
-      const label = this.scene.add.text(cx, y - 6, tierLabels[i], {
+      const label = this.scene.add.text(cx, y - 10, tierLabels[i], {
         fontFamily: '"Fredoka One", sans-serif',
-        fontSize: '28px', color: tier === this.state!.selectedTier ? '#000000' : GOLD_STR,
+        fontSize: '32px', color: tier === this.state!.selectedTier ? DARK : GOLD_STR,
       }).setOrigin(0.5).setDepth(2);
       this.tierLabels.set(tier, label);
 
       // Win % sub-label
-      const pct = Math.round((1 / tier) * 97);
-      this.scene.add.text(cx, y + 16, `${pct}% win`, {
+      const pct = Math.round((1 / tier) * 96); // Updated RTP to 96%
+      this.scene.add.text(cx, y + 15, `${pct}% WIN`, {
         fontFamily: '"Fredoka", sans-serif',
-        fontSize: '11px', color: tier === this.state!.selectedTier ? '#000000' : '#555566',
+        fontSize: '12px', color: tier === this.state!.selectedTier ? DARK : '#aaaaaa',
+        letterSpacing: 1,
       }).setOrigin(0.5).setDepth(2);
 
       // Hit area
@@ -125,7 +122,8 @@ export class DiceUI {
     });
 
     this.winChanceText = this.scene.add.text(width / 2, y + 46, '', {
-      fontFamily: '"Fredoka", sans-serif', fontSize: '12px', color: '#555566',
+      fontFamily: '"Fredoka", sans-serif', fontSize: '13px', color: '#aaaaaa',
+      letterSpacing: 1,
     }).setOrigin(0.5);
     this.updateWinChanceText();
   }
@@ -136,10 +134,13 @@ export class DiceUI {
     selected: boolean
   ): void {
     g.clear();
+    const cornerRadius = 12;
+    const strokeAlpha  = 0.6;
+
     g.fillStyle(selected ? GOLD : DARK, 1);
-    g.fillRoundedRect(cx - this.BTN_W / 2, cy - this.BTN_H / 2, this.BTN_W, this.BTN_H, 10);
-    g.lineStyle(selected ? 0 : 1, GOLD, selected ? 0 : 0.2);
-    if (!selected) g.strokeRoundedRect(cx - this.BTN_W / 2, cy - this.BTN_H / 2, this.BTN_W, this.BTN_H, 10);
+    g.fillRoundedRect(cx - this.BTN_W / 2, cy - this.BTN_H / 2, this.BTN_W, this.BTN_H, cornerRadius);
+    g.lineStyle(2, GOLD, selected ? 0 : strokeAlpha);
+    g.strokeRoundedRect(cx - this.BTN_W / 2, cy - this.BTN_H / 2, this.BTN_W, this.BTN_H, cornerRadius);
   }
 
   private buildDice(): void {
@@ -171,17 +172,19 @@ export class DiceUI {
     const dot  = size * 0.09; // dot radius
 
     // Die body
-    g.fillStyle(0xf0ece0, 1);
+    g.fillStyle(0xeeeeee, 1); // Lighter face color
     g.fillRoundedRect(cx - half, cy - half, size, size, r * 2);
 
     // Border
-    g.lineStyle(2, 0xc9a84c, 0.6);
+    g.lineStyle(3, GOLD, 0.8); // Thicker, more prominent gold border
     g.strokeRoundedRect(cx - half, cy - half, size, size, r * 2);
 
     if (val === 0) {
-      // Blank/spinning — just show dim dot in center
-      g.fillStyle(0xaaaaaa, 0.5);
-      g.fillCircle(cx, cy, dot);
+      // Blank/spinning — show a slightly larger, more stylized '?'
+      const questionMark = this.scene.add.text(cx, cy, '?', {
+        fontFamily: '"Fredoka One", sans-serif', fontSize: `${size * 0.6}px`, color: '#666677'
+      }).setOrigin(0.5).setDepth(3);
+      g.data?.set('questionMark', questionMark); // Store for cleanup
       return;
     }
 
@@ -197,7 +200,7 @@ export class DiceUI {
       [[-o, -o], [o, -o], [-o, 0], [o, 0], [-o, o], [o, o]],   // 6
     ];
 
-    g.fillStyle(0x1a1a2a, 1);
+    g.fillStyle(DARK, 1); // Darker dots for contrast
     for (const [dx, dy] of dotPositions[val]) {
       g.fillCircle(cx + dx, cy + dy, dot);
     }
@@ -207,14 +210,14 @@ export class DiceUI {
     const { width, height } = this.scene.scale;
     const cx = width / 2, cy = height * 0.70;
 
-    this.rollBtn = this.scene.add.rectangle(cx, cy, 180, 56, GOLD)
+    this.rollBtn = this.scene.add.rectangle(cx, cy, 200, 60, GOLD, 1) // Slightly larger button
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.handleRoll())
       .on('pointerover', () => this.rollBtn?.setFillStyle(0xddb83a))
       .on('pointerout',  () => this.rollBtn?.setFillStyle(GOLD));
 
     this.rollLabel = this.scene.add.text(cx, cy, 'ROLL', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '26px', color: '#000000',
+      fontFamily: '"Fredoka One", sans-serif', fontSize: '30px', color: DARK,
     }).setOrigin(0.5).setDepth(2);
   }
 
@@ -222,16 +225,17 @@ export class DiceUI {
     const { width, height } = this.scene.scale;
 
     this.scene.add.text(16, 16, `BET: ${this.BET}`, {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '18px', color: GOLD_STR,
+      fontFamily: '"Fredoka One", sans-serif', fontSize: '20px', color: GOLD_STR,
     }).setDepth(10);
 
     this.resultText = this.scene.add.text(width / 2, height * 0.82, '', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '28px',
+      fontFamily: '"Fredoka One", sans-serif', fontSize: '36px', // Larger result text
       color: '#ffffff', align: 'center',
+      lineSpacing: 8,
     }).setOrigin(0.5).setDepth(10);
 
-    this.homeButton = this.scene.add.text(width / 2, height - 16, '[ HOME ]', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '12px', color: '#333344',
+    this.homeButton = this.scene.add.text(width / 2, height - 20, '< HOME', { // Adjusted position, simplified text
+      fontFamily: '"Fredoka One", sans-serif', fontSize: '14px', color: '#666677',
     }).setOrigin(0.5).setDepth(10)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
@@ -249,19 +253,29 @@ export class DiceUI {
       const sel    = t === tier;
       this.paintTierBtn(bg, pos.cx, pos.cy, sel);
       const lbl = this.tierLabels.get(t);
-      if (lbl) lbl.setColor(sel ? '#000000' : GOLD_STR);
+      if (lbl) lbl.setColor(sel ? DARK : GOLD_STR);
     }
     this.updateWinChanceText();
   }
 
   private handleRoll(): void {
     if (!this.state || this.state.isComplete) return;
+
+    // Clear previous question marks if any
+    for (const g of this.diceGraphics) {
+        const questionMark = g.data?.get('questionMark');
+        if (questionMark) {
+            questionMark.destroy();
+            g.data?.delete('questionMark');
+        }
+    }
+
     this.rollBtn?.disableInteractive();
-    this.rollLabel?.setText('...');
+    this.rollLabel?.setText('ROLLING...');
 
     // Spin animation — cycle random faces
     let ticks = 0;
-    const totalTicks = 18;
+    const totalTicks = 24; // Longer spin for better effect
     this.spinTimer = this.scene.time.addEvent({
       delay: 55,
       repeat: totalTicks - 1,
@@ -281,19 +295,22 @@ export class DiceUI {
 
         if (ticks >= totalTicks) {
           // Final roll
-          rollDice(this.state!, this.config);
-          const vals = this.state!.diceValues;
-          const { width } = this.scene.scale;
-          const diceSize = 72, gap2 = 18;
-          const total2 = 3 * diceSize + 2 * gap2;
-          const startX2 = (width - total2) / 2;
-          for (let i = 0; i < 3; i++) {
-            const cx2 = startX2 + i * (diceSize + gap2) + diceSize / 2;
-            const cy2 = this.scene.scale.height * 0.545;
-            this.drawDiceFace(this.diceGraphics[i], cx2, cy2, diceSize, vals[i]);
-          }
-          this.rollLabel?.setText('ROLL');
-          this.showResult();
+          this.scene.time.delayedCall(100, () => {
+            rollDice(this.state!, this.config);
+            const vals = this.state!.diceValues;
+            const { width } = this.scene.scale;
+            const diceSize = 72, gap2 = 18;
+            const total2 = 3 * diceSize + 2 * gap2;
+            const startX2 = (width - total2) / 2;
+            for (let i = 0; i < 3; i++) {
+              const cx2 = startX2 + i * (diceSize + gap2) + diceSize / 2;
+              const cy2 = this.scene.scale.height * 0.545;
+              this.drawDiceFace(this.diceGraphics[i], cx2, cy2, diceSize, vals[i]);
+            }
+            this.rollLabel?.setText('ROLL'); // Reset label after showing results
+            this.showResult();
+            this.scene.time.delayedCall(1500, () => this.showPlayAgain()); // Delay before showing Play Again
+          });
         }
       },
     });
@@ -302,20 +319,20 @@ export class DiceUI {
   private showResult(): void {
     if (!this.state) return;
     if (this.state.won) {
-      this.resultText?.setText(`🎉 WIN!\n+${this.state.payout} credits`).setColor('#44ff88');
+      this.resultText?.setText(`🎉 WIN!\n+${this.state.payout} CREDITS`).setColor('#44ff88');
     } else {
-      this.resultText?.setText('BETTER LUCK\nNEXT TIME').setColor('#ff4444');
+      this.resultText?.setText('BETTER LUCK\nNEXT TIME').setColor('#ff6666'); // Slightly brighter red
     }
-    this.scene.time.delayedCall(600, () => this.showPlayAgain());
+    // No delayed call here, now handled in handleRoll for better sequencing
   }
 
   private showPlayAgain(): void {
     const { width, height } = this.scene.scale;
     const btn = this.scene.add
-      .rectangle(width / 2, height * 0.92, 180, 50, GOLD)
+      .rectangle(width / 2, height * 0.92, 200, 56, GOLD) // Consistent button size
       .setInteractive({ useHandCursor: true }).setDepth(20);
     this.scene.add.text(width / 2, height * 0.92, 'PLAY AGAIN', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '14px', color: '#000000',
+      fontFamily: '"Fredoka One", sans-serif', fontSize: '18px', color: DARK,
     }).setOrigin(0.5).setDepth(21);
     btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
   }
@@ -323,7 +340,7 @@ export class DiceUI {
   private updateWinChanceText(): void {
     if (!this.state || !this.winChanceText) return;
     const tier = this.state.selectedTier;
-    const pct  = Math.round((1 / tier) * 97);
+    const pct  = Math.round((1 / tier) * 96); // Updated RTP
     this.winChanceText.setText(`Win ${pct}% of the time  ·  Pays ${tier}× your bet`);
   }
 }
