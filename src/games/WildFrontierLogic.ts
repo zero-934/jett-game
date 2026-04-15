@@ -153,7 +153,7 @@ export function spinWildFrontier(state: WildFrontierState, config: WildFrontierC
   if (state.isComplete && state.freeSpinsRemaining <= 0) return state; // Only allow spin if not complete or in free spins
 
   const houseEdge = config.houseEdge ?? DEFAULT_HOUSE_EDGE;
-  const rng       = config.rng       ?? Math.random;
+  const rng       = config.rng       ?? getRandomSeedableRNG(); // Use the imported RNG utility
 
   // Determine final stop positions for each reel
   state.reelStops = REEL_STRIPS.map(strip => {

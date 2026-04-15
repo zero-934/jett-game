@@ -13,6 +13,7 @@ import { createDiceState, rollDice, selectTier } from './DiceLogic';
 const GOLD     = 0xc9a84c;
 const GOLD_STR = '#c9a84c';
 const DARK     = 0x080812;
+const DARK_STR = '#080812'; // Added missing constant
 
 export class DiceUI {
   private scene:  Phaser.Scene;
@@ -59,8 +60,11 @@ export class DiceUI {
     this.tierLabels.clear();
     this.tierCenters.clear();
     for (const g of this.diceGraphics) {
-        const questionMark = g.data?.get('questionMark');
-        if (questionMark) questionMark.destroy();
+        // If a question mark was drawn as a text object, destroy it separately
+        const questionMark = g['questionMarkText']; // Access the stored text object directly
+        if (questionMark && questionMark.destroy) {
+            questionMark.destroy();
+        }
         g.destroy();
     }
     this.diceGraphics = [];
@@ -181,10 +185,10 @@ export class DiceUI {
 
     if (val === 0) {
       // Blank/spinning — show a slightly larger, more stylized '?'
-      const questionMark = this.scene.add.text(cx, cy, '?', {
+      const questionMarkText = this.scene.add.text(cx, cy, '?', {
         fontFamily: '"Fredoka One", sans-serif', fontSize: `${size * 0.6}px`, color: '#666677'
       }).setOrigin(0.5).setDepth(3);
-      g.data?.set('questionMark', questionMark); // Store for cleanup
+      g['questionMarkText'] = questionMarkText; // Store reference directly on graphics object
       return;
     }
 
@@ -253,7 +257,7 @@ export class DiceUI {
       const sel    = t === tier;
       this.paintTierBtn(bg, pos.cx, pos.cy, sel);
       const lbl = this.tierLabels.get(t);
-      if (lbl) lbl.setColor(sel ? DARK : GOLD_STR);
+      if (lbl) lbl.setColor(sel ? DARK_STR : GOLD_STR); // Ensure string for setColor
     }
     this.updateWinChanceText();
   }
@@ -261,12 +265,11 @@ export class DiceUI {
   private handleRoll(): void {
     if (!this.state || this.state.isComplete) return;
 
-    // Clear previous question marks if any
+    // Clear previous question marks if any before redraw
     for (const g of this.diceGraphics) {
-        const questionMark = g.data?.get('questionMark');
-        if (questionMark) {
-            questionMark.destroy();
-            g.data?.delete('questionMark');
+        const questionMarkText = g['questionMarkText']; // Access the stored text object directly
+        if (questionMarkText && questionMarkText.destroy) {
+            questionMarkText.destroy();
         }
     }
 

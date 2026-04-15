@@ -8,13 +8,13 @@
 
 import * as Phaser from 'phaser';
 import type { WildFrontierSymbol, WildFrontierConfig, WildFrontierState } from './WildFrontierLogic';
-import { createWildFrontierState, spinWildFrontier } from './WildFrontierLogic';
+import { createWildFrontierState, spinWildFrontier, REELS_COUNT, ROWS_COUNT } from './WildFrontierLogic';
 
 const GOLD         = 0xc9a84c;
 const GOLD_STR     = '#c9a84c';
 const DARK         = 0x080812;
 const FONT_PRIMARY = '"Fredoka One", sans-serif';
-const FONT_SECONDARY = '"Fredoka", sans-serif';
+// const FONT_SECONDARY = '"Fredoka", sans-serif'; // Removed as it was unused
 
 export class WildFrontierUI {
   private scene: Phaser.Scene;
