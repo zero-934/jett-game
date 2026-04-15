@@ -13,6 +13,7 @@ import { createWildFrontierState, spinWildFrontier, REELS_COUNT, ROWS_COUNT } fr
 const GOLD         = 0xc9a84c;
 const GOLD_STR     = '#c9a84c';
 const DARK         = 0x080812;
+const DARK_STR     = '#080812'; // Added for consistent string colors
 const FONT_PRIMARY = '"Fredoka One", sans-serif';
 // const FONT_SECONDARY = '"Fredoka", sans-serif'; // Removed as it was unused
 
@@ -33,7 +34,7 @@ export class WildFrontierUI {
 
   private readonly SYMBOL_SIZE = 100;
   private readonly REEL_WIDTH  = 110; // Slightly wider than symbol to allow spacing
-  private readonly REEL_HEIGHT = this.SYMBOL_SIZE * 3; // 3 rows
+  // REEL_HEIGHT is calculated using ROWS_COUNT from Logic, no longer a local constant
   private readonly GAP         = 10; // Gap between reels
 
   constructor(scene: Phaser.Scene, config: WildFrontierConfig = {}) {
@@ -106,7 +107,7 @@ export class WildFrontierUI {
 
     for (let i = 0; i < REELS_COUNT; i++) {
       const reelContainer = this.scene.add.container(startX + i * (this.REEL_WIDTH + this.GAP), y);
-      reelContainer.setSize(this.REEL_WIDTH, this.REEL_HEIGHT);
+      reelContainer.setSize(this.REEL_WIDTH, this.SYMBOL_SIZE * ROWS_COUNT);
       reelContainer.setOrigin(0, 0.5); // Center container origin
       this.reels.push(reelContainer);
 
@@ -128,7 +129,7 @@ export class WildFrontierUI {
     const { width, height } = this.scene.scale;
     const totalReelWidth = (this.REEL_WIDTH * REELS_COUNT) + (this.GAP * (REELS_COUNT - 1));
     const frameWidth = totalReelWidth + 40; // Frame wider than reels
-    const frameHeight = this.REEL_HEIGHT + 40; // Frame taller than reels
+    const frameHeight = (this.SYMBOL_SIZE * ROWS_COUNT) + 40; // Frame taller than reels
     const frameX = width / 2;
     const frameY = height * 0.45; // Same center Y as reels
 
@@ -151,7 +152,7 @@ export class WildFrontierUI {
     buttonBg.fillRoundedRect(-100, -30, 200, 60, 15); // Relative coords for container
 
     const buttonLabel = this.scene.add.text(0, 0, 'SPIN', {
-      fontFamily: FONT_PRIMARY, fontSize: '36px', color: DARK,
+      fontFamily: FONT_PRIMARY, fontSize: '36px', color: DARK_STR,
     }).setOrigin(0.5);
 
     this.spinButton = this.scene.add.container(cx, cy, [buttonBg, buttonLabel])
@@ -218,7 +219,7 @@ export class WildFrontierUI {
     graphics.strokeRect(-size / 2, -size / 2, size, size);
 
     const text = this.scene.add.text(0, 0, this.getSymbolText(symbol), {
-      fontFamily: FONT_PRIMARY, fontSize: '24px', color: DARK,
+      fontFamily: FONT_PRIMARY, fontSize: '24px', color: DARK_STR, // Use DARK_STR
       align: 'center',
     }).setOrigin(0.5);
 

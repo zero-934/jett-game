@@ -13,7 +13,7 @@ import { createDiceState, rollDice, selectTier } from './DiceLogic';
 const GOLD     = 0xc9a84c;
 const GOLD_STR = '#c9a84c';
 const DARK     = 0x080812;
-const DARK_STR = '#080812'; // Added missing constant
+const DARK_STR = '#080812'; // Added for consistent string colors
 
 export class DiceUI {
   private scene:  Phaser.Scene;
@@ -60,10 +60,9 @@ export class DiceUI {
     this.tierLabels.clear();
     this.tierCenters.clear();
     for (const g of this.diceGraphics) {
-        // If a question mark was drawn as a text object, destroy it separately
-        const questionMark = g['questionMarkText']; // Access the stored text object directly
-        if (questionMark && questionMark.destroy) {
-            questionMark.destroy();
+        const questionMarkText = g['questionMarkText'];
+        if (questionMarkText && questionMarkText.destroy) {
+            questionMarkText.destroy();
         }
         g.destroy();
     }
@@ -107,7 +106,7 @@ export class DiceUI {
 
       const label = this.scene.add.text(cx, y - 10, tierLabels[i], {
         fontFamily: '"Fredoka One", sans-serif',
-        fontSize: '32px', color: tier === this.state!.selectedTier ? DARK : GOLD_STR,
+        fontSize: '32px', color: tier === this.state!.selectedTier ? DARK_STR : GOLD_STR,
       }).setOrigin(0.5).setDepth(2);
       this.tierLabels.set(tier, label);
 
@@ -115,7 +114,7 @@ export class DiceUI {
       const pct = Math.round((1 / tier) * 96); // Updated RTP to 96%
       this.scene.add.text(cx, y + 15, `${pct}% WIN`, {
         fontFamily: '"Fredoka", sans-serif',
-        fontSize: '12px', color: tier === this.state!.selectedTier ? DARK : '#aaaaaa',
+        fontSize: '12px', color: tier === this.state!.selectedTier ? DARK_STR : '#aaaaaa',
         letterSpacing: 1,
       }).setOrigin(0.5).setDepth(2);
 
@@ -221,7 +220,7 @@ export class DiceUI {
       .on('pointerout',  () => this.rollBtn?.setFillStyle(GOLD));
 
     this.rollLabel = this.scene.add.text(cx, cy, 'ROLL', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '30px', color: DARK,
+      fontFamily: '"Fredoka One", sans-serif', fontSize: '30px', color: DARK_STR,
     }).setOrigin(0.5).setDepth(2);
   }
 
@@ -238,7 +237,7 @@ export class DiceUI {
       lineSpacing: 8,
     }).setOrigin(0.5).setDepth(10);
 
-    this.homeButton = this.scene.add.text(width / 2, height - 20, '< HOME', { // Adjusted position, simplified text
+    this.homeButton = this.scene.add.text(width / 2, height - 20, '< HOME', {
       fontFamily: '"Fredoka One", sans-serif', fontSize: '14px', color: '#666677',
     }).setOrigin(0.5).setDepth(10)
       .setInteractive({ useHandCursor: true })
@@ -257,7 +256,7 @@ export class DiceUI {
       const sel    = t === tier;
       this.paintTierBtn(bg, pos.cx, pos.cy, sel);
       const lbl = this.tierLabels.get(t);
-      if (lbl) lbl.setColor(sel ? DARK_STR : GOLD_STR); // Ensure string for setColor
+      if (lbl) lbl.setColor(sel ? DARK_STR : GOLD_STR);
     }
     this.updateWinChanceText();
   }
@@ -267,7 +266,7 @@ export class DiceUI {
 
     // Clear previous question marks if any before redraw
     for (const g of this.diceGraphics) {
-        const questionMarkText = g['questionMarkText']; // Access the stored text object directly
+        const questionMarkText = g['questionMarkText'];
         if (questionMarkText && questionMarkText.destroy) {
             questionMarkText.destroy();
         }
@@ -335,7 +334,7 @@ export class DiceUI {
       .rectangle(width / 2, height * 0.92, 200, 56, GOLD) // Consistent button size
       .setInteractive({ useHandCursor: true }).setDepth(20);
     this.scene.add.text(width / 2, height * 0.92, 'PLAY AGAIN', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '18px', color: DARK,
+      fontFamily: '"Fredoka One", sans-serif', fontSize: '18px', color: DARK_STR,
     }).setOrigin(0.5).setDepth(21);
     btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
   }
