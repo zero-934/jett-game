@@ -81,7 +81,7 @@ export class MasqueradeUI {
   private winDisplay:   Phaser.GameObjects.Text      | null = null;
   private betDisplay:   Phaser.GameObjects.Text      | null = null;
   private fsDisplay:    Phaser.GameObjects.Text      | null = null;
-  private homeBtn:      Phaser.GameObjects.Text      | null = null;
+  private homeBtn:      Phaser.GameObjects.Container | null = null;
 
   // Big flash overlay
   private flashOverlay: Phaser.GameObjects.Container | null = null;
@@ -248,7 +248,7 @@ export class MasqueradeUI {
   }
 
   private buildHUD(): void {
-    const { width, height } = this.scene.scale;
+    const { width } = this.scene.scale;
     const hudY = GRID_TOP + this.gridH + 16;
 
     // BET label
@@ -286,9 +286,15 @@ export class MasqueradeUI {
     this.spinBtnLabel = label;
 
     // HOME
-    this.homeBtn = this.scene.add.text(width / 2, height - 16, '‹ HOME', {
-      fontFamily: FONT_UI, fontSize: '13px', color: '#444455',
-    }).setOrigin(0.5)
+    // HOME button — top-left corner, small and unobtrusive
+    const homeBg2 = this.scene.add.graphics();
+    homeBg2.fillStyle(0x000000, 0.5);
+    homeBg2.fillRoundedRect(0, 0, 60, 28, 6);
+    const homeLabel2 = this.scene.add.text(30, 14, '‹', {
+      fontFamily: FONT_UI, fontSize: '20px', color: '#c9a84c',
+    }).setOrigin(0.5);
+    this.homeBtn = this.scene.add.container(10, 10, [homeBg2, homeLabel2])
+      .setSize(60, 28).setDepth(20)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
   }

@@ -44,17 +44,15 @@ export class ShatterStepScene extends Phaser.Scene {
     this.shatterUI = new ShatterStepUI(this, width, height);
     this.shatterUI.start(DEFAULT_BET);
 
-    // HOME button — gold pill, bottom-centre, always on screen
+    // HOME button — top-left corner, small and unobtrusive
     const homeBg = this.add.graphics();
-    homeBg.fillStyle(0x1a1a2e, 1);
-    homeBg.lineStyle(1, 0xc9a84c, 0.6);
-    homeBg.fillRoundedRect(-48, -14, 96, 28, 8);
-    homeBg.strokeRoundedRect(-48, -14, 96, 28, 8);
-    const homeLabel = this.add.text(0, 0, '‹ HOME', {
-      fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#c9a84c',
+    homeBg.fillStyle(0x000000, 0.5);
+    homeBg.fillRoundedRect(0, 0, 60, 28, 6);
+    const homeLabel = this.add.text(30, 14, '‹', {
+      fontFamily: 'Arial, sans-serif', fontSize: '20px', color: '#c9a84c',
     }).setOrigin(0.5);
-    this.add.container(width / 2, height - 22, [homeBg, homeLabel])
-      .setSize(96, 28).setDepth(20)
+    this.add.container(10, 10, [homeBg, homeLabel])
+      .setSize(60, 28).setDepth(20)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { this.shatterUI?.cleanup(); this.scene.start('HomeScene'); });
   }
