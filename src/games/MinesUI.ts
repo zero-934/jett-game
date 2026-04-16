@@ -154,7 +154,7 @@ export class MinesUI {
     const totalW = cols * tileW + (cols - 1) * gap;
     const totalH = rows * tileH + (rows - 1) * gap;
     const startX = (width - totalW) / 2;
-    const startY = (height - totalH) / 2 - 50; // centred, nudged up for multiplier below
+    const startY = 70 + (height - 70 - totalH - 100) / 2; // centred in space between header and bottom HUD
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
@@ -197,8 +197,8 @@ export class MinesUI {
     const { width: w2, height: h2 } = this.scene.scale;
 
     // Multiplier shown prominently below the grid
-    // Place multiplier just below the grid
-    const gridBottom = ((h2 - (5 * 64 + 4 * 6)) / 2 - 50) + (5 * 64 + 4 * 6);
+    // Place multiplier just below the grid (mirrors startY calculation)
+    const gridBottom = (70 + (h2 - 70 - (5 * 64 + 4 * 6) - 100) / 2) + (5 * 64 + 4 * 6);
     this.scene.add.text(w2 / 2, gridBottom + 18, 'MULTIPLIER', {
       fontFamily: '"Fredoka One", sans-serif', fontSize: '12px', color: '#444455', letterSpacing: 2,
     }).setOrigin(0.5).setDepth(10);
