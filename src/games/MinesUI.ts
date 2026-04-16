@@ -27,7 +27,7 @@ export class MinesUI {
   private statusText:     Phaser.GameObjects.Text | null = null;
   private cashOutBtn:     Phaser.GameObjects.Rectangle | null = null;
   private cashOutLabel:   Phaser.GameObjects.Text | null = null;
-  private homeButton:     Phaser.GameObjects.Container | null = null;
+
   private bombSelectorObjs: Phaser.GameObjects.GameObject[] = [];
 
 
@@ -54,7 +54,6 @@ export class MinesUI {
     this.statusText?.destroy();
     this.cashOutBtn?.destroy();
     this.cashOutLabel?.destroy();
-    this.homeButton?.destroy();
     this.state = null;
   }
 
@@ -107,17 +106,7 @@ export class MinesUI {
     }).setOrigin(0.5).setDepth(2);
     this.bombSelectorObjs.push(startBg, startLabel);
 
-    // HOME button — top-left corner, small and unobtrusive
-    const homeBg = this.scene.add.graphics();
-    homeBg.fillStyle(0x000000, 0.5);
-    homeBg.fillRoundedRect(0, 0, 60, 28, 6);
-    const homeLabel = this.scene.add.text(30, 14, '‹', {
-      fontFamily: 'Arial, sans-serif', fontSize: '20px', color: '#c9a84c',
-    }).setOrigin(0.5);
-    this.homeButton = this.scene.add.container(10, 10, [homeBg, homeLabel])
-      .setSize(60, 28).setDepth(20)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
+    // Home navigation handled by scene nav bar
   }
 
   private paintSelectorBtn(g: Phaser.GameObjects.Graphics, cx: number, cy: number, w: number, h: number, selected: boolean): void {
