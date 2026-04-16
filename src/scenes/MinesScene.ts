@@ -30,14 +30,14 @@ export class MinesScene extends Phaser.Scene {
     bar.fillStyle(0xc9a84c, 0.06);
     bar.fillRect(0, 0, width, 30);
 
-    this.add.text(width / 2, height * 0.10, 'MINES', {
+    this.add.text(width / 2, 24, 'MINES', {
       fontFamily: '"Fredoka One", sans-serif',
-      fontSize: '48px', color: '#c9a84c', letterSpacing: 8,
+      fontSize: '26px', color: '#c9a84c', letterSpacing: 6,
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, height * 0.17, 'AVOID THE BOMBS', {
+    this.add.text(width / 2, 50, 'AVOID THE BOMBS', {
       fontFamily: '"Fredoka One", sans-serif',
-      fontSize: '13px', color: '#333344', letterSpacing: 3,
+      fontSize: '11px', color: '#333344', letterSpacing: 3,
     }).setOrigin(0.5);
 
     this.minesUI = new MinesUI(this, { houseEdge: 0.03 });
