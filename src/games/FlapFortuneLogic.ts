@@ -127,10 +127,16 @@ export function tickFlapFortune(
     return state;
   }
   if (state.playerY > config.worldHeight - halfH) {
-    // Flew out the bottom — cash out with current multiplier
-    state.isAlive   = false;
-    state.cashedOut = true;
-    state.payout    = parseFloat((state.bet * state.multiplier).toFixed(2));
+    if (state.pipesCleared >= 1) {
+      // Flew out the bottom — cash out with current multiplier (only after first gate)
+      state.isAlive   = false;
+      state.cashedOut = true;
+      state.payout    = parseFloat((state.bet * state.multiplier).toFixed(2));
+    } else {
+      // Too early to cash out — bounce player back up slightly
+      state.playerVelocityY = -4;
+      state.playerY = config.worldHeight - halfH - 2;
+    }
     return state;
   }
 

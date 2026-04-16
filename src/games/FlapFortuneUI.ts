@@ -15,8 +15,8 @@ const GOLD     = 0xc9a84c;
 const GOLD_STR = '#c9a84c';
 
 // Medieval palette
-const SKY_TOP      = 0x1a0a2e; // deep twilight purple
-const SKY_BOT      = 0x3d1a0a; // dark amber horizon
+const _SKY_TOP     = 0x1a0a2e; void _SKY_TOP; // kept for reference
+const _SKY_BOT     = 0x3d1a0a; void _SKY_BOT;
 const STONE_DARK   = 0x3a3530;
 const STONE_MID    = 0x5a524a;
 const STONE_LIGHT  = 0x7a6e62;
@@ -27,7 +27,7 @@ const TORCH_ORANGE = 0xff6600;
 const WIZARD_ROBE  = 0x4a0a8a;
 const WIZARD_HAT   = 0x2a0a5a;
 const BROOM_WOOD   = 0x8b6914;
-const MOON_COL     = 0xffe8a0;
+const _MOON_COL    = 0xffe8a0; void _MOON_COL;
 
 export class FlapFortuneUI {
   private scene:  Phaser.Scene;
@@ -178,23 +178,23 @@ export class FlapFortuneUI {
       })
       .setOrigin(0.5).setDepth(10);
 
-    // Gold exit strip at the bottom — fly down here to cash out
-    this.exitStrip = this.scene.add.graphics().setDepth(9);
+    // Gold exit strip at the bottom — hidden until first pipe is cleared
+    this.exitStrip = this.scene.add.graphics().setDepth(9).setVisible(false);
     this.exitStrip.fillStyle(GOLD, 0.18);
-    this.exitStrip.fillRect(0, worldHeight - 32, worldWidth, 32);
+    this.exitStrip.fillRect(0, worldHeight - 14, worldWidth, 14);
     this.exitStrip.lineStyle(2, GOLD, 0.7);
     this.exitStrip.beginPath();
-    this.exitStrip.moveTo(0, worldHeight - 32);
-    this.exitStrip.lineTo(worldWidth, worldHeight - 32);
+    this.exitStrip.moveTo(0, worldHeight - 14);
+    this.exitStrip.lineTo(worldWidth, worldHeight - 14);
     this.exitStrip.strokePath();
 
-    // Dashed arrow indicators pointing down
+    // Cash out label — hidden until first pipe cleared
     this.exitLabel = this.scene.add
-      .text(worldWidth / 2, worldHeight - 16, '▼  DIVE TO CASH OUT  ▼', {
-        fontFamily: 'monospace', fontSize: '11px', color: '#c9a84c',
+      .text(worldWidth / 2, worldHeight - 7, '▼  DIVE TO CASH OUT  ▼', {
+        fontFamily: 'monospace', fontSize: '10px', color: '#c9a84c',
         stroke: '#000000', strokeThickness: 2,
       })
-      .setOrigin(0.5).setDepth(10);
+      .setOrigin(0.5).setDepth(10).setVisible(false);
 
     // Home navigation handled by scene nav bar
   }
@@ -243,83 +243,155 @@ export class FlapFortuneUI {
   private renderBackground(): void {
     const { worldWidth, worldHeight } = this.config;
     if (!this.bgGraphics) return;
-    const t = this.scene.time.now / 1000;
+    const t   = this.scene.time.now / 1000;
+    const g   = this.bgGraphics;
+    const scrollFar  = this.groundScrollX * 0.08; // far parallax
+    const scrollMid  = this.groundScrollX * 0.20; // mid parallax
+    const scrollNear = this.groundScrollX * 0.45; // near parallax
 
-    this.bgGraphics.clear();
+    g.clear();
 
-    // Twilight sky
-    this.bgGraphics.fillGradientStyle(SKY_TOP, SKY_TOP, SKY_BOT, SKY_BOT, 1);
-    this.bgGraphics.fillRect(0, 0, worldWidth, worldHeight);
+    // ── Sky gradient ────────────────────────────────────────────────────────
+    g.fillGradientStyle(0x08021a, 0x08021a, 0x2a0e0e, 0x2a0e0e, 1);
+    g.fillRect(0, 0, worldWidth, worldHeight);
 
-    // Moon
-    this.bgGraphics.fillStyle(MOON_COL, 0.9);
-    this.bgGraphics.fillCircle(worldWidth * 0.75, worldHeight * 0.12, 28);
-    this.bgGraphics.fillStyle(SKY_TOP, 0.6); // crescent shadow
-    this.bgGraphics.fillCircle(worldWidth * 0.75 + 10, worldHeight * 0.12 - 4, 24);
+    // ── Moon with halo ──────────────────────────────────────────────────────
+    const moonX = worldWidth * 0.78;
+    const moonY = worldHeight * 0.13;
+    g.fillStyle(0x4433aa, 0.12);
+    g.fillCircle(moonX, moonY, 52);
+    g.fillStyle(0xfff0c0, 0.95);
+    g.fillCircle(moonX, moonY, 30);
+    g.fillStyle(0x08021a, 0.55); // crescent cut
+    g.fillCircle(moonX + 12, moonY - 6, 25);
 
-    // Stars twinkle
+    // ── Stars ───────────────────────────────────────────────────────────────
     for (const star of this.stars) {
-      const alpha = 0.3 + 0.5 * Math.sin(star.phase + t * 0.9);
-      this.bgGraphics.fillStyle(0xffffff, alpha);
-      this.bgGraphics.fillCircle(star.x, star.y, star.r);
+      const alpha = 0.4 + 0.5 * Math.sin(star.phase + t * 0.8);
+      g.fillStyle(0xffffff, alpha);
+      g.fillCircle(star.x, star.y, star.r);
     }
 
-    // Distant castle silhouettes
-    this.bgGraphics.fillStyle(0x110d1a, 1);
-    for (const tower of this.castleTowers) {
-      const scrolledX = ((tower.x - this.groundScrollX * 0.15) % worldWidth + worldWidth) % worldWidth;
-      const towerW = 28;
-      const groundY = worldHeight * 0.75;
-      // Tower body
-      this.bgGraphics.fillRect(scrolledX, groundY - tower.h, towerW, tower.h);
-      // Battlements (3 merlons)
-      const merW = 8;
-      for (let m = 0; m < 3; m++) {
-        this.bgGraphics.fillRect(scrolledX + m * 10, groundY - tower.h - 10, merW, 10);
+    // ── Far distant mountains / hills ───────────────────────────────────────
+    g.fillStyle(0x100820, 1);
+    const hillW = worldWidth / 3;
+    for (let hi = 0; hi < 5; hi++) {
+      const hx = ((hi * hillW * 0.7 - scrollFar) % (worldWidth + hillW) + worldWidth + hillW) % (worldWidth + hillW) - hillW / 2;
+      const hh = 55 + (hi % 3) * 25;
+      g.fillTriangle(hx, worldHeight * 0.72, hx + hillW * 0.5, worldHeight * 0.72 - hh, hx + hillW, worldHeight * 0.72);
+    }
+
+    // ── Mid castle — large background keep ──────────────────────────────────
+    const keepX = ((worldWidth * 0.3 - scrollMid) % worldWidth + worldWidth) % worldWidth - 30;
+    const keepW = 120;
+    const keepH = 160;
+    const keepY = worldHeight * 0.72 - keepH;
+    g.fillStyle(0x1a1220, 1);
+    // Main keep body
+    g.fillRect(keepX, keepY, keepW, keepH);
+    // Keep battlements
+    const mW = 14;
+    for (let m = 0; m < 7; m++) {
+      if (m % 2 === 0) g.fillRect(keepX + m * (keepW / 7), keepY - 16, mW, 16);
+    }
+    // Keep windows — arched (two rows)
+    g.fillStyle(0xffcc33, 0.55);
+    for (let row = 0; row < 2; row++) {
+      for (let col = 0; col < 3; col++) {
+        const wx = keepX + 18 + col * 36;
+        const wy = keepY + 20 + row * 55;
+        g.fillRect(wx, wy + 6, 10, 14);
+        g.fillTriangle(wx - 1, wy + 6, wx + 11, wy + 6, wx + 5, wy);
       }
-      // Window slit
-      this.bgGraphics.fillStyle(0xffcc44, 0.3);
-      this.bgGraphics.fillRect(scrolledX + towerW / 2 - 2, groundY - tower.h * 0.5, 4, 8);
-      this.bgGraphics.fillStyle(0x110d1a, 1);
+    }
+    // Side towers of keep
+    g.fillStyle(0x1a1220, 1);
+    for (const tx of [keepX - 18, keepX + keepW - 2]) {
+      const th = keepH + 30;
+      g.fillRect(tx, worldHeight * 0.72 - th, 20, th);
+      // Tower battlements
+      for (let m = 0; m < 3; m++) {
+        if (m % 2 === 0) g.fillRect(tx + m * 7, worldHeight * 0.72 - th - 10, 7, 10);
+      }
+      // Cone roof
+      g.fillStyle(0x3a0a0a, 1);
+      g.fillTriangle(tx - 2, worldHeight * 0.72 - th, tx + 22, worldHeight * 0.72 - th, tx + 10, worldHeight * 0.72 - th - 35);
+      g.fillStyle(0x1a1220, 1);
+    }
+    // Keep flag
+    g.fillStyle(0x880000, 1);
+    g.fillRect(keepX + keepW / 2 - 1, keepY - 38, 2, 22);
+    g.fillTriangle(keepX + keepW / 2 + 1, keepY - 38, keepX + keepW / 2 + 14, keepY - 31, keepX + keepW / 2 + 1, keepY - 24);
+
+    // ── Foreground castle wall ───────────────────────────────────────────────
+    const wallY = worldHeight * 0.78;
+    const wallH = worldHeight - wallY;
+    g.fillStyle(0x2a2228, 1);
+    g.fillRect(0, wallY, worldWidth, wallH);
+
+    // Wall stone blocks (scrolling)
+    const bW = 44; const bH = 20;
+    g.fillStyle(0x353035, 0.5);
+    for (let row = 0; row < 4; row++) {
+      const offset2 = (row % 2 === 0) ? 0 : bW / 2;
+      const tileOff2 = (scrollNear + offset2) % bW;
+      for (let bx2 = -tileOff2; bx2 < worldWidth + bW; bx2 += bW) {
+        g.fillRect(bx2, wallY + row * bH, bW - 2, bH - 1);
+      }
     }
 
-    // Ground — cobblestone
-    this.bgGraphics.fillStyle(STONE_DARK, 1);
-    this.bgGraphics.fillRect(0, worldHeight * 0.85, worldWidth, worldHeight * 0.15);
-    this.bgGraphics.fillStyle(STONE_MID, 1);
-    this.bgGraphics.fillRect(0, worldHeight * 0.85, worldWidth, 8);
-
-    // Scrolling cobblestone tiles
-    const tileW = 36;
-    const tileOff = this.groundScrollX % tileW;
-    this.bgGraphics.fillStyle(STONE_LIGHT, 0.25);
-    for (let gx = -tileOff; gx < worldWidth; gx += tileW) {
-      this.bgGraphics.fillRect(gx, worldHeight * 0.85 + 10, tileW - 2, 14);
-      this.bgGraphics.fillRect(gx + tileW / 2, worldHeight * 0.85 + 26, tileW - 2, 14);
+    // Wall battlements at top
+    g.fillStyle(0x2a2228, 1);
+    const merlonW = 18;
+    const merlonH = 22;
+    const merlonGap = 14;
+    const merlonPitch = merlonW + merlonGap;
+    const merlonOff = scrollNear % merlonPitch;
+    for (let mx = -merlonOff - merlonPitch; mx < worldWidth + merlonPitch; mx += merlonPitch) {
+      g.fillRect(mx, wallY - merlonH, merlonW, merlonH);
     }
 
-    // Torches
+    // Foreground towers
+    const fgTowers = [
+      { x: ((- scrollNear * 0.6) % (worldWidth * 1.5) + worldWidth * 1.5) % (worldWidth * 1.5) - 30, w: 60, h: 120 },
+      { x: ((worldWidth * 0.55 - scrollNear * 0.6) % (worldWidth * 1.5) + worldWidth * 1.5) % (worldWidth * 1.5) - 30, w: 50, h: 100 },
+    ];
+    for (const ft of fgTowers) {
+      if (ft.x > worldWidth + 80) continue;
+      g.fillStyle(0x252028, 1);
+      g.fillRect(ft.x, wallY - ft.h, ft.w, ft.h + wallH);
+      // Tower battlements
+      for (let m = 0; m < Math.floor(ft.w / (merlonW + 4)); m++) {
+        g.fillRect(ft.x + m * (merlonW + 4), wallY - ft.h - merlonH, merlonW, merlonH);
+      }
+      // Cone roof
+      g.fillStyle(0x5a0808, 1);
+      g.fillTriangle(ft.x - 4, wallY - ft.h, ft.x + ft.w + 4, wallY - ft.h, ft.x + ft.w / 2, wallY - ft.h - 48);
+      // Arched window with glow
+      g.fillStyle(0xffbb22, 0.5 + 0.2 * Math.sin(t * 1.5 + ft.x));
+      const wndX = ft.x + ft.w / 2 - 5;
+      const wndY = wallY - ft.h + 28;
+      g.fillRect(wndX, wndY + 7, 10, 18);
+      g.fillTriangle(wndX - 1, wndY + 7, wndX + 11, wndY + 7, wndX + 5, wndY);
+      // Flag
+      g.fillStyle(0x880000, 1);
+      g.fillRect(ft.x + ft.w / 2 - 1, wallY - ft.h - 48 - 20, 2, 20);
+      g.fillTriangle(ft.x + ft.w / 2 + 1, wallY - ft.h - 66, ft.x + ft.w / 2 + 13, wallY - ft.h - 59, ft.x + ft.w / 2 + 1, wallY - ft.h - 52);
+    }
+
+    // ── Torches on wall ──────────────────────────────────────────────────────
     for (const torch of this.torches) {
-      const flicker = 0.7 + 0.3 * Math.sin(torch.phase + t * 8);
-      // Bracket
-      this.bgGraphics.fillStyle(GATE_IRON, 1);
-      this.bgGraphics.fillRect(torch.x - 2, torch.y, 4, 12);
-      // Flame
-      this.bgGraphics.fillStyle(TORCH_ORANGE, flicker);
-      this.bgGraphics.fillTriangle(
-        torch.x - 5, torch.y,
-        torch.x + 5, torch.y,
-        torch.x,     torch.y - 14
-      );
-      this.bgGraphics.fillStyle(0xffee44, flicker * 0.8);
-      this.bgGraphics.fillTriangle(
-        torch.x - 3, torch.y,
-        torch.x + 3, torch.y,
-        torch.x,     torch.y - 9
-      );
-      // Glow
-      this.bgGraphics.fillStyle(TORCH_ORANGE, 0.08 * flicker);
-      this.bgGraphics.fillCircle(torch.x, torch.y - 4, 22);
+      const tx = ((torch.x - scrollNear * 0.3) % worldWidth + worldWidth) % worldWidth;
+      const ty = wallY - 12;
+      const flicker = 0.7 + 0.3 * Math.sin(torch.phase + t * 9);
+      g.fillStyle(GATE_IRON, 1);
+      g.fillRect(tx - 2, ty - 2, 4, 14);
+      g.fillStyle(TORCH_ORANGE, flicker);
+      g.fillTriangle(tx - 5, ty - 2, tx + 5, ty - 2, tx, ty - 18);
+      g.fillStyle(0xffee44, flicker * 0.9);
+      g.fillTriangle(tx - 3, ty - 2, tx + 3, ty - 2, tx, ty - 12);
+      g.fillStyle(TORCH_ORANGE, 0.10 * flicker);
+      g.fillCircle(tx, ty - 8, 20);
     }
   }
 
@@ -443,6 +515,10 @@ export class FlapFortuneUI {
     if (!this.state) return;
     this.multiplierText?.setText(`x${this.state.multiplier.toFixed(2)}`);
     this.gatesText?.setText(`GATES: ${this.state.pipesCleared}`);
+    // Show cash-out strip only after first pipe is cleared
+    const canCashOut = this.state.pipesCleared >= 1;
+    this.exitStrip?.setVisible(canCashOut);
+    this.exitLabel?.setVisible(canCashOut);
   }
 
   // ─── Actions ──────────────────────────────────────────────────────────────
