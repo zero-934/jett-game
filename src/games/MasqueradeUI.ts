@@ -19,11 +19,11 @@ import {
 import type { MasqueradeState } from './MasqueradeLogic';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
-const SYM         = 70;   // symbol cell size (px) — fits 5 reels on 390px wide
+const SYM         = 66;   // symbol cell size — 5 reels fit comfortably on 390px
 const REEL_GAP    = 4;
-const GRID_TOP    = 200;  // y where reel grid starts (below title)
-const SPIN_ROWS   = 12;   // extra symbol rows rendered off-top for blur illusion
-const REEL_DELAY  = 120;  // ms between each reel stopping
+const GRID_TOP    = 190;  // y where reel grid starts (below jackpot panel)
+const SPIN_ROWS   = 8;    // off-screen rows for scroll animation (hidden on init)
+const REEL_DELAY  = 120;  // ms stagger between each reel stopping
 
 // ─── Visual constants ─────────────────────────────────────────────────────────
 const FONT_TITLE  = '"Georgia", serif';
@@ -57,10 +57,7 @@ const SYMBOL_LABEL: Record<MasqueradeSymbol, string> = {
   MASKED:      '?',
 };
 
-// Ordered list for random blur symbols during spin animation
-const ALL_SYMS: MasqueradeSymbol[] = [
-  'MUSIC','INVITATION','SLIPPER','CLOCK','GLOVES','PEACOCK','CHAMPAGNE','GOLDEN_MASK','WILD','SCATTER',
-];
+
 
 // ─── MasqueradeUI ─────────────────────────────────────────────────────────────
 
@@ -133,11 +130,11 @@ export class MasqueradeUI {
 
   // ─── Build ───────────────────────────────────────────────────────────────────
 
-  /** Three jackpot plaques displayed above the reel grid (y 140–196). */
+  /** Three jackpot plaques displayed above the reel grid (y 64–124). */
   private buildJackpotPanel(): void {
     const { width }   = this.scene.scale;
-    const panelY      = 138;
-    const panelH      = 52;
+    const panelY      = 64;
+    const panelH      = 48;
     const phantomH    = panelH + 10; // centre plaque is taller
     const corner      = 6;
     const border      = 1.5;
@@ -224,13 +221,13 @@ export class MasqueradeUI {
     frame.lineStyle(2, GOLD, 0.8);
     frame.strokeRoundedRect(gx, gy, gw, gh, 10);
 
-    // Mask strips on each side to clip reel overflow
+    // Side bars that cover any off-screen symbol overflow (match background gradient start colour)
     const leftBar  = this.scene.add.graphics();
     const rightBar = this.scene.add.graphics();
-    leftBar.fillStyle(0x080812, 1);
-    leftBar.fillRect(0, GRID_TOP - 10, gx, this.gridH + 20);
-    rightBar.fillStyle(0x080812, 1);
-    rightBar.fillRect(gx + gw, GRID_TOP - 10, width - (gx + gw), this.gridH + 20);
+    leftBar.fillStyle(0x100020, 1);
+    leftBar.fillRect(0, GRID_TOP - 2, gx, this.gridH + 4);
+    rightBar.fillStyle(0x100020, 1);
+    rightBar.fillRect(gx + gw, GRID_TOP - 2, width - (gx + gw), this.gridH + 4);
   }
 
   /** Builds SPIN_ROWS + ROWS_COUNT symbol containers per reel for scroll animation */
@@ -242,8 +239,9 @@ export class MasqueradeUI {
       const reelX = this.gridX + r * (SYM + REEL_GAP);
 
       for (let i = 0; i < totalRows; i++) {
-        const container = this.scene.add.container(reelX, 0);
+        const container = this.scene.add.container(reelX, -9999); // hidden off-screen until snap
         container.setSize(SYM, SYM);
+        container.setAlpha(0); // invisible until snapReels positions them
         this.reelCols[r].push(container);
       }
     }
@@ -409,21 +407,22 @@ export class MasqueradeUI {
 
     for (let r = 0; r < REELS_COUNT; r++) {
       for (let i = 0; i < totalRows; i++) {
-        const row    = i - SPIN_ROWS; // negative = above viewport
-        const visRow = row; // 0..ROWS_COUNT-1 are visible
+        const visRow  = i - SPIN_ROWS; // 0..ROWS_COUNT-1 are visible; negative = off-screen
         const container = this.reelCols[r][i];
-        container.setPosition(
-          this.gridX + r * (SYM + REEL_GAP),
-          GRID_TOP + visRow * (SYM + REEL_GAP)
-        );
-        container.setAlpha(1);
 
-        if (row >= 0 && row < ROWS_COUNT) {
-          const sym = maskedSet.has(`${r},${row}`) ? 'MASKED' : stops[r][row];
+        if (visRow >= 0 && visRow < ROWS_COUNT) {
+          // Visible row — position correctly and draw symbol
+          container.setPosition(
+            this.gridX + r * (SYM + REEL_GAP),
+            GRID_TOP + visRow * (SYM + REEL_GAP)
+          );
+          container.setAlpha(1);
+          const sym = maskedSet.has(`${r},${visRow}`) ? 'MASKED' : stops[r][visRow];
           this.drawSym(container, sym);
         } else {
-          // Off-screen row — fill with random sym for blur illusion
-          this.drawSym(container, ALL_SYMS[Math.floor(Math.random() * ALL_SYMS.length)]);
+          // Off-screen row — keep hidden, positioned far above viewport
+          container.setPosition(this.gridX + r * (SYM + REEL_GAP), -9999);
+          container.setAlpha(0);
         }
       }
     }
