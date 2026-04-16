@@ -242,3 +242,76 @@ If you are an AI agent that lost context, do this in order:
 7. Ask the user what they want to work on next
 
 You are now fully oriented. Go build something great.
+
+---
+
+## AI Agent Workflow (Multi-Agent Coding)
+
+This project uses a **two-agent system**:
+
+- **Primary agent (AgentX / Claude Sonnet)** — architect, reviewer, QA, git. Talks to the user. Never writes boilerplate from scratch.
+- **Secondary agent (Gemini 2.5 Flash)** — writes boilerplate code from specs. Cheap and fast. Does NOT review its own output.
+
+### The Workflow
+
+```
+User request → AgentX writes detailed spec → Gemini writes code → AgentX reviews & fixes → tests pass → PR → merge
+```
+
+**Step 1 — AgentX writes the spec for Gemini.**
+The spec must include:
+- Exact file names, export names, and TypeScript types
+- A copy of every rule Gemini must not break (see Critical Rules below)
+- Existing constants/interfaces to reuse (paste them verbatim)
+- A list of what NOT to do (Gemini invents things if not constrained)
+- Expected function signatures with JSDoc
+- Output format instruction: "Output complete files only — no diffs, no truncation, no '// rest unchanged'"
+
+**Step 2 — AgentX calls Gemini via the API.**
+```
+POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+Key: stored in ~/.openclaw/.env as GEMINI_API_KEY
+```
+Use a JSON prompt file to avoid shell escaping issues. Max tokens: 65536.
+
+**Step 3 — AgentX reviews Gemini output BEFORE writing any file.**
+Common Gemini failure modes to check for:
+- Rewrote the entire file instead of adding to it (destroys existing logic)
+- Invented new RNG interfaces / types that don't exist in the codebase
+- Called `spinMasquerade(state, Math.random)` instead of `spinMasquerade(state, config)`
+- Called `Container.setOrigin()` (doesn't exist in Phaser 4)
+- Left placeholder stubs instead of real code ("// implement later")
+- Wrong import paths in test files
+- Duplicate logic already handled elsewhere
+
+**Step 4 — AgentX integrates the good parts.**
+If Gemini's output is mostly correct: write the file.
+If Gemini trashed existing code: surgically add only the new pieces to the existing working file using `edit`.
+Never overwrite a working file with Gemini output without reading it line by line first.
+
+**Step 5 — Tests + build must pass before commit.**
+```bash
+npm test       # all suites green
+npm run build  # no TypeScript errors
+```
+
+**Step 6 — Branch + PR (mandatory).**
+```bash
+git checkout -b feat/<name>   # or fix/<name>
+git add -A && git commit -m "feat(<scope>): description"
+git push origin feat/<name>
+gh pr create --title "..." --body "..." --base main --head feat/<name>
+gh pr merge <number> --merge
+git checkout main && git pull
+```
+**Never push directly to `main`.** Always via a named branch and PR.
+
+### Critical Rules (paste these into every Gemini spec)
+1. Logic files: ZERO Phaser imports. Pure TypeScript only.
+2. UI files import from Logic — never the other way.
+3. No `any` without a comment explaining why.
+4. Phaser 4: `Container` does NOT have `setOrigin()`. Never call it.
+5. Named constants for everything — no magic numbers inline.
+6. All existing exports must remain — never remove or rename.
+7. File header: `@file`, `@purpose`, `@author Agent 934`, `@date`, `@license Proprietary`
+8. New public functions need JSDoc: `@param`, `@returns`, `@example`.

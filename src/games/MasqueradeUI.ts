@@ -8,11 +8,12 @@
  */
 
 import * as Phaser from 'phaser';
-import type { MasqueradeSymbol, WinLine } from './MasqueradeLogic';
+import type { MasqueradeSymbol, WinLine, JackpotResult } from './MasqueradeLogic';
 import {
   REELS_COUNT, ROWS_COUNT,
   GOLD, GOLD_STR, DARK, DARK_STR,
   BET_PER_LINE, LINES_COUNT,
+  JACKPOT_MULTIPLIERS,
   createMasqueradeState, spinMasquerade,
 } from './MasqueradeLogic';
 import type { MasqueradeState } from './MasqueradeLogic';
@@ -69,6 +70,9 @@ export class MasqueradeUI {
   private state:  MasqueradeState | null = null;
   private spinning = false;
 
+  // Jackpot panel
+  private phantomPlaque: Phaser.GameObjects.Graphics | null = null;
+
   // Reel columns — each holds SPIN_ROWS + ROWS_COUNT containers that scroll
   private reelCols: Phaser.GameObjects.Container[][] = []; // [reel][symbolIdx]
   private reelMasks: Phaser.GameObjects.Graphics[]   = []; // clipping masks
@@ -95,6 +99,7 @@ export class MasqueradeUI {
   public start(): void {
     this.cleanup();
     this.state = createMasqueradeState(BET_PER_LINE * LINES_COUNT, LINES_COUNT);
+    this.buildJackpotPanel();
     this.buildReelFrame();
     this.buildReels();
     this.buildHUD();
@@ -103,6 +108,7 @@ export class MasqueradeUI {
   }
 
   public cleanup(): void {
+    this.phantomPlaque = null; // destroyed by scene when scene shuts down
     this.reelCols.forEach(col => col.forEach(c => c.destroy()));
     this.reelMasks.forEach(m => m.destroy());
     this.reelCols  = [];
@@ -126,6 +132,79 @@ export class MasqueradeUI {
   }
 
   // ─── Build ───────────────────────────────────────────────────────────────────
+
+  /** Three jackpot plaques displayed above the reel grid (y 140–196). */
+  private buildJackpotPanel(): void {
+    const { width }   = this.scene.scale;
+    const panelY      = 138;
+    const panelH      = 52;
+    const phantomH    = panelH + 10; // centre plaque is taller
+    const corner      = 6;
+    const border      = 1.5;
+    const gap         = 6;
+    const sideW       = (width - gap * 4) * 0.28;
+    const centreW     = (width - gap * 4) * 0.40;
+
+    const veilX    = gap;
+    const phantomX = veilX + sideW + gap;
+    const marquisX = phantomX + centreW + gap;
+
+    // ── VEIL (left) ──
+    const veil = this.scene.add.graphics();
+    veil.fillStyle(0x3a0068, 1);
+    veil.lineStyle(border, GOLD, 0.7);
+    veil.fillRoundedRect(veilX, panelY, sideW, panelH, corner);
+    veil.strokeRoundedRect(veilX, panelY, sideW, panelH, corner);
+
+    this.scene.add.text(veilX + sideW / 2, panelY + 13, 'VEIL', {
+      fontFamily: FONT_UI, fontSize: '11px', color: '#8877aa', align: 'center',
+    }).setOrigin(0.5, 0.5);
+
+    this.scene.add.text(veilX + sideW / 2, panelY + 33, `${JACKPOT_MULTIPLIERS.VEIL}×`, {
+      fontFamily: FONT_UI, fontSize: '15px', color: GOLD_STR, fontStyle: 'bold', align: 'center',
+    }).setOrigin(0.5, 0.5);
+
+    // ── PHANTOM (centre, tallest) ──
+    const phantom = this.scene.add.graphics();
+    phantom.fillStyle(0x0a0a1a, 1);
+    phantom.lineStyle(border + 0.5, GOLD, 1);
+    phantom.fillRoundedRect(phantomX, panelY - 5, centreW, phantomH, corner + 2);
+    phantom.strokeRoundedRect(phantomX, panelY - 5, centreW, phantomH, corner + 2);
+    this.phantomPlaque = phantom;
+
+    this.scene.add.text(phantomX + centreW / 2, panelY + 8, 'PHANTOM', {
+      fontFamily: FONT_UI, fontSize: '13px', color: '#aaaacc', align: 'center',
+    }).setOrigin(0.5, 0.5);
+
+    this.scene.add.text(phantomX + centreW / 2, panelY + 33, `${JACKPOT_MULTIPLIERS.PHANTOM}×`, {
+      fontFamily: FONT_UI, fontSize: '20px', color: GOLD_STR, fontStyle: 'bold', align: 'center',
+    }).setOrigin(0.5, 0.5);
+
+    // ── MARQUIS (right) ──
+    const marquis = this.scene.add.graphics();
+    marquis.fillStyle(0x2a0050, 1);
+    marquis.lineStyle(border, GOLD, 0.7);
+    marquis.fillRoundedRect(marquisX, panelY, sideW, panelH, corner);
+    marquis.strokeRoundedRect(marquisX, panelY, sideW, panelH, corner);
+
+    this.scene.add.text(marquisX + sideW / 2, panelY + 13, 'MARQUIS', {
+      fontFamily: FONT_UI, fontSize: '11px', color: '#8877aa', align: 'center',
+    }).setOrigin(0.5, 0.5);
+
+    this.scene.add.text(marquisX + sideW / 2, panelY + 33, `${JACKPOT_MULTIPLIERS.MARQUIS}×`, {
+      fontFamily: FONT_UI, fontSize: '15px', color: GOLD_STR, fontStyle: 'bold', align: 'center',
+    }).setOrigin(0.5, 0.5);
+
+    // Pulse the PHANTOM plaque subtly
+    this.scene.tweens.add({
+      targets:  this.phantomPlaque,
+      alpha:    0.80,
+      duration: 1800,
+      yoyo:     true,
+      repeat:   -1,
+      ease:     'Sine.easeInOut',
+    });
+  }
 
   private get gridW(): number { return REELS_COUNT * SYM + (REELS_COUNT - 1) * REEL_GAP; }
   private get gridH(): number { return ROWS_COUNT  * SYM + (ROWS_COUNT  - 1) * REEL_GAP; }
@@ -257,6 +336,18 @@ export class MasqueradeUI {
 
   // ─── Symbol Drawing ───────────────────────────────────────────────────────────
 
+  /**
+   * Draws a neutral grey placeholder — used during reel spin for visual comfort.
+   * No colours, no labels. Eyes track motion without being distracted by content.
+   */
+  private drawBlurSym(container: Phaser.GameObjects.Container): void {
+    container.removeAll(true);
+    const g = this.scene.add.graphics();
+    g.fillStyle(0x2a2a3a, 0.75);
+    g.fillRoundedRect(3, 3, SYM - 6, SYM - 6, 7);
+    container.add(g);
+  }
+
   private drawSym(container: Phaser.GameObjects.Container, symbol: MasqueradeSymbol): void {
     container.removeAll(true);
 
@@ -355,9 +446,9 @@ export class MasqueradeUI {
       const totalRows = col.length;
       const maskedSet = new Set(masked.map(p => `${p.reel},${p.row}`));
 
-      // Fill all off-screen containers with random symbols
+      // Fill all off-screen containers with blur placeholders (easy on the eyes during scroll)
       col.forEach((c, i) => {
-        this.drawSym(c, ALL_SYMS[Math.floor(Math.random() * ALL_SYMS.length)]);
+        this.drawBlurSym(c);
         // Stack them above the viewport to start
         c.setPosition(
           this.gridX + reelIndex * (SYM + REEL_GAP),
@@ -472,6 +563,21 @@ export class MasqueradeUI {
     });
   }
 
+  /**
+   * Shows a jackpot-specific flash overlay with tier-appropriate messaging.
+   * @param result   - The JackpotResult from this spin.
+   * @param onDone   - Callback when the flash finishes.
+   */
+  private showJackpotFlash(result: JackpotResult, onDone: () => void): void {
+    const msgs: Record<string, { msg: string; sub: string; dur: number }> = {
+      PHANTOM: { msg: 'PHANTOM JACKPOT',  sub: `+${JACKPOT_MULTIPLIERS.PHANTOM}× YOUR BET`, dur: 2500 },
+      MARQUIS: { msg: 'MARQUIS JACKPOT',  sub: `+${JACKPOT_MULTIPLIERS.MARQUIS}× YOUR BET`, dur: 2000 },
+      VEIL:    { msg: 'VEIL JACKPOT',     sub: `+${JACKPOT_MULTIPLIERS.VEIL}× YOUR BET`,    dur: 1600 },
+    };
+    const { msg, sub, dur } = msgs[result.tier];
+    this.showFlash(msg, sub, dur, onDone);
+  }
+
   // ─── Spin Handler ─────────────────────────────────────────────────────────────
 
   private handleSpin(): void {
@@ -533,19 +639,27 @@ export class MasqueradeUI {
         }
       };
 
-      // Big flash announcements
-      if (snap.isFreeSpinTriggered) {
-        this.showFlash('🎭 FREE SPINS!', `${snap.freeSpinsRemaining} spins awarded`, 1400, afterFlash);
-      } else if (snap.isFreeSpinRetriggered) {
-        this.showFlash('🎭 RETRIGGER!', `+${snap.freeSpinsRemaining} more spins`, 1400, afterFlash);
-      } else if (snap.totalWin >= 200) {
-        this.showFlash('✦ MEGA WIN ✦', `+${snap.totalWin.toFixed(0)} credits`, 1600, afterFlash);
-      } else if (snap.totalWin >= 50) {
-        this.showFlash('BIG WIN', `+${snap.totalWin.toFixed(0)} credits`, 1200, afterFlash);
-      } else if (snap.totalWin > 0) {
-        this.showFlash(`WIN  +${snap.totalWin.toFixed(0)}`, '', 900, afterFlash);
+      // Big flash announcements — jackpot first, then win/free spins
+      const showWinFlash = () => {
+        if (snap.isFreeSpinTriggered) {
+          this.showFlash('FREE SPINS!', `${snap.freeSpinsRemaining} spins awarded`, 1400, afterFlash);
+        } else if (snap.isFreeSpinRetriggered) {
+          this.showFlash('RETRIGGER!', `+${snap.freeSpinsRemaining} more spins`, 1400, afterFlash);
+        } else if (snap.totalWin >= 200) {
+          this.showFlash('MEGA WIN', `+${snap.totalWin.toFixed(0)} credits`, 1600, afterFlash);
+        } else if (snap.totalWin >= 50) {
+          this.showFlash('BIG WIN', `+${snap.totalWin.toFixed(0)} credits`, 1200, afterFlash);
+        } else if (snap.totalWin > 0) {
+          this.showFlash(`WIN  +${snap.totalWin.toFixed(0)}`, '', 900, afterFlash);
+        } else {
+          afterFlash();
+        }
+      };
+
+      if (snap.jackpotResult) {
+        this.showJackpotFlash(snap.jackpotResult, showWinFlash);
       } else {
-        afterFlash();
+        showWinFlash();
       }
     });
   }

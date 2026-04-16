@@ -21,6 +21,28 @@ export const FREE_SPINS_RETRIGGER     = 5;
 export const MASKED_MIN               = 1;
 export const MASKED_MAX               = 3;
 
+// ─── Jackpot System ───────────────────────────────────────────────────────────
+export type JackpotTier = 'PHANTOM' | 'MARQUIS' | 'VEIL';
+
+export interface JackpotResult {
+  tier:   JackpotTier;
+  payout: number;
+}
+
+/** Bet multipliers per jackpot tier. */
+export const JACKPOT_MULTIPLIERS: Record<JackpotTier, number> = {
+  PHANTOM: 1000,
+  MARQUIS: 250,
+  VEIL:    50,
+};
+
+/** Per-spin trigger probabilities. PHANTOM checked first (rarest). */
+export const JACKPOT_PROBABILITIES: Record<JackpotTier, number> = {
+  PHANTOM: 0.0002,  // 1 in 5000
+  MARQUIS: 0.002,   // 1 in 500
+  VEIL:    0.02,    // 1 in 50
+};
+
 export const GOLD     = 0xc9a84c;
 export const GOLD_STR = '#c9a84c';
 export const DARK     = 0x080812;
@@ -151,6 +173,8 @@ export interface MasqueradeState {
   scatterCount:         number;
   isFreeSpinTriggered:  boolean;
   isFreeSpinRetriggered: boolean;
+  /** Jackpot won this spin, or null if none triggered. */
+  jackpotResult: JackpotResult | null;
 }
 
 // ─── Win Calculation ──────────────────────────────────────────────────────────
@@ -230,6 +254,28 @@ function calculateWins(
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
+ * Rolls for a mystery jackpot on every spin.
+ * Checked in order: PHANTOM → MARQUIS → VEIL (rarest first).
+ * Any spin can trigger regardless of payline outcome.
+ *
+ * @param bet - Total bet for this spin (used to calculate payout).
+ * @param rng - RNG function returning [0, 1).
+ * @returns JackpotResult if triggered, null otherwise.
+ * @example
+ * const jp = rollJackpot(25, myRng);
+ * if (jp) console.log(jp.tier, jp.payout);
+ */
+export function rollJackpot(bet: number, rng: () => number): JackpotResult | null {
+  const tiers: JackpotTier[] = ['PHANTOM', 'MARQUIS', 'VEIL'];
+  for (const tier of tiers) {
+    if (rng() < JACKPOT_PROBABILITIES[tier]) {
+      return { tier, payout: JACKPOT_MULTIPLIERS[tier] * bet };
+    }
+  }
+  return null;
+}
+
+/**
  * Creates a fresh Midnight Masquerade game state.
  * @param bet      - Total bet per spin (BET_PER_LINE × linesBet).
  * @param linesBet - Number of active paylines.
@@ -252,6 +298,7 @@ export function createMasqueradeState(bet: number, linesBet: number): Masquerade
     scatterCount:          0,
     isFreeSpinTriggered:   false,
     isFreeSpinRetriggered: false,
+    jackpotResult:         null,
   };
 }
 
@@ -279,6 +326,7 @@ export function spinMasquerade(state: MasqueradeState, config: MasqueradeConfig 
     revealedSymbols:       [],
     maskedPositions:       [],
     isComplete:            false,
+    jackpotResult:         null,
   };
 
   // ── Decrement free spin counter ──────────────────────────────────────────
@@ -328,6 +376,11 @@ export function spinMasquerade(state: MasqueradeState, config: MasqueradeConfig 
   }
 
   next.reelStops = stops;
+
+  // ── Jackpot roll (mystery — any spin can trigger) ─────────────────────────
+  const jackpot = rollJackpot(state.bet, rng);
+  next.jackpotResult = jackpot;
+  if (jackpot) next.totalWin += jackpot.payout;
 
   // ── Win calculation (uses revealed grid) ────────────────────────────────
   const { winLines, totalWin } = calculateWins(grid, rng);
