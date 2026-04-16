@@ -113,14 +113,6 @@ export class HomeScene extends Phaser.Scene {
         drawIcon: (scene, x, y) => scene.drawBallDropCard(x, y),
       },
       {
-        key: 'WildFrontierScene',
-        title: 'WILD FRONTIER',
-        subtitle: '5x3 Reels · 25 Paylines\nHunt for gold and free spins!',
-        accent: GOLD,
-        accentStr: GOLD_STR,
-        drawIcon: (scene, x, y) => scene.drawWildFrontierCard(x, y),
-      },
-      {
         key: 'MasqueradeScene',
         title: 'MIDNIGHT MASQUERADE',
         subtitle: '5x3 Reels · 25 Paylines\nMasked fortune & free spins!',
@@ -498,48 +490,6 @@ export class HomeScene extends Phaser.Scene {
       }
     }
     this.scrollContainer?.add(g);
-  }
-
-  drawWildFrontierCard(cx: number, cy: number): void {
-    const g = this.add.graphics();
-    const s = 0.9;
-
-    // Background for cowboy hat
-    g.fillStyle(0x7c4e23, 1); // Dark brown hat
-    g.fillRoundedRect(cx - 24 * s, cy - 10 * s, 48 * s, 18 * s, 6 * s);
-    g.fillRect(cx - 18 * s, cy - 22 * s, 36 * s, 12 * s);
-    g.fillRoundedRect(cx - 12 * s, cy - 30 * s, 24 * s, 10 * s, 5 * s);
-
-    // Star badge
-    g.fillStyle(GOLD, 1);
-    g.fillCircle(cx, cy - 18 * s, 8 * s);
-    this.drawStar(g, cx, cy - 18 * s, 5, 8 * s, 4 * s, GOLD); // A gold star
-
-    // Feather (Indigenous Guide nod - simple and respectful placeholder)
-    g.fillStyle(0x99aacc, 1); // Light grey/blue feather
-    g.fillTriangle(cx + 28 * s, cy - 20 * s, cx + 38 * s, cy - 24 * s, cx + 32 * s, cy - 12 * s);
-    g.lineStyle(1 * s, 0x667788, 1);
-    g.beginPath(); g.moveTo(cx + 30 * s, cy - 18 * s); g.lineTo(cx + 36 * s, cy - 22 * s); g.strokePath();
-
-    // Rope (subtle detail)
-    g.lineStyle(2 * s, 0x8b4513, 0.6); // Saddle brown rope
-    // Rope arc approximated with line segments (bezierCurveTo not available in Phaser Graphics)
-    g.beginPath(); g.moveTo(cx - 20 * s, cy + 10 * s); g.lineTo(cx - 5 * s, cy + 20 * s); g.lineTo(cx + 5 * s, cy + 20 * s); g.lineTo(cx + 20 * s, cy + 10 * s); g.strokePath();
-
-    this.scrollContainer?.add(g);
-  }
-
-  private drawStar(g: Phaser.GameObjects.Graphics, cx: number, cy: number, points: number, outerRadius: number, innerRadius: number, color: number): void {
-    g.fillStyle(color, 1);
-    g.beginPath();
-    for (let i = 0; i < points; i++) {
-        const outerAngle = (Math.PI / points) * (2 * i);
-        const innerAngle = (Math.PI / points) * (2 * i + 1);
-        g.lineTo(cx + outerRadius * Math.sin(outerAngle), cy - outerRadius * Math.cos(outerAngle));
-        g.lineTo(cx + innerRadius * Math.sin(innerAngle), cy - innerRadius * Math.cos(innerAngle));
-    }
-    g.closePath();
-    g.fill();
   }
 
   // ─── Fixed ticker ────────────────────────────────────────────────────────
