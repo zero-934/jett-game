@@ -27,7 +27,7 @@ export class MinesUI {
   private statusText:     Phaser.GameObjects.Text | null = null;
   private cashOutBtn:     Phaser.GameObjects.Rectangle | null = null;
   private cashOutLabel:   Phaser.GameObjects.Text | null = null;
-  private homeButton:     Phaser.GameObjects.Text | null = null;
+  private homeButton:     Phaser.GameObjects.Container | null = null;
   private bombSelectorObjs: Phaser.GameObjects.GameObject[] = [];
 
 
@@ -107,9 +107,17 @@ export class MinesUI {
     }).setOrigin(0.5).setDepth(2);
     this.bombSelectorObjs.push(startBg, startLabel);
 
-    this.homeButton = this.scene.add.text(width / 2, height - 16, '[ HOME ]', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '12px', color: '#333344',
-    }).setOrigin(0.5).setDepth(10)
+    // HOME button — gold pill, bottom-centre, always on screen
+    const homeBg = this.scene.add.graphics();
+    homeBg.fillStyle(0x1a1a2e, 1);
+    homeBg.lineStyle(1, 0xc9a84c, 0.6);
+    homeBg.fillRoundedRect(-48, -14, 96, 28, 8);
+    homeBg.strokeRoundedRect(-48, -14, 96, 28, 8);
+    const homeLabel = this.scene.add.text(0, 0, '‹ HOME', {
+      fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#c9a84c',
+    }).setOrigin(0.5);
+    this.homeButton = this.scene.add.container(width / 2, height - 22, [homeBg, homeLabel])
+      .setSize(96, 28).setDepth(20)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
   }

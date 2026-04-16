@@ -56,7 +56,7 @@ export class FlapFortuneUI {
   private statusText:     Phaser.GameObjects.Text      | null = null;
   private exitStrip:      Phaser.GameObjects.Graphics  | null = null;
   private exitLabel:      Phaser.GameObjects.Text      | null = null;
-  private homeButton:     Phaser.GameObjects.Text      | null = null;
+  private homeButton:     Phaser.GameObjects.Container | null = null;
 
   private isFlapping = false;
   private tickTimer:  Phaser.Time.TimerEvent | null = null;
@@ -197,12 +197,17 @@ export class FlapFortuneUI {
       })
       .setOrigin(0.5).setDepth(10);
 
-    this.homeButton = this.scene.add
-      .text(worldWidth - 16, worldHeight - 16, '[ HOME ]', {
-        fontFamily: 'monospace', fontSize: '10px', color: '#666644',
-        stroke: '#000000', strokeThickness: 2,
-      })
-      .setOrigin(1, 0.5).setDepth(10)
+    // HOME button — gold pill, bottom-centre, always on screen
+    const homeBg = this.scene.add.graphics();
+    homeBg.fillStyle(0x1a1a2e, 1);
+    homeBg.lineStyle(1, 0xc9a84c, 0.6);
+    homeBg.fillRoundedRect(-48, -14, 96, 28, 8);
+    homeBg.strokeRoundedRect(-48, -14, 96, 28, 8);
+    const homeLabel = this.scene.add.text(0, 0, '‹ HOME', {
+      fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#c9a84c',
+    }).setOrigin(0.5);
+    this.homeButton = this.scene.add.container(this.scene.scale.width / 2, this.scene.scale.height - 22, [homeBg, homeLabel])
+      .setSize(96, 28).setDepth(20)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
   }
