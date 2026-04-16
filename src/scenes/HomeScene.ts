@@ -113,6 +113,14 @@ export class HomeScene extends Phaser.Scene {
         drawIcon: (scene, x, y) => scene.drawBallDropCard(x, y),
       },
       {
+        key: 'AlchemistScene',
+        title: 'THE ALCHEMIST',
+        subtitle: '5x3 Reels · 25 Paylines\nTransmute symbols, forge your fortune!',
+        accent: 0xb87333,
+        accentStr: '#b87333',
+        drawIcon: (scene, x, y) => scene.drawAlchemistCard(x, y),
+      },
+      {
         key: 'MasqueradeScene',
         title: 'MIDNIGHT MASQUERADE',
         subtitle: '5x3 Reels · 25 Paylines\nMasked fortune & free spins!',
@@ -539,6 +547,28 @@ export class HomeScene extends Phaser.Scene {
         }
       },
     });
+  }
+
+  drawAlchemistCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    const s = 1.0;
+    // Cauldron base
+    g.fillStyle(0x5c4033, 1);
+    g.fillEllipse(cx, cy + 10 * s, 50 * s, 22 * s);
+    g.fillRect(cx - 20 * s, cy - 10 * s, 40 * s, 20 * s);
+    // Bubbles
+    g.fillStyle(0xb87333, 0.8);
+    g.fillCircle(cx - 8 * s, cy - 14 * s, 5 * s);
+    g.fillCircle(cx + 6 * s, cy - 18 * s, 4 * s);
+    g.fillCircle(cx, cy - 22 * s, 6 * s);
+    // Gold glow
+    g.fillStyle(0xc9a84c, 0.4);
+    g.fillCircle(cx, cy, 28 * s);
+    // Legs
+    g.fillStyle(0x4a3020, 1);
+    g.fillRect(cx - 18 * s, cy + 18 * s, 6 * s, 8 * s);
+    g.fillRect(cx + 12 * s, cy + 18 * s, 6 * s, 8 * s);
+    this.scrollContainer?.add(g);
   }
 
   drawMasqueradeCard(cx: number, cy: number): void {
