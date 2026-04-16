@@ -38,6 +38,14 @@ export class BallDropScene extends Phaser.Scene {
     });
 
     this.ui.start(DEFAULT_BET);
+
+    // Universal nav bar
+    const navBg = this.add.graphics();
+    navBg.fillStyle(0x000000, 0.6);
+    navBg.fillRect(0, 0, width, 36);
+    this.add.text(18, 18, '‹', { fontFamily: 'Arial, sans-serif', fontSize: '22px', color: '#c9a84c' })
+      .setOrigin(0.5).setDepth(50).setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this.scene.start('HomeScene'));
   }
 
   shutdown(): void {
