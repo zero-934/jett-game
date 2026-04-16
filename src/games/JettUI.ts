@@ -43,7 +43,7 @@ export class JettUI {
   private statusText:     Phaser.GameObjects.Text      | null = null;
   private cashOutButton:  Phaser.GameObjects.Rectangle | null = null;
   private cashOutLabel:   Phaser.GameObjects.Text      | null = null;
-  private homeButton:     Phaser.GameObjects.Text      | null = null;
+  private homeButton:     Phaser.GameObjects.Container | null = null;
 
   private pointerX  = 0;
   private tickTimer: Phaser.Time.TimerEvent | null = null;
@@ -150,11 +150,17 @@ export class JettUI {
       .text(worldWidth - 70, 30, 'CASH OUT', { fontFamily: 'monospace', fontSize: '11px', color: '#0d0d0d' })
       .setOrigin(0.5).setDepth(10);
 
-    this.homeButton = this.scene.add
-      .text(worldWidth / 2, screenHeight - 16, '[ HOME ]', {
-        fontFamily: 'monospace', fontSize: '11px', color: '#444444',
-      })
-      .setOrigin(0.5).setDepth(10)
+    // HOME button — gold pill, bottom-centre, always on screen
+    const homeBg = this.scene.add.graphics();
+    homeBg.fillStyle(0x1a1a2e, 1);
+    homeBg.lineStyle(1, 0xc9a84c, 0.6);
+    homeBg.fillRoundedRect(-48, -14, 96, 28, 8);
+    homeBg.strokeRoundedRect(-48, -14, 96, 28, 8);
+    const homeLabel = this.scene.add.text(0, 0, '‹ HOME', {
+      fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#c9a84c',
+    }).setOrigin(0.5);
+    this.homeButton = this.scene.add.container(this.scene.scale.width / 2, this.scene.scale.height - 22, [homeBg, homeLabel])
+      .setSize(96, 28).setDepth(20)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
   }

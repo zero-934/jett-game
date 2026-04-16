@@ -69,7 +69,7 @@ export class BallDropUI {
   private statusText:   Phaser.GameObjects.Text | null = null;
   private dropButton:   Phaser.GameObjects.Rectangle | null = null;
   private dropLabel:    Phaser.GameObjects.Text | null = null;
-  private homeButton:   Phaser.GameObjects.Text | null = null;
+  private homeButton:   Phaser.GameObjects.Container | null = null;
 
   // Physics
   private state:       BallDropState | null = null;
@@ -259,12 +259,17 @@ export class BallDropUI {
       .setDepth(11);
 
     // Home
-    this.homeButton = this.scene.add
-      .text(bw / 2, bh - 10, '[ HOME ]', {
-        fontFamily: 'monospace', fontSize: '11px', color: '#333344',
-      })
-      .setOrigin(0.5, 1)
-      .setDepth(10)
+    // HOME button — gold pill, bottom-centre, always on screen
+    const homeBg = this.scene.add.graphics();
+    homeBg.fillStyle(0x1a1a2e, 1);
+    homeBg.lineStyle(1, 0xc9a84c, 0.6);
+    homeBg.fillRoundedRect(-48, -14, 96, 28, 8);
+    homeBg.strokeRoundedRect(-48, -14, 96, 28, 8);
+    const homeLabel = this.scene.add.text(0, 0, '‹ HOME', {
+      fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#c9a84c',
+    }).setOrigin(0.5);
+    this.homeButton = this.scene.add.container(this.scene.scale.width / 2, this.scene.scale.height - 22, [homeBg, homeLabel])
+      .setSize(96, 28).setDepth(20)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
   }
