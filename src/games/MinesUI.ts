@@ -60,7 +60,7 @@ export class MinesUI {
 
   private buildBombSelector(): void {
     const { width, height } = this.scene.scale;
-    const cy = height * 0.38;
+    const cy = height / 2 - 30;
 
     const title = this.scene.add.text(width / 2, cy - 60, 'HOW MANY MINES?', {
       fontFamily: '"Fredoka One", sans-serif', fontSize: '18px', color: '#444455', letterSpacing: 2,
@@ -140,21 +140,21 @@ export class MinesUI {
   }
 
   private buildInstructions(): void {
-    const { width, height } = this.scene.scale;
-    this.scene.add.text(width / 2, height * 0.085, 'Reveal tiles to grow your multiplier.\nHit a bomb and you lose everything.', {
+    const { width } = this.scene.scale;
+    this.scene.add.text(width / 2, 56, 'Reveal tiles · Hit a bomb and lose everything', {
       fontFamily: '"Fredoka", sans-serif',
-      fontSize: '12px', color: '#444455', align: 'center', lineSpacing: 4,
+      fontSize: '11px', color: '#444455', align: 'center',
     }).setOrigin(0.5);
   }
 
   private buildGrid(): void {
     const { width, height } = this.scene.scale;
     const cols = 5, rows = 5;
-    const tileW = 62, tileH = 62, gap = 8;
+    const tileW = 64, tileH = 64, gap = 6;
     const totalW = cols * tileW + (cols - 1) * gap;
-    const _totalH = rows * tileH + (rows - 1) * gap; void _totalH;
+    const totalH = rows * tileH + (rows - 1) * gap;
     const startX = (width - totalW) / 2;
-    const startY = height * 0.20;
+    const startY = (height - totalH) / 2 - 50; // centred, nudged up for multiplier below
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
@@ -197,11 +197,13 @@ export class MinesUI {
     const { width: w2, height: h2 } = this.scene.scale;
 
     // Multiplier shown prominently below the grid
-    this.scene.add.text(w2 / 2, h2 * 0.72, 'MULTIPLIER', {
+    // Place multiplier just below the grid
+    const gridBottom = ((h2 - (5 * 64 + 4 * 6)) / 2 - 50) + (5 * 64 + 4 * 6);
+    this.scene.add.text(w2 / 2, gridBottom + 18, 'MULTIPLIER', {
       fontFamily: '"Fredoka One", sans-serif', fontSize: '12px', color: '#444455', letterSpacing: 2,
     }).setOrigin(0.5).setDepth(10);
 
-    this.multiplierText = this.scene.add.text(w2 / 2, h2 * 0.765, 'x1.00', {
+    this.multiplierText = this.scene.add.text(w2 / 2, gridBottom + 48, 'x1.00', {
       fontFamily: '"Fredoka One", sans-serif', fontSize: '32px', color: GOLD_STR,
     }).setOrigin(0.5).setDepth(10);
 
@@ -209,7 +211,7 @@ export class MinesUI {
       fontFamily: '"Fredoka One", sans-serif', fontSize: '15px', color: GOLD_STR,
     }).setDepth(10);
 
-    this.statusText = this.scene.add.text(width / 2, height * 0.88, '', {
+    this.statusText = this.scene.add.text(width / 2, height - 80, '', {
       fontFamily: '"Fredoka One", sans-serif', fontSize: '22px', color: '#ffffff', align: 'center',
     }).setOrigin(0.5).setDepth(10);
 
@@ -265,9 +267,9 @@ export class MinesUI {
 
   private showPlayAgain(): void {
     const { width, height } = this.scene.scale;
-    const btn = this.scene.add.rectangle(width / 2, height * 0.94, 180, 50, GOLD)
+    const btn = this.scene.add.rectangle(width / 2, height - 44, 180, 50, GOLD)
       .setInteractive({ useHandCursor: true }).setDepth(20);
-    this.scene.add.text(width / 2, height * 0.94, 'PLAY AGAIN', {
+    this.scene.add.text(width / 2, height - 44, 'PLAY AGAIN', {
       fontFamily: '"Fredoka One", sans-serif', fontSize: '14px', color: '#000000',
     }).setOrigin(0.5).setDepth(21);
     btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
