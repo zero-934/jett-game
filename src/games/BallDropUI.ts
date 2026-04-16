@@ -69,7 +69,7 @@ export class BallDropUI {
   private statusText:   Phaser.GameObjects.Text | null = null;
   private dropButton:   Phaser.GameObjects.Rectangle | null = null;
   private dropLabel:    Phaser.GameObjects.Text | null = null;
-  private homeButton:   Phaser.GameObjects.Container | null = null;
+
 
   // Physics
   private state:       BallDropState | null = null;
@@ -142,12 +142,11 @@ export class BallDropUI {
     this.statusText?.destroy();
     this.dropButton?.destroy();
     this.dropLabel?.destroy();
-    this.homeButton?.destroy();
 
     this.bgGraphics = this.pegGraphics = this.slotGraphics =
     this.ballGraphics = this.fxGraphics = this.aimLine = null;
     this.scoreText = this.ballsText = this.lastText = this.statusText =
-    this.dropButton = this.dropLabel = this.homeButton = null;
+    this.dropButton = this.dropLabel = null;
 
     this.state    = null;
     this.particles = [];
@@ -259,17 +258,7 @@ export class BallDropUI {
       .setDepth(11);
 
     // Home
-    // HOME button — top-left corner, small and unobtrusive
-    const homeBg = this.scene.add.graphics();
-    homeBg.fillStyle(0x000000, 0.5);
-    homeBg.fillRoundedRect(0, 0, 60, 28, 6);
-    const homeLabel = this.scene.add.text(30, 14, '‹', {
-      fontFamily: 'Arial, sans-serif', fontSize: '20px', color: '#c9a84c',
-    }).setOrigin(0.5);
-    this.homeButton = this.scene.add.container(10, 10, [homeBg, homeLabel])
-      .setSize(60, 28).setDepth(20)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => { this.cleanup(); this.scene.scene.start('HomeScene'); });
+    // Home navigation handled by scene nav bar
   }
 
   private registerInput(): void {
