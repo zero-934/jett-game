@@ -15,7 +15,6 @@ import { FlapFortuneScene } from './scenes/FlapFortuneScene';
 import { DiceScene } from './scenes/DiceScene';
 import { MinesScene } from './scenes/MinesScene';
 import { BallDropScene } from './scenes/BallDropScene';
-import { WildFrontierScene } from './scenes/WildFrontierScene';
 import { MasqueradeScene } from './scenes/MasqueradeScene';
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -23,7 +22,7 @@ const config: Phaser.Types.Core.GameConfig = {
   width: 390,
   height: 844,
   backgroundColor: '#000000',
-  scene: [LockScene, HomeScene, JettScene, ShatterStepScene, FlapFortuneScene, DiceScene, MinesScene, BallDropScene, WildFrontierScene, MasqueradeScene],
+  scene: [LockScene, HomeScene, JettScene, ShatterStepScene, FlapFortuneScene, DiceScene, MinesScene, BallDropScene, MasqueradeScene],
   parent: 'app',
   scale: {
     mode: Phaser.Scale.FIT,
