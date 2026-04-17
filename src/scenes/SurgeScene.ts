@@ -74,7 +74,7 @@ export class SurgeScene extends Phaser.Scene {
 
     // Initialize UI
     this.surgeUI = new SurgeUI(this);
-    this.surgeUI.start();
+    this.surgeUI.start(this.surgeState);
     this.surgeUI.setOnSpin(() => this.handleSpin());
 
     // Balance Display
