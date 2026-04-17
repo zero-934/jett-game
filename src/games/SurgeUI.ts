@@ -207,6 +207,15 @@ export class SurgeUI {
   }
 
   /**
+   * Sets the callback for when the spin button is pressed.
+   * @param onSpin Callback function to invoke on spin.
+   */
+  public setOnSpin(onSpin: () => void): void {
+    this.spinButton.removeAllListeners();
+    this.spinButton.setInteractive({ useHandCursor: true }).on('pointerdown', onSpin);
+  }
+
+  /**
    * Starts the UI, ensuring all elements are in their initial state.
    */
   public start(): void {

@@ -51,7 +51,6 @@ export class SurgeScene extends Phaser.Scene {
 
   private balanceText!: Phaser.GameObjects.Text;
   private betButtons: Phaser.GameObjects.Text[] = [];
-  private spinButton!: Phaser.GameObjects.Text;
   private backButton!: Phaser.GameObjects.Text;
 
   /**
@@ -80,6 +79,7 @@ export class SurgeScene extends Phaser.Scene {
     // Initialize UI
     this.surgeUI = new SurgeUI(this);
     this.surgeUI.start();
+    this.surgeUI.setOnSpin(() => this.handleSpin());
 
     // Balance Display
     this.balanceText = this.add.text(
@@ -105,9 +105,6 @@ export class SurgeScene extends Phaser.Scene {
       button.on('pointerdown', () => this.setBet(bet));
       this.betButtons.push(button);
     });
-
-    // Spin Button
-    this.spinButton.on('pointerdown', () => this.handleSpin());
 
     // Back Button
     this.backButton = this.add.text(
