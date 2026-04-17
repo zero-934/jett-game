@@ -56,7 +56,7 @@ export const THREE_REEL_PRESET: SlotAnimatorConfig = {
   spinRows:     6,
   reelDelay:    100,
   baseDuration: 600,
-  gridTop:      95,
+  gridTop:      84,
 };
 
 // ─── SlotAnimator ────────────────────────────────────────────────────────────
@@ -159,21 +159,7 @@ export class SlotAnimator {
 
     }
 
-    // Narrow cover strips that ONLY hide the spin buffer zones (just above/below the 3-row window)
-    // These must NOT extend over nav bar, meters, buttons or HUD
-    const coverColor = 0x000000;
-    const gridBottom = this.config.gridTop + this.gridH;
-    const bufferHeight = this.cellStep; // Only hide one cell height above/below grid
-
-    // Top cover — full width strip just above the grid to hide scrolling buffer
-    const topCover = this.scene.add.graphics().setDepth(15);
-    topCover.fillStyle(coverColor, 1);
-    topCover.fillRect(0, this.config.gridTop - bufferHeight, canvasWidth, bufferHeight);
-
-    // Bottom cover — full width strip just below the grid to hide scrolling buffer  
-    const bottomCover = this.scene.add.graphics().setDepth(15);
-    bottomCover.fillStyle(coverColor, 1);
-    bottomCover.fillRect(0, gridBottom, canvasWidth, bufferHeight);
+    // No cover bars needed — alpha fade during spin handles overflow
 
     this.buildFlashOverlay();
     return this.gridX;
