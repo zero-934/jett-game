@@ -12,6 +12,7 @@ import type { SurgeState, SurgeCluster, SurgeSymbol } from './SurgeLogic';
 
 // --- Constants ---
 const CANVAS_WIDTH = 390;
+const GRID_COLS = 3;
 const CANVAS_HEIGHT = 844;
 
 const GOLD = 0xc9a84c;
@@ -294,21 +295,12 @@ export class SurgeUI {
    * @param state The current SurgeState.
    */
   public renderGrid(state: SurgeState): void {
-    state.grid.forEach((row, r) => {
-      row.forEach((cell, c) => {
-        const container = this.slotAnimator.getCellContainer(c, r);
-        if (container) {
-          this.drawSymbol(container, cell.symbol);
-          // Add a winning highlight if applicable
-          if (cell.isWinning) {
-            const highlight = this.scene.add.graphics();
-            highlight.lineStyle(4, GOLD, 1);
-            highlight.strokeRect(0, 0, THREE_REEL_PRESET.symbolSize, THREE_REEL_PRESET.symbolSize);
-            container.add(highlight);
-          }
-        }
-      });
-    });
+    // Transpose [row][col] -> [reel=col][row] for SlotAnimator
+    const reelGrid: string[][] = [];
+    for (let col = 0; col < GRID_COLS; col++) {
+      reelGrid.push(state.grid.map(row => row[col].symbol as string));
+    }
+    this.slotAnimator.snapReels(reelGrid);
   }
 
   /**
