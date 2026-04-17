@@ -136,6 +136,14 @@ export class HomeScene extends Phaser.Scene {
         accentStr: '#ff4500',
         drawIcon: (scene, x, y) => scene.drawInfernoCard(x, y),
       },
+      {
+        key: 'SurgeScene',
+        title: 'SURGE',
+        subtitle: '3x3 Cluster Pays · Surge Meter\nWild Reel · Crown Flip!',
+        accent: 0x0055ff,
+        accentStr: '#0055ff',
+        drawIcon: (scene, x, y) => scene.drawSurgeCard(x, y),
+      },
     ];
 
     const cardH      = 108;
@@ -614,6 +622,23 @@ export class HomeScene extends Phaser.Scene {
     g.fillCircle(cx - 16, cy - 8, 2);
     g.fillCircle(cx + 18, cy - 4, 2);
     g.fillCircle(cx + 8, cy - 20, 2);
+    this.scrollContainer?.add(g);
+  }
+
+  drawSurgeCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    // Lightning bolt
+    g.fillStyle(0x0055ff, 1);
+    g.fillTriangle(cx - 4, cy - 22, cx + 10, cy - 2, cx + 2, cy - 2);
+    g.fillTriangle(cx - 10, cy + 2, cx + 4, cy + 22, cx - 2, cy + 2);
+    // Gold highlight
+    g.lineStyle(2, 0xc9a84c, 1);
+    g.strokeTriangle(cx - 4, cy - 22, cx + 10, cy - 2, cx + 2, cy - 2);
+    // Spark dots
+    g.fillStyle(0xc9a84c, 1);
+    g.fillCircle(cx - 18, cy - 6, 2);
+    g.fillCircle(cx + 18, cy + 4, 2);
+    g.fillCircle(cx - 6, cy + 20, 2);
     this.scrollContainer?.add(g);
   }
 
