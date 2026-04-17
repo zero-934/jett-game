@@ -16,7 +16,6 @@ const GOLD_STR = '#c9a84c';
 const CANVAS_WIDTH = 390;
 const CANVAS_HEIGHT = 844;
 const HEADER_HEIGHT = 44; // Nav bar (36px) + small gap
-const FOOTER_HEIGHT = 100;
 const HUD_TEXT_COLOR = '#ffffff';
 const HUD_FONT_SIZE = '24px';
 const BUTTON_FONT_SIZE = '28px';
