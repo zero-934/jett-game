@@ -88,7 +88,7 @@ export class SurgeScene extends Phaser.Scene {
     ).setOrigin(1, 0.5);
 
     // Bet Buttons
-    const betButtonY = 420;
+    const betButtonY = 536;
     const betButtonSpacing = 60;
     const startX = CANVAS_WIDTH / 2 - (BET_OPTIONS.length - 1) * betButtonSpacing / 2;
 
