@@ -410,6 +410,14 @@ export class AlchemistUI {
         y:          `+=${totalDist}`,
         duration:   spinDuration,
         ease:       'Cubic.easeOut',
+        onUpdate:   () => {
+          // Fade containers outside the visible grid area (matches MasqueradeUI exactly)
+          col.forEach(c => {
+            const relY   = c.y - GRID_TOP;
+            const inGrid = relY >= -SYM && relY <= this.gridH;
+            c.setAlpha(inGrid ? 1 : Math.max(0, 1 - Math.abs(relY - this.gridH / 2) / (this.gridH * 0.8)));
+          });
+        },
         onComplete: () => {
           // Snap visible rows
           for (let row = 0; row < ROWS_COUNT; row++) {
