@@ -27,29 +27,30 @@ export class MinesScene extends Phaser.Scene {
     const bar = this.add.graphics();
     bar.fillStyle(0xc9a84c, 1);
     bar.fillRect(0, 0, width, 3);
-    bar.fillStyle(0xc9a84c, 0.06);
-    bar.fillRect(0, 0, width, 30);
+    // Nav bar first — always on top
+    const navBg = this.add.graphics().setDepth(50);
+    navBg.fillStyle(0x000000, 0.8);
+    navBg.fillRect(0, 0, width, 36);
+    this.add.text(18, 18, '‹', { fontFamily: 'Arial, sans-serif', fontSize: '22px', color: '#c9a84c' })
+      .setOrigin(0.5).setDepth(51).setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this.scene.start('HomeScene'));
 
-    this.add.text(width / 2, 24, 'MINES', {
+    // Title below nav bar
+    this.add.text(width / 2, 58, 'MINES', {
       fontFamily: '"Fredoka One", sans-serif',
       fontSize: '26px', color: '#c9a84c', letterSpacing: 6,
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setDepth(10);
 
-    this.add.text(width / 2, 50, 'AVOID THE BOMBS', {
+    this.add.text(width / 2, 80, 'Reveal tiles · Hit a bomb and lose everything', {
       fontFamily: '"Fredoka One", sans-serif',
-      fontSize: '11px', color: '#333344', letterSpacing: 3,
-    }).setOrigin(0.5);
+      fontSize: '11px', color: '#666677', letterSpacing: 2,
+    }).setOrigin(0.5).setDepth(10);
+
+    bar.fillStyle(0xc9a84c, 0.06);
+    bar.fillRect(0, 36, width, 54);
 
     this.minesUI = new MinesUI(this, { houseEdge: 0.03 });
     this.minesUI.start();
-
-    // Universal nav bar
-    const navBg = this.add.graphics();
-    navBg.fillStyle(0x000000, 0.6);
-    navBg.fillRect(0, 0, width, 36);
-    this.add.text(18, 18, '‹', { fontFamily: 'Arial, sans-serif', fontSize: '22px', color: '#c9a84c' })
-      .setOrigin(0.5).setDepth(50).setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.scene.start('HomeScene'));
   }
 
   shutdown(): void { this.minesUI?.cleanup(); }
