@@ -136,7 +136,9 @@ export class SlotAnimator {
     this.drawBlurFn   = drawBlur;
 
     const { reelsCount, rowsCount, spinRows, symbolSize } = this.config;
-    this.gridX = (this.scene.scale.width - this.gridW) / 2;
+    // Use base canvas width (390) not scene.scale.width which may reflect device scaling
+    const canvasWidth = this.scene.game.config.width as number || 390;
+    this.gridX = (canvasWidth - this.gridW) / 2;
 
     const totalPerReel = spinRows + rowsCount;
 
@@ -402,7 +404,8 @@ export class SlotAnimator {
 
   /** Builds the full-screen flash overlay (called once in buildReels). */
   private buildFlashOverlay(): void {
-    const { width, height } = this.scene.scale;
+    const width  = this.scene.game.config.width  as number || 390;
+    const height = this.scene.game.config.height as number || 844;
 
     const dim = this.scene.add.graphics();
     dim.fillStyle(0x000000, FLASH_HOLD_DIM);
