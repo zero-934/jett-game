@@ -100,7 +100,6 @@ export class SlotAnimator {
 
   // ─── Derived layout helpers ────────────────────────────────────────────────
 
-  private get rowCount(): number { return this.config.rowsCount; }
 
   private get cellStep(): number {
     return this.config.symbolSize + this.config.reelGap;
