@@ -81,7 +81,7 @@ export class InfernoScene extends Phaser.Scene {
 
     // Balance display
     this.balanceText = this.add
-      .text(this.scale.width * 0.5, this.scale.height * 0.02, `BALANCE: $${this.balance}`, {
+      .text(this.scale.width * 0.5, 10, `BALANCE: $${this.balance}`, {
         fontFamily: 'Arial',
         fontSize: '28px',
         color: GOLD_STR,
@@ -125,7 +125,7 @@ export class InfernoScene extends Phaser.Scene {
 
     // Back button
     this.add
-      .text(this.scale.width * 0.05, this.scale.height * 0.02, '< BACK', {
+      .text(20, 18, '< BACK', {
         fontFamily: 'Arial',
         fontSize: '24px',
         color: GOLD_STR,

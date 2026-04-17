@@ -84,7 +84,7 @@ export class SurgeScene extends Phaser.Scene {
     // Balance Display
     this.balanceText = this.add.text(
       CANVAS_WIDTH / 2,
-      30,
+      10,
       `BALANCE: ${this.balance.toFixed(2)}`,
       UI_TEXT_STYLE
     ).setOrigin(0.5);
@@ -111,8 +111,8 @@ export class SurgeScene extends Phaser.Scene {
 
     // Back Button
     this.backButton = this.add.text(
-      30,
-      30,
+      20,
+      18,
       '< BACK',
       SMALL_TEXT_STYLE
     ).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });

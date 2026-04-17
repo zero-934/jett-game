@@ -90,7 +90,12 @@ export class InfernoUI {
     this.buildHeatMeter();
     this.buildHUD(onSpin);
     this.buildCrownFlipModal();
-    this.animator.snapReels(initialGrid);
+    // Transpose initialGrid [row][col] -> [reel=col][row]
+    const reelGrid: string[][] = [];
+    for (let col = 0; col < 3; col++) {
+      reelGrid.push((initialGrid as string[][]).map(row => row[col]));
+    }
+    this.animator.snapReels(reelGrid);
   }
 
   /**
@@ -98,7 +103,12 @@ export class InfernoUI {
    * @param state The current game state, containing the reel stops.
    */
   public renderGrid(state: InfernoState): void {
-    this.animator.snapReels(state.grid.map(row => row.map(cell => cell.symbol)));
+    // InfernoState.grid is [row][col], SlotAnimator expects [reel=col][row]
+    const reelGrid: string[][] = [];
+    for (let col = 0; col < 3; col++) {
+      reelGrid.push(state.grid.map(row => row[col].symbol));
+    }
+    this.animator.snapReels(reelGrid);
   }
 
   /**
