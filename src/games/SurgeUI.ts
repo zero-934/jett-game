@@ -218,7 +218,14 @@ export class SurgeUI {
   /**
    * Starts the UI, ensuring all elements are in their initial state.
    */
-  public start(): void {
+  public start(initialState?: import('./SurgeLogic').SurgeState): void {
+    if (initialState) {
+      const reelGrid: string[][] = [];
+      for (let col = 0; col < GRID_COLS; col++) {
+        reelGrid.push(initialState.grid.map(row => row[col].symbol as string));
+      }
+      this.slotAnimator.snapReels(reelGrid);
+    }
     this.updateSurgeMeter(0, 0);
     this.hideCrownFlip();
     this.winBadgeText.setVisible(false);
