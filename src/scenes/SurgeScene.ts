@@ -75,6 +75,8 @@ export class SurgeScene extends Phaser.Scene {
     // Initialize UI
     // Silent initial spin to show real symbols on entry
     this.surgeState = spinSurge(this.surgeState, { rng: this.rng });
+    this.surgeState.isComplete = true;
+    this.surgeState.isInCrownFlip = false;
     this.surgeUI = new SurgeUI(this);
     this.surgeUI.start(this.surgeState);
     this.surgeUI.setOnSpin(() => this.handleSpin());
