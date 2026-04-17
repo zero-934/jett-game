@@ -128,6 +128,14 @@ export class HomeScene extends Phaser.Scene {
         accentStr: '#9b59b6',
         drawIcon: (scene, x, y) => scene.drawMasqueradeCard(x, y),
       },
+      {
+        key: 'InfernoScene',
+        title: 'INFERNO',
+        subtitle: '3x3 Cluster Pays · Heat Meter\nCascades · Crown Flip!',
+        accent: 0xff4500,
+        accentStr: '#ff4500',
+        drawIcon: (scene, x, y) => scene.drawInfernoCard(x, y),
+      },
     ];
 
     const cardH      = 108;
@@ -587,6 +595,25 @@ export class HomeScene extends Phaser.Scene {
     // Feather
     g.fillStyle(0xc9a84c, 1);
     g.fillTriangle(cx + 24 * s, cy - 6 * s, cx + 34 * s, cy - 20 * s, cx + 28 * s, cy - 2 * s);
+    this.scrollContainer?.add(g);
+  }
+
+  drawInfernoCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    // Flame body
+    g.fillStyle(0xff4500, 1);
+    g.fillTriangle(cx, cy - 22, cx - 14, cy + 10, cx + 14, cy + 10);
+    // Inner flame
+    g.fillStyle(0xffaa00, 1);
+    g.fillTriangle(cx, cy - 12, cx - 7, cy + 8, cx + 7, cy + 8);
+    // Core
+    g.fillStyle(0xffff88, 1);
+    g.fillCircle(cx, cy + 2, 4);
+    // Gold ember sparks
+    g.fillStyle(0xc9a84c, 1);
+    g.fillCircle(cx - 16, cy - 8, 2);
+    g.fillCircle(cx + 18, cy - 4, 2);
+    g.fillCircle(cx + 8, cy - 20, 2);
     this.scrollContainer?.add(g);
   }
 
