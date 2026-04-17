@@ -69,7 +69,8 @@ export class InfernoScene extends Phaser.Scene {
     // Initialize game state
     this.infernoState = createInfernoState(this.currentBet);
 
-    // Initialize UI — must call start() first to build reel containers
+    // Initialize UI — spin once silently to populate with real symbols
+    this.infernoState = spinInferno(this.infernoState, { rng: this.rng });
     this.infernoUI = new InfernoUI(this);
     const initialGrid = this.infernoState.grid.map(row => row.map(cell => cell.symbol));
     this.infernoUI.start(initialGrid, () => this.handleSpin());
@@ -135,7 +136,7 @@ export class InfernoScene extends Phaser.Scene {
     this.betButtons.forEach((button) => {
       const betAmount = parseInt(button.text.replace('$', ''), 10);
       if (betAmount === this.currentBet) {
-        button.setStyle({ backgroundColor: GOLD_STR, color: CHARCOAL_BG });
+        button.setStyle({ backgroundColor: GOLD_STR, color: '#0d0d0d' });
       } else {
         button.setStyle({ backgroundColor: '#333333', color: GOLD_STR });
       }
