@@ -59,10 +59,10 @@ export class InfernoScene extends Phaser.Scene {
 
     // Set background
     this.add.rectangle(
-      this.scale.width / 2,
-      this.scale.height / 2,
-      this.scale.width,
-      this.scale.height,
+      195,
+      422,
+      390,
+      844,
       CHARCOAL_BG,
     );
 
@@ -80,11 +80,11 @@ export class InfernoScene extends Phaser.Scene {
     this.infernoUI.updateWin(this.infernoState.totalWin);
 
     // Nav bar background
-    this.add.graphics().fillStyle(0x000000, 0.7).fillRect(0, 0, this.scale.width, 36).setDepth(9);
+    this.add.graphics().fillStyle(0x000000, 0.7).fillRect(0, 0, 390, 36).setDepth(9);
 
     // Balance display — right side of nav bar
     this.balanceText = this.add
-      .text(this.scale.width - 12, 18, `BAL: $${this.balance}`, {
+      .text(378, 18, `BAL: $${this.balance}`, {
         fontFamily: 'Arial',
         fontSize: '16px',
         color: GOLD_STR,
@@ -95,7 +95,7 @@ export class InfernoScene extends Phaser.Scene {
     // Bet selector buttons
     const betButtonY = 664;
     const betSpacing = 68;
-    const betButtonStartX = this.scale.width / 2 - (BET_OPTIONS.length - 1) * betSpacing / 2;
+    const betButtonStartX = 195 - (BET_OPTIONS.length - 1) * betSpacing / 2;
     BET_OPTIONS.forEach((betAmount, index) => {
       const button = this.add
         .text(betButtonStartX + index * betSpacing, betButtonY, `$${betAmount}`, {
