@@ -11,7 +11,7 @@
 It is a collection of individual skill-based betting games, each with a cash-out mechanic.
 The live site deploys to Vercel from the `main` branch.
 
-- **Live URL:** https://dist-omega-henna.vercel.app
+- **Live URL:** https://zero-934.github.io/jett-game/
 - **Repo owner:** zero-934 (GitHub)
 - **Aesthetic:** Midnight Luxury — charcoal `#0d0d0d`, gold `#c9a84c`
 - **Platform:** Mobile-first web (390×844 base, Phaser FIT scaling)
