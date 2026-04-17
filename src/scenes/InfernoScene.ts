@@ -70,8 +70,10 @@ export class InfernoScene extends Phaser.Scene {
     // Initialize game state
     this.infernoState = createInfernoState(this.currentBet);
 
-    // Initialize UI
+    // Initialize UI — must call start() first to build reel containers
     this.infernoUI = new InfernoUI(this);
+    const initialGrid = this.infernoState.grid.map(row => row.map(cell => cell.symbol));
+    this.infernoUI.start(initialGrid, () => {});
     this.infernoUI.renderGrid(this.infernoState);
     this.infernoUI.updateHeatMeter(this.infernoState.heatMeter);
     this.infernoUI.updateBet(this.currentBet);
