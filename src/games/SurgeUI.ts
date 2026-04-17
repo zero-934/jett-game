@@ -58,7 +58,7 @@ const SMALL_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
 };
 
 const SURGE_METER_X = CANVAS_WIDTH / 2 - 100;
-const SURGE_METER_Y = 55;
+const SURGE_METER_Y = 50;
 const SURGE_METER_WIDTH = 200;
 const SURGE_METER_HEIGHT = 20;
 const SURGE_METER_SEGMENTS = 5;
@@ -89,11 +89,11 @@ const CROWN_FLIP_BUTTON_SPACING = 20;
 const WIN_BADGE_DURATION = 1000;
 const WIN_BADGE_OFFSET_Y = 50;
 
-const SPIN_BUTTON_Y = CANVAS_HEIGHT - 100;
+const SPIN_BUTTON_Y = 560;
 
 const BET_DISPLAY_X = 80;
 const WIN_DISPLAY_X = CANVAS_WIDTH - 80;
-const DISPLAY_Y = CANVAS_HEIGHT - 50;
+const DISPLAY_Y = 620;
 
 export class SurgeUI {
   private scene: Phaser.Scene;

@@ -56,7 +56,7 @@ export const THREE_REEL_PRESET: SlotAnimatorConfig = {
   spinRows:     6,
   reelDelay:    100,
   baseDuration: 600,
-  gridTop:      216,
+  gridTop:      95,
 };
 
 // ─── SlotAnimator ────────────────────────────────────────────────────────────

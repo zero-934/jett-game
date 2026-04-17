@@ -93,7 +93,7 @@ export class InfernoScene extends Phaser.Scene {
       .setDepth(10);
 
     // Bet selector buttons
-    const betButtonY = 664;
+    const betButtonY = 480;
     const betSpacing = 68;
     const betButtonStartX = 195 - (BET_OPTIONS.length - 1) * betSpacing / 2;
     BET_OPTIONS.forEach((betAmount, index) => {

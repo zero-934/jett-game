@@ -15,7 +15,7 @@ const GOLD = 0xc9a84c;
 const GOLD_STR = '#c9a84c';
 const CANVAS_WIDTH = 390;
 const CANVAS_HEIGHT = 844;
-const HEADER_HEIGHT = 44; // Nav bar (36px) + small gap
+const HEADER_HEIGHT = 36; // Nav bar height
 const HUD_TEXT_COLOR = '#ffffff';
 const HUD_FONT_SIZE = '24px';
 const BUTTON_FONT_SIZE = '28px';
@@ -418,7 +418,7 @@ export class InfernoUI {
     // Bet Text
     this.betText = this.scene.add.text(
       CANVAS_WIDTH * 0.1,
-      CANVAS_HEIGHT - 50,
+      620,
       'BET: 100',
       { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
     ).setOrigin(0, 0.5).setDepth(100);
@@ -426,7 +426,7 @@ export class InfernoUI {
     // Win Text
     this.winText = this.scene.add.text(
       CANVAS_WIDTH * 0.9,
-      CANVAS_HEIGHT - 50,
+      620,
       'WIN: 0',
       { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
     ).setOrigin(1, 0.5).setDepth(100);
@@ -434,7 +434,7 @@ export class InfernoUI {
     // Spin Button
     const buttonWidth = 120;
     const buttonHeight = 60;
-    this.spinButton = this.scene.add.container(CANVAS_WIDTH / 2, CANVAS_HEIGHT - 100).setDepth(100);
+    this.spinButton = this.scene.add.container(CANVAS_WIDTH / 2, 560).setDepth(100);
 
     const spinBg = this.scene.add.graphics();
     spinBg.fillStyle(GOLD, 1);
