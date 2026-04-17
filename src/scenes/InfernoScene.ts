@@ -71,6 +71,8 @@ export class InfernoScene extends Phaser.Scene {
 
     // Initialize UI — spin once silently to populate with real symbols
     this.infernoState = spinInferno(this.infernoState, { rng: this.rng });
+    this.infernoState.isComplete = true;
+    this.infernoState.isInCrownFlip = false;
     this.infernoUI = new InfernoUI(this);
     const initialGrid = this.infernoState.grid.map(row => row.map(cell => cell.symbol));
     this.infernoUI.start(initialGrid, () => this.handleSpin());
