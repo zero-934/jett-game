@@ -158,19 +158,23 @@ export class SlotAnimator {
         this.reelCols[r].push(c);
       }
 
-      // Clip each reel to the exact 3-row visible window using a graphics mask
-      const maskShape = this.scene.add.graphics();
-      maskShape.fillStyle(0xffffff);
-      maskShape.fillRect(
-        reelX,
-        this.config.gridTop,
-        symbolSize,
-        this.rowCount * this.cellStep - this.config.reelGap
-      );
-      const mask = maskShape.createGeometryMask();
-      this.reelCols[r].forEach(c => c.setMask(mask));
-      this.reelMasks.push(maskShape);
     }
+
+    // Cover bars above and below the grid to hide scrolling symbols outside the window
+    // Same technique as MasqueradeUI side bars but horizontal
+    const coverColor = 0x000000;
+    const canvasH = this.scene.game.config.height as number || 844;
+    const gridBottom = this.config.gridTop + this.gridH;
+
+    // Top cover — hides symbols scrolling in from above
+    const topCover = this.scene.add.graphics().setDepth(20);
+    topCover.fillStyle(coverColor, 1);
+    topCover.fillRect(0, 0, canvasWidth, this.config.gridTop);
+
+    // Bottom cover — hides symbols scrolling out below
+    const bottomCover = this.scene.add.graphics().setDepth(20);
+    bottomCover.fillStyle(coverColor, 1);
+    bottomCover.fillRect(0, gridBottom, canvasWidth, canvasH - gridBottom);
 
     this.buildFlashOverlay();
     return this.gridX;
