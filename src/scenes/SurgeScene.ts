@@ -26,13 +26,6 @@ const BET_OPTIONS = [1, 5, 10, 25, 50];
 const GOLD_STR = '#c9a84c';
 const DARK_GREY = 0x222222;
 
-const UI_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
-  fontFamily: 'Arial Black',
-  fontSize: '24px',
-  color: GOLD_STR,
-  stroke: '#000000',
-  strokeThickness: 4,
-};
 
 const SMALL_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
   fontFamily: 'Arial',
@@ -76,6 +69,9 @@ export class SurgeScene extends Phaser.Scene {
       DARK_GREY
     );
 
+    // Nav bar
+    this.add.graphics().fillStyle(0x000000, 0.7).fillRect(0, 0, CANVAS_WIDTH, 36).setDepth(9);
+
     // Initialize UI
     this.surgeUI = new SurgeUI(this);
     this.surgeUI.start();
@@ -83,11 +79,11 @@ export class SurgeScene extends Phaser.Scene {
 
     // Balance Display
     this.balanceText = this.add.text(
-      CANVAS_WIDTH / 2,
-      10,
-      `BALANCE: ${this.balance.toFixed(2)}`,
-      UI_TEXT_STYLE
-    ).setOrigin(0.5);
+      CANVAS_WIDTH - 12,
+      18,
+      `BAL: ${this.balance.toFixed(2)}`,
+      SMALL_TEXT_STYLE
+    ).setOrigin(1, 0.5);
 
     // Bet Buttons
     const betButtonY = CANVAS_HEIGHT - 180;

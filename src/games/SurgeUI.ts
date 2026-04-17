@@ -57,13 +57,12 @@ const SMALL_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
 };
 
 const SURGE_METER_X = CANVAS_WIDTH / 2 - 100;
-const SURGE_METER_Y = 100;
+const SURGE_METER_Y = 55;
 const SURGE_METER_WIDTH = 200;
 const SURGE_METER_HEIGHT = 20;
 const SURGE_METER_SEGMENTS = 5;
 const SURGE_METER_ACTIVE_COLOR = GOLD;
 const SURGE_METER_INACTIVE_COLOR = DARK_GREY;
-const SURGE_METER_TEXT_OFFSET_Y = 25;
 
 const SURGE_BANNER_DURATION = 1200;
 const SURGE_BANNER_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
@@ -139,7 +138,7 @@ export class SurgeUI {
     this.surgeMeterGraphics = this.scene.add.graphics();
     this.surgeMeterText = this.scene.add.text(
       SURGE_METER_X + SURGE_METER_WIDTH / 2,
-      SURGE_METER_Y - SURGE_METER_TEXT_OFFSET_Y,
+      SURGE_METER_Y + SURGE_METER_HEIGHT + 6,
       'SURGE METER',
       SMALL_TEXT_STYLE
     ).setOrigin(0.5);
