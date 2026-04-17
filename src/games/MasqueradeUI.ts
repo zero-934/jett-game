@@ -21,7 +21,7 @@ import type { MasqueradeState } from './MasqueradeLogic';
 // ─── Layout constants ─────────────────────────────────────────────────────────
 const SYM         = 66;   // symbol cell size — 5 reels fit comfortably on 390px
 const REEL_GAP    = 4;
-const GRID_TOP    = 190;  // y where reel grid starts (below jackpot panel)
+const GRID_TOP    = 290;  // y where reel grid starts (below jackpot panel)
 const SPIN_ROWS   = 8;    // off-screen rows for scroll animation (hidden on init)
 const REEL_DELAY  = 120;  // ms stagger between each reel stopping
 
