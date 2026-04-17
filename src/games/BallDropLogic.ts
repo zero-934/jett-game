@@ -1,3 +1,5 @@
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
+
 /**
  * @file BallDropLogic.ts
  * @purpose Pure game logic for Ball Drop — a pegged board game where the player
@@ -209,7 +211,8 @@ export function createBallDropState(bet: number, config: BallDropConfig = {}): B
 export function spawnBall(state: BallDropState, config: BallDropConfig = {}): BallDropState {
   if (state.activeBall !== null || state.ballsRemaining <= 0 || state.gameOver) return state;
 
-  const rng = config.rng ?? Math.random;
+  const _rng = new ProvablyFairRNG();
+  const rng = config.rng ?? _rng.random.bind(_rng);
   const ballRadius = config.ballRadius ?? DEFAULT_BALL_RADIUS;
 
   state.activeBall = {
@@ -262,6 +265,8 @@ export function tickBallDrop(
   const maxNudgeVx    = config.maxNudgeVx    ?? DEFAULT_MAX_NUDGE_VX;
   const ballRadius    = config.ballRadius    ?? DEFAULT_BALL_RADIUS;
   const houseEdge     = config.houseEdge     ?? DEFAULT_HOUSE_EDGE;
+  const _tickRng = new ProvablyFairRNG();
+  const rng           = config.rng           ?? _tickRng.random.bind(_tickRng);
 
   // Nudge (player skill input — what differentiates this from pure-luck Plinko)
   if (nudge === 'left')  ball.vx = Math.max(-maxNudgeVx, ball.vx - nudgeForce);
@@ -303,7 +308,7 @@ export function tickBallDrop(
 
       // Reflect velocity, dampen, add tiny random scatter
       const dot = ball.vx * nx + ball.vy * ny;
-      ball.vx   = (ball.vx - 2 * dot * nx) * bounceDampen + (Math.random() - 0.5) * 0.35;
+      ball.vx   = (ball.vx - 2 * dot * nx) * bounceDampen + (rng() - 0.5) * 0.35;
       ball.vy   = (ball.vy - 2 * dot * ny) * bounceDampen;
 
       // Ensure ball always keeps falling after a peg hit
@@ -394,7 +399,8 @@ export function simulateBallDropRTP(
   const pegRows       = config.pegRows       ?? DEFAULT_PEG_ROWS;
   const ballsPerRound = config.ballsPerRound ?? DEFAULT_BALLS_PER_ROUND;
   const houseEdge     = config.houseEdge     ?? DEFAULT_HOUSE_EDGE;
-  const rng           = config.rng           ?? Math.random;
+  const _simRng = new ProvablyFairRNG();
+  const rng           = config.rng           ?? _simRng.random.bind(_simRng);
 
   let totalBet    = 0;
   let totalPayout = 0;

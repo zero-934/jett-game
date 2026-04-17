@@ -1,3 +1,5 @@
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
+
 /**
  * @file ShatterStepLogic.ts
  * @purpose Pure game logic for Shatter Step — 10-row ladder, 50/50 tile picks,
@@ -84,7 +86,8 @@ export function pickTile(
   const totalRows = config.totalRows ?? DEFAULT_ROWS;
   const multiplierPerRow = config.multiplierPerRow ?? DEFAULT_MULTIPLIER_PER_ROW;
   const houseEdge = config.houseEdge ?? DEFAULT_HOUSE_EDGE;
-  const rng = config.rng ?? Math.random;
+  const _rng = new ProvablyFairRNG();
+  const rng = config.rng ?? _rng.random.bind(_rng);
 
   state.lastPick = pick;
 
@@ -171,6 +174,8 @@ export function simulateShatterRTP(
   strategy: 'always-cashout' | 'go-to-top',
   config: ShatterStepConfig = {}
 ): number {
+  const _simRng = new ProvablyFairRNG();
+  const simConfig: ShatterStepConfig = { ...config, rng: _simRng.random.bind(_simRng) };
   let totalBet = 0;
   let totalPayout = 0;
   const bet = 1;
@@ -180,13 +185,13 @@ export function simulateShatterRTP(
     const state = createShatterStepState(bet, config);
 
     if (strategy === 'always-cashout') {
-      pickTile(state, 'left', config);
+      pickTile(state, 'left', simConfig);
       if (state.isAlive && !state.cashedOut && state.currentRow > 0) {
         cashOutShatterStep(state);
       }
     } else {
       while (state.isAlive && !state.cashedOut) {
-        pickTile(state, 'left', config);
+        pickTile(state, 'left', simConfig);
       }
     }
 

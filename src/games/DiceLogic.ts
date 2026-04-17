@@ -1,3 +1,5 @@
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
+
 /**
  * @file DiceLogic.ts
  * @purpose Pure game logic for Dice — multiplier tier selection, RNG roll,
@@ -97,7 +99,8 @@ export function rollDice(state: DiceState, config: DiceConfig = {}): DiceState {
   if (state.isComplete || state.won !== null) return state;
 
   const houseEdge = config.houseEdge ?? DEFAULT_HOUSE_EDGE;
-  const rng       = config.rng       ?? Math.random;
+  const _rng = new ProvablyFairRNG();
+  const rng       = config.rng       ?? _rng.random.bind(_rng);
 
   // Generate 3 dice faces for visual
   state.diceValues = [
@@ -131,11 +134,13 @@ export function rollDice(state: DiceState, config: DiceConfig = {}): DiceState {
  * simulateDiceRTP(10000, 2, {}); // ~0.97
  */
 export function simulateDiceRTP(rounds: number, tier: DiceTier, config: DiceConfig = {}): number {
+  const _simRng = new ProvablyFairRNG();
+  const simConfig: DiceConfig = { ...config, rng: _simRng.random.bind(_simRng) };
   let totalBet = 0;
   let totalPayout = 0;
   for (let i = 0; i < rounds; i++) {
     const state = createDiceState(1, tier);
-    rollDice(state, config);
+    rollDice(state, simConfig);
     totalBet    += 1;
     totalPayout += state.payout;
   }

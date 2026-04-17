@@ -1,3 +1,5 @@
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
+
 /**
  * @file MinesLogic.ts
  * @purpose Pure game logic for Mines — 5×5 grid, random bomb placement,
@@ -55,7 +57,8 @@ export function createMinesState(
   bombCount: BombCount = 5,
   config: MinesConfig = {}
 ): MinesState {
-  const rng = config.rng ?? Math.random;
+  const _rng = new ProvablyFairRNG();
+  const rng = config.rng ?? _rng.random.bind(_rng);
 
   // Build grid
   const grid: MinesTile[] = [];
@@ -203,7 +206,8 @@ export function simulateMinesRTP(
       .map(t => t.index);
 
     // Shuffle
-    const rng = config.rng ?? Math.random;
+    const _simRng = new ProvablyFairRNG();
+    const rng = config.rng ?? _simRng.random.bind(_simRng);
     for (let j = hiddenIndices.length - 1; j > 0; j--) {
       const k = Math.floor(rng() * (j + 1));
       [hiddenIndices[j], hiddenIndices[k]] = [hiddenIndices[k], hiddenIndices[j]];

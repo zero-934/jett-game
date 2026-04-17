@@ -1,3 +1,5 @@
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
+
 /**
  * @file JettLogic.ts
  * @purpose Pure game logic for Jett — endless vertical scroller, random asteroid field
@@ -116,7 +118,8 @@ export function tickJett(
 
   const houseEdge        = config.houseEdge               ?? DEFAULT_HOUSE_EDGE;
   const combustionChance = config.combustionChancePerTick  ?? DEFAULT_COMBUSTION_CHANCE;
-  const rng              = config.rng                      ?? Math.random;
+  const _rng = new ProvablyFairRNG();
+  const rng              = config.rng                      ?? _rng.random.bind(_rng);
 
   state.tickCount++;
 
@@ -203,7 +206,7 @@ export function spawnAsteroidWave(
   count: number,
   worldWidth: number,
   startId: number,
-  rng: () => number = Math.random
+  rng: () => number = new ProvablyFairRNG().random.bind(new ProvablyFairRNG())
 ): JettAsteroid[] {
   const asteroids: JettAsteroid[] = [];
   const margin = 30;

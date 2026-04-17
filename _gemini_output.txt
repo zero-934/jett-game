@@ -1,0 +1,1648 @@
+```typescript
+/**
+ * @file ProvablyFairRNG.ts
+ * @purpose Provides a seedable, deterministic pseudo-random number generator using xoroshiro128+.
+ * @author Agent 934
+ * @date 2026-04-16
+ * @license Proprietary – available for licensing
+ */
+
+// Constants for xoroshiro128+ algorithm
+const ROTL_A = 24;
+const ROTL_C = 37;
+const SHIFT_B = 16n;
+const STATE_SIZE = 2; // s0, s1
+
+// A common constant for mixing seeds, derived from the golden ratio
+const SEED_MIXER = 0x9E3779B97F4A7C15n;
+
+/**
+ * Rotates a BigInt left by k bits, ensuring it wraps around within 64 bits.
+ * @param x The BigInt to rotate.
+ * @param k The number of bits to rotate by.
+ * @returns The rotated BigInt.
+ */
+function rotl(x: bigint, k: number): bigint {
+  const K_BIGINT = BigInt(k);
+  const SIXTY_FOUR_BIGINT = 64n;
+  return (x << K_BIGINT) | (x >> (SIXTY_FOUR_BIGINT - K_BIGINT));
+}
+
+/**
+ * Hashes a string into a 64-bit BigInt using a djb2-style algorithm.
+ * This provides a deterministic way to convert string seeds into a numerical seed.
+ * @param str The string to hash.
+ * @returns A 64-bit BigInt hash.
+ */
+function stringToBigIntHash(str: string): bigint {
+  let hash = 5381n; // Initial hash value
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5n) + hash) + BigInt(str.charCodeAt(i));
+  }
+  return hash;
+}
+
+/**
+ * ProvablyFairRNG class implements the xoroshiro128+ pseudo-random number generator.
+ * It is seedable and deterministic, suitable for provably fair systems.
+ * The internal state consists of two 64-bit unsigned integers (s0, s1).
+ * Output numbers are in the range [0, 1).
+ */
+class ProvablyFairRNG {
+  private s0: bigint;
+  private s1: bigint;
+  private readonly originalSeed: string;
+
+  /**
+   * Creates an instance of ProvablyFairRNG.
+   * @param seed An optional seed. Can be a string or a number.
+   *             If omitted, `Date.now()` is used as the seed.
+   *             String seeds are hashed deterministically.
+   * @example
+   * const rng1 = new ProvablyFairRNG(); // Uses Date.now()
+   * const rng2 = new ProvablyFairRNG(12345);
+   * const rng3 = new ProvablyFairRNG('my-secret-seed');
+   */
+  constructor(seed?: string | number) {
+    let initialSeed: bigint;
+
+    if (typeof seed === 'string') {
+      this.originalSeed = seed;
+      initialSeed = stringToBigIntHash(seed);
+    } else if (typeof seed === 'number') {
+      this.originalSeed = seed.toString();
+      initialSeed = BigInt(seed);
+    } else {
+      this.originalSeed = Date.now().toString();
+      initialSeed = BigInt(Date.now());
+    }
+
+    // Initialize s0 and s1 from the initial seed
+    // Ensure s0 and s1 are not both zero, as xoroshiro128+ requires non-zero state.
+    this.s0 = initialSeed;
+    this.s1 = initialSeed ^ SEED_MIXER;
+
+    // If both s0 and s1 are zero after initialization (highly unlikely but possible with specific seeds),
+    // perturb them to ensure non-zero state.
+    if (this.s0 === 0n && this.s1 === 0n) {
+      this.s0 = 1n;
+      this.s1 = 1n;
+    }
+  }
+
+  /**
+   * Generates the next 64-bit unsigned integer in the sequence.
+   * This is the core xoroshiro128+ algorithm step.
+   * @returns A 64-bit BigInt representing the next random value.
+   */
+  private next(): bigint {
+    const s0 = this.s0;
+    let s1 = this.s1;
+    const result = s0 + s1; // The output value is the sum of the current states
+
+    s1 ^= s0;
+    this.s0 = rotl(s0, ROTL_A) ^ s1 ^ (s1 << SHIFT_B);
+    this.s1 = rotl(s1, ROTL_C);
+
+    return result;
+  }
+
+  /**
+   * Generates a pseudo-random floating-point number between 0 (inclusive) and 1 (exclusive).
+   * @returns A number in the range [0, 1).
+   * @example
+   * const rng = new ProvablyFairRNG(123);
+   * const randomNumber = rng.random(); // e.g., 0.54321
+   */
+  public random(): number {
+    // Get a 64-bit BigInt from the generator
+    const nextBigInt = this.next();
+
+    // Convert the 64-bit BigInt to a 53-bit integer (mantissa precision of JS numbers)
+    // and then normalize to [0, 1).
+    // Using 2^53 as the divisor ensures maximum precision for JS numbers.
+    const MAX_53_BIT_INT = 0x1FFFFFFFFFFFFFn; // 2^53 - 1
+    const DIVISOR = 2 ** 53;
+
+    // Take the lower 53 bits and convert to number, then divide.
+    return Number(nextBigInt & MAX_53_BIT_INT) / DIVISOR;
+  }
+
+  /**
+   * Generates a pseudo-random integer between `min` (inclusive) and `max` (inclusive).
+   * @param min The minimum possible integer value.
+   * @param max The maximum possible integer value.
+   * @returns A random integer in the range [min, max].
+   * @example
+   * const rng = new ProvablyFairRNG(123);
+   * const diceRoll = rng.randomInt(1, 6); // e.g., 3
+   */
+  public randomInt(min: number, max: number): number {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    // The maximum is inclusive and the minimum is inclusive
+    return Math.floor(this.random() * (max - min + 1)) + min;
+  }
+
+  /**
+   * Selects an item from a list based on their proportional weights.
+   * Items with higher weights are more likely to be chosen.
+   * @template T The type of the value in the items.
+   * @param items An array of objects, each with a `value` and a `weight`.
+   * @returns The `value` of the chosen item.
+   * @throws {Error} If the `items` array is empty or contains only items with zero/negative weights.
+   * @example
+   * const rng = new ProvablyFairRNG('choice-seed');
+   * const choices = [
+   *   { value: 'common', weight: 10 },
+   *   { value: 'rare', weight: 1 },
+   * ];
+   * const chosenItem = rng.weightedChoice(choices); // 'common' is 10x more likely
+   */
+  public weightedChoice<T>(items: { value: T; weight: number }[]): T {
+    const totalWeight = items.reduce((sum, item) => sum + Math.max(0, item.weight), 0);
+
+    if (totalWeight <= 0) {
+      // Handle cases where no valid weights are provided
+      const validItems = items.filter(item => item.weight > 0);
+      if (validItems.length > 0) {
+        // If there are valid items, pick one uniformly
+        return validItems[this.randomInt(0, validItems.length - 1)].value;
+      }
+      throw new Error('Cannot make a weighted choice from items with zero or negative total weight.');
+    }
+
+    let r = this.random() * totalWeight;
+
+    for (const item of items) {
+      if (item.weight > 0 && r < item.weight) {
+        return item.value;
+      }
+      r -= Math.max(0, item.weight);
+    }
+
+    // Fallback: should not be reached if totalWeight > 0 and random() works correctly.
+    // In case of floating point inaccuracies, return the last item with positive weight.
+    const lastValidItem = items.findLast(item => item.weight > 0);
+    if (lastValidItem) {
+      return lastValidItem.value;
+    }
+    // This should ideally be unreachable if totalWeight > 0.
+    throw new Error('Weighted choice failed to select an item, possibly due to floating point inaccuracies or invalid weights.');
+  }
+
+  /**
+   * Returns the original seed used to initialize this RNG instance.
+   * This is useful for logging and committing outcomes on-chain for provable fairness.
+   * @returns The original seed as a string.
+   * @example
+   * const rng = new ProvablyFairRNG('game-round-123');
+   * console.log(rng.getSeed()); // 'game-round-123'
+   */
+  public getSeed(): string {
+    return this.originalSeed;
+  }
+
+  /**
+   * Creates a new ProvablyFairRNG instance with the exact same internal state
+   * as the current instance. This allows for deterministic replay or branching
+   * of random sequences from a specific point.
+   * @returns A new ProvablyFairRNG instance with the cloned state.
+   * @example
+   * const rng1 = new ProvablyFairRNG(123);
+   * rng1.random(); // Advance state
+   * const rng2 = rng1.clone(); // rng2 now has the same state as rng1
+   * console.log(rng1.random()); // Different from rng2.random()
+   * console.log(rng2.random()); // Same as rng1.random() before clone
+   */
+  public clone(): ProvablyFairRNG {
+    const clonedRNG = new ProvablyFairRNG(this.originalSeed);
+    clonedRNG.s0 = this.s0;
+    clonedRNG.s1 = this.s1;
+    return clonedRNG;
+  }
+}
+
+export { ProvablyFairRNG };
+export default ProvablyFairRNG;
+
+/**
+ * Factory function to create a ProvablyFairRNG instance.
+ * @param seed An optional seed for the RNG.
+ * @returns A new ProvablyFairRNG instance.
+ * @example
+ * import { createRNG } from './ProvablyFairRNG';
+ * const rng = createRNG('my-game-seed');
+ * console.log(rng.random());
+ */
+export function createRNG(seed?: string | number): ProvablyFairRNG {
+  return new ProvablyFairRNG(seed);
+}
+```
+```typescript
+/**
+ * @file SlotEngineLogic.ts
+ * @purpose Provides the pure TypeScript logic for a slot machine engine, including spin, win evaluation, and RTP simulation.
+ * @author Agent 934
+ * @date 2026-04-16
+ * @license Proprietary – available for licensing
+ */
+
+import { ProvablyFairRNG } from '../rng/ProvablyFairRNG';
+
+/**
+ * Defines a single symbol type for the slot machine.
+ */
+export interface SlotSymbolDef {
+  key: string;         // e.g. 'WILD', 'SCATTER', 'HIGH_A'
+  weight: number;      // Relative weight for reel strip generation
+  isWild?: boolean;
+  isScatter?: boolean;
+}
+
+/**
+ * Defines a single payline across the reels.
+ */
+export interface SlotPayline {
+  positions: { reel: number; row: number }[];  // Exactly 5 positions for a 5-reel slot
+}
+
+/**
+ * Configuration for the slot machine engine.
+ */
+export interface SlotConfig {
+  reelsCount: number;          // Always 5
+  rowsCount: number;           // Always 3
+  symbols: SlotSymbolDef[];    // All available symbols
+  paylines: SlotPayline[];     // Defined paylines
+  payTable: Record<string, Record<number, number>>;  // symbol key -> count -> multiplier
+  freeSpinScatterCount: number;  // Scatters needed to trigger free spins
+  freeSpinsGranted: number;      // Number of free spins awarded
+  freeSpinsRetrigger: number;    // Number of additional free spins on retrigger
+  wildMultiplierChance: number;  // Probability (0-1) for a wild-contributed win to be multiplied
+}
+
+/**
+ * Represents a single winning line detected after a spin.
+ */
+export interface SlotWinLine {
+  paylineIndex: number;
+  symbol: string;
+  count: number;
+  payout: number;
+  positions: { reel: number; row: number }[];
+  isWildContributed: boolean; // True if a WILD symbol was part of forming this win
+  isWildMultiplied?: boolean; // True if this win was multiplied by a WILD
+}
+
+/**
+ * Represents the current state of the slot machine after a spin.
+ */
+export interface SlotSpinState {
+  bet: number;                   // Total bet for the spin
+  linesBet: number;              // Number of lines bet (usually 25)
+  reelStops: string[][];         // [reel][row] symbol keys displayed
+  totalWin: number;              // Total payout for the spin
+  winLines: SlotWinLine[];       // Details of all winning lines
+  scatterCount: number;          // Number of scatter symbols landed
+  freeSpinsRemaining: number;    // Number of free spins left
+  isFreeSpinTriggered: boolean;  // True if free spins were triggered by this spin
+  isFreeSpinRetriggered: boolean; // True if free spins were retriggered by this spin
+  isComplete: boolean;           // True if the spin sequence (including free spins) is complete
+  lastSpinSeed: string;          // The seed used for the RNG for this spin, for provable fairness
+}
+
+/**
+ * Creates the initial state for the slot machine.
+ * @param bet The total bet amount for a single spin.
+ * @param linesBet The number of lines being bet on.
+ * @returns An initial `SlotSpinState` object.
+ * @example
+ * const initialState = createSlotState(100, 25);
+ */
+export function createSlotState(bet: number, linesBet: number): SlotSpinState {
+  return {
+    bet,
+    linesBet,
+    reelStops: [],
+    totalWin: 0,
+    winLines: [],
+    scatterCount: 0,
+    freeSpinsRemaining: 0,
+    isFreeSpinTriggered: false,
+    isFreeSpinRetriggered: false,
+    isComplete: false,
+    lastSpinSeed: '',
+  };
+}
+
+/**
+ * Selects a random symbol based on weights from the provided symbol definitions.
+ * @param symbols An array of `SlotSymbolDef` to choose from.
+ * @param rng The `ProvablyFairRNG` instance to use for randomness.
+ * @returns The key of the randomly selected symbol.
+ */
+function getRandomSymbol(symbols: SlotSymbolDef[], rng: ProvablyFairRNG): string {
+  const totalWeight = symbols.reduce((sum, s) => sum + s.weight, 0);
+  if (totalWeight <= 0) {
+    // Fallback if no weights or all weights are zero/negative
+    const validSymbols = symbols.filter(s => s.weight > 0);
+    if (validSymbols.length > 0) {
+      return validSymbols[rng.randomInt(0, validSymbols.length - 1)].key;
+    }
+    throw new Error('Cannot select a random symbol: total weight is zero or negative.');
+  }
+
+  let r = rng.random() * totalWeight;
+  for (const symbolDef of symbols) {
+    if (symbolDef.weight > 0 && r < symbolDef.weight) {
+      return symbolDef.key;
+    }
+    r -= Math.max(0, symbolDef.weight); // Ensure we don't subtract negative weights
+  }
+
+  // Fallback, should ideally not be reached if totalWeight > 0
+  // Return the symbol with the highest weight as a last resort
+  const highestWeightSymbol = symbols.reduce((prev, current) =>
+    (prev.weight > current.weight ? prev : current), symbols[0]);
+  return highestWeightSymbol.key;
+}
+
+/**
+ * Executes one spin of the slot machine.
+ * @param state The current `SlotSpinState`.
+ * @param config The `SlotConfig` for the game.
+ * @param rng The `ProvablyFairRNG` instance to use for all random operations.
+ * @param forcedReelStops Optional: A predefined 2D array of symbol keys to force reel outcomes (for testing/debugging).
+ * @returns A new `SlotSpinState` object reflecting the outcome of the spin.
+ * @example
+ * const rng = new ProvablyFairRNG('spin-1');
+ * const config = MASQUERADE_CONFIG; // Assuming MASQUERADE_CONFIG is imported
+ * let state = createSlotState(100, 25);
+ * state = spinSlot(state, config, rng);
+ * console.log(state.totalWin);
+ */
+export function spinSlot(
+  state: SlotSpinState,
+  config: SlotConfig,
+  rng: ProvablyFairRNG,
+  forcedReelStops?: string[][]
+): SlotSpinState {
+  const newState: SlotSpinState = { ...state };
+  newState.lastSpinSeed = rng.getSeed(); // Record the seed for provable fairness
+
+  // Determine if this is a free spin
+  const isCurrentlyFreeSpin = newState.freeSpinsRemaining > 0;
+
+  // Generate reel stops
+  newState.reelStops = forcedReelStops || [];
+  if (!forcedReelStops) {
+    for (let reelIndex = 0; reelIndex < config.reelsCount; reelIndex++) {
+      const reelSymbols: string[] = [];
+      for (let rowIndex = 0; rowIndex < config.rowsCount; rowIndex++) {
+        reelSymbols.push(getRandomSymbol(config.symbols, rng));
+      }
+      newState.reelStops.push(reelSymbols);
+    }
+  }
+
+  newState.totalWin = 0;
+  newState.winLines = [];
+  newState.scatterCount = 0;
+  newState.isFreeSpinTriggered = false;
+  newState.isFreeSpinRetriggered = false;
+
+  const betPerLine = newState.bet / newState.linesBet;
+
+  // Get symbol definitions for quick lookup
+  const symbolDefs = new Map<string, SlotSymbolDef>(
+    config.symbols.map(s => [s.key, s])
+  );
+
+  // Count scatters
+  for (let reelIndex = 0; reelIndex < config.reelsCount; reelIndex++) {
+    for (let rowIndex = 0; rowIndex < config.rowsCount; rowIndex++) {
+      const symbolKey = newState.reelStops[reelIndex][rowIndex];
+      if (symbolDefs.get(symbolKey)?.isScatter) {
+        newState.scatterCount++;
+      }
+    }
+  }
+
+  // Evaluate paylines
+  config.paylines.forEach((payline, paylineIndex) => {
+    if (payline.positions.length !== config.reelsCount) {
+      // Skip invalid paylines (should always be 5 positions for 5 reels)
+      return;
+    }
+
+    const lineSymbols: string[] = payline.positions.map(
+      pos => newState.reelStops[pos.reel][pos.row]
+    );
+
+    let currentSymbolKey: string | null = null;
+    let consecutiveCount = 0;
+    let wildCount = 0;
+    let isWildContributed = false;
+
+    // Find the first non-wild, non-scatter symbol to establish the winning symbol for the line
+    // Or if all are wild, then the wild itself.
+    for (let i = 0; i < config.reelsCount; i++) {
+      const symbol = lineSymbols[i];
+      const def = symbolDefs.get(symbol);
+
+      if (def?.isScatter) {
+        // Scatters don't form paylines, skip this line evaluation
+        currentSymbolKey = null;
+        break;
+      }
+
+      if (def?.isWild) {
+        wildCount++;
+        isWildContributed = true;
+      } else {
+        currentSymbolKey = symbol;
+        consecutiveCount = i + 1; // Count up to this point
+        break;
+      }
+    }
+
+    // If all symbols up to the first reel are wild, then the winning symbol is WILD itself
+    if (currentSymbolKey === null && wildCount > 0) {
+      currentSymbolKey = config.symbols.find(s => s.isWild)?.key || ''; // Use the actual WILD key
+      if (!currentSymbolKey) return; // No wild symbol defined, cannot form a win
+      consecutiveCount = wildCount;
+    } else if (currentSymbolKey === null) {
+      // No non-scatter symbols, no wild symbols, no win
+      return;
+    }
+
+    // Now, extend the count for the determined currentSymbolKey
+    for (let i = consecutiveCount; i < config.reelsCount; i++) {
+      const symbol = lineSymbols[i];
+      const def = symbolDefs.get(symbol);
+
+      if (def?.isScatter) {
+        break; // Scatters break the line
+      }
+
+      if (symbol === currentSymbolKey || def?.isWild) {
+        consecutiveCount++;
+        if (def?.isWild) {
+          isWildContributed = true;
+        }
+      } else {
+        break; // Mismatch, line ends
+      }
+    }
+
+    // Check for payout
+    if (currentSymbolKey && consecutiveCount >= 3) { // Minimum 3 for a win
+      const payTableForSymbol = config.payTable[currentSymbolKey];
+      if (payTableForSymbol && payTableForSymbol[consecutiveCount]) {
+        let multiplier = payTableForSymbol[consecutiveCount];
+        let isWildMultiplied = false;
+
+        // Apply wild multiplier during free spins
+        if (isCurrentlyFreeSpin && isWildContributed && rng.random() < config.wildMultiplierChance) {
+          multiplier *= 2; // Double the win
+          isWildMultiplied = true;
+        }
+
+        const payout = multiplier * betPerLine;
+        newState.totalWin += payout;
+        newState.winLines.push({
+          paylineIndex,
+          symbol: currentSymbolKey,
+          count: consecutiveCount,
+          payout,
+          positions: payline.positions.slice(0, consecutiveCount),
+          isWildContributed,
+          isWildMultiplied,
+        });
+      }
+    }
+  });
+
+  // Handle free spin triggers/retriggers
+  if (newState.scatterCount >= config.freeSpinScatterCount) {
+    if (isCurrentlyFreeSpin) {
+      newState.freeSpinsRemaining += config.freeSpinsRetrigger;
+      newState.isFreeSpinRetriggered = true;
+    } else {
+      newState.freeSpinsRemaining += config.freeSpinsGranted;
+      newState.isFreeSpinTriggered = true;
+    }
+  }
+
+  // Decrement free spins if this was a free spin round
+  if (isCurrentlyFreeSpin) {
+    newState.freeSpinsRemaining--;
+  }
+
+  // Mark as complete if no free spins remaining and not triggered/retriggered
+  newState.isComplete = newState.freeSpinsRemaining <= 0 && !newState.isFreeSpinTriggered && !newState.isFreeSpinRetriggered;
+
+  return newState;
+}
+
+/**
+ * Simulates N rounds of the slot machine and returns the estimated RTP (Return To Player).
+ * @param config The `SlotConfig` for the game.
+ * @param rounds The number of simulation rounds to run.
+ * @param betPerLine The bet amount per line for each round.
+ * @param linesBet The number of lines bet for each round.
+ * @returns The estimated RTP as a number between 0 and 1.
+ * @example
+ * const config = MASQUERADE_CONFIG;
+ * const estimatedRTP = simulateSlotRTP(config, 100000, 1, 25);
+ * console.log(`Estimated RTP: ${estimatedRTP * 100}%`); // e.g., 96.1%
+ */
+export function simulateSlotRTP(
+  config: SlotConfig,
+  rounds: number,
+  betPerLine: number,
+  linesBet: number
+): number {
+  let totalBet = 0;
+  let totalWin = 0;
+  const initialBet = betPerLine * linesBet;
+
+  // Use a fixed seed for simulation to ensure reproducibility of the simulation itself
+  const simulationRNG = new ProvablyFairRNG('rtp-simulation-seed');
+
+  let currentState = createSlotState(initialBet, linesBet);
+
+  for (let i = 0; i < rounds; i++) {
+    totalBet += initialBet; // Each spin costs the initial bet
+
+    // Simulate a spin
+    currentState = spinSlot(currentState, config, simulationRNG);
+    totalWin += currentState.totalWin;
+
+    // If free spins were triggered, play them out
+    while (currentState.freeSpinsRemaining > 0 || currentState.isFreeSpinTriggered || currentState.isFreeSpinRetriggered) {
+      // Reset trigger flags for the next free spin
+      currentState.isFreeSpinTriggered = false;
+      currentState.isFreeSpinRetriggered = false;
+
+      // Free spins don't cost additional bet
+      currentState = spinSlot(currentState, config, simulationRNG);
+      totalWin += currentState.totalWin;
+    }
+
+    // Reset state for the next base game spin
+    currentState = createSlotState(initialBet, linesBet);
+  }
+
+  return totalBet > 0 ? totalWin / totalBet : 0;
+}
+```
+```typescript
+/**
+ * @file SlotEngineUI.ts
+ * @purpose Provides a Phaser 3 UI class for rendering slot machine reels and animations.
+ * @author Agent 934
+ * @date 2026-04-16
+ * @license Proprietary – available for licensing
+ */
+
+import Phaser from 'phaser';
+import { SlotConfig, SlotSpinState, SlotWinLine } from './SlotEngineLogic';
+// ProvablyFairRNG is not directly used for logic here, but might be useful for type hints or if UI needs to create its own RNG for visual effects.
+// For now, it's not strictly necessary as logic is delegated.
+// import { ProvablyFairRNG } from '../rng/ProvablyFairRNG';
+
+// --- Constants ---
+const GOLD = 0xc9a84c;
+const GOLD_STR = '#c9a84c';
+const DARK = 0x0d0d0d;
+const DARK_STR = '#0d0d0d';
+
+const REEL_WIDTH = 150;
+const REEL_HEIGHT = 150;
+const SYMBOL_FONT_SIZE = 64;
+const SYMBOL_FONT_FAMILY = 'Arial';
+const SYMBOL_COLOR = GOLD_STR;
+const HIGHLIGHT_COLOR = 0xffffff; // White for highlight border
+const HIGHLIGHT_THICKNESS = 5;
+const HIGHLIGHT_ALPHA = 0.8;
+
+const SPIN_DURATION_PER_REEL = 500; // ms
+const REEL_SPIN_DELAY = 150; // ms between reel starts
+const SYMBOL_TWEEN_EASE = 'Quad.easeOut';
+
+// Default emoji mapping for symbols
+const DEFAULT_SYMBOL_EMOJI: Record<string, string> = {
+  'WILD': '✨',
+  'SCATTER': '💎',
+  'GOLDEN_MASK': '🎭',
+  'CHAMPAGNE': '🍾',
+  'PEACOCK': '🦚',
+  'GLOVES': '🧤',
+  'CLOCK': '🕰️',
+  'SLIPPER': '👠',
+  'INVITATION': '✉️',
+  'MUSIC': '🎶',
+  'PHILOSOPHERS_STONE': '🪨',
+  'ELIXIR': '🧪',
+  'GRIMOIRE': '📜',
+  'CAULDRON': '🍲',
+  'HOURGLASS': '⏳',
+  'VIAL': '⚗️',
+  'MORTAR': '🥣',
+  'RUNE': ' runes', // Using text for rune as emoji is less clear
+};
+
+/**
+ * Extends SlotConfig to include UI-specific properties like symbol emoji mapping.
+ * This interface is local to the UI file and does not modify the core SlotConfig.
+ */
+export interface SlotUIConfig extends SlotConfig {
+  symbolEmoji?: Record<string, string>;
+}
+
+/**
+ * SlotEngineUI class handles the visual rendering and animations of the slot machine.
+ * It delegates all game logic and RNG calls to `SlotEngineLogic`.
+ */
+export class SlotEngineUI {
+  private scene: Phaser.Scene;
+  private x: number;
+  private y: number;
+  private config: SlotUIConfig;
+  private symbolEmoji: Record<string, string>;
+
+  private reelContainers: Phaser.GameObjects.Container[] = [];
+  private symbolTexts: Phaser.GameObjects.Text[][] = []; // [reel][row]
+  private highlightGraphics: Phaser.GameObjects.Graphics[] = [];
+
+  /**
+   * Creates an instance of SlotEngineUI.
+   * @param scene The Phaser Scene this UI belongs to.
+   * @param x The X coordinate for the top-left of the slot grid.
+   * @param y The Y coordinate for the top-left of the slot grid.
+   * @param config The slot configuration, potentially including UI-specific overrides.
+   * @example
+   * class GameScene extends Phaser.Scene {
+   *   private slotUI: SlotEngineUI;
+   *   create() {
+   *     const slotConfig = { ...MASQUERADE_CONFIG, symbolEmoji: { 'GOLDEN_MASK': '👑' } };
+   *     this.slotUI = new SlotEngineUI(this, 100, 100, slotConfig);
+   *   }
+   * }
+   */
+  constructor(scene: Phaser.Scene, x: number, y: number, config: SlotUIConfig) {
+    this.scene = scene;
+    this.x = x;
+    this.y = y;
+    this.config = config;
+    this.symbolEmoji = { ...DEFAULT_SYMBOL_EMOJI, ...config.symbolEmoji };
+
+    this.createReels();
+  }
+
+  /**
+   * Creates the Phaser Container objects for each reel and initializes symbol text objects.
+   */
+  private createReels(): void {
+    for (let reelIndex = 0; reelIndex < this.config.reelsCount; reelIndex++) {
+      const reelX = this.x + reelIndex * REEL_WIDTH;
+      const reelY = this.y;
+
+      // Create a container for each reel to manage its symbols
+      const reelContainer = this.scene.add.container(reelX, reelY);
+      // Phaser 4: Container does NOT have setOrigin(). Its origin is always top-left.
+      // We position the container directly.
+
+      this.reelContainers.push(reelContainer);
+      this.symbolTexts.push([]);
+
+      // Create a mask for the reel container to hide symbols outside the view
+      const reelMaskShape = this.scene.add.graphics();
+      reelMaskShape.fillStyle(DARK, 1);
+      reelMaskShape.fillRect(reelX, reelY, REEL_WIDTH, this.config.rowsCount * REEL_HEIGHT);
+      const mask = reelMaskShape.createGeometryMask();
+      reelContainer.setMask(mask);
+      this.highlightGraphics.push(this.scene.add.graphics()); // One graphics object per reel for highlights
+    }
+  }
+
+  /**
+   * Renders the current state of the slot machine, displaying symbols on the reels.
+   * This method is typically called after a spin or to initialize the display.
+   * @param state The `SlotSpinState` to render.
+   * @example
+   * this.slotUI.render(latestState);
+   */
+  public render(state: SlotSpinState): void {
+    this.clearHighlights();
+
+    if (!state.reelStops || state.reelStops.length === 0) {
+      // If no reel stops yet, initialize with empty or placeholder symbols
+      for (let reelIndex = 0; reelIndex < this.config.reelsCount; reelIndex++) {
+        for (let rowIndex = 0; rowIndex < this.config.rowsCount; rowIndex++) {
+          this.updateSymbolText(reelIndex, rowIndex, ''); // Clear or set default
+        }
+      }
+      return;
+    }
+
+    for (let reelIndex = 0; reelIndex < this.config.reelsCount; reelIndex++) {
+      for (let rowIndex = 0; rowIndex < this.config.rowsCount; rowIndex++) {
+        const symbolKey = state.reelStops[reelIndex][rowIndex];
+        this.updateSymbolText(reelIndex, rowIndex, symbolKey);
+      }
+    }
+  }
+
+  /**
+   * Updates or creates a symbol text object at a specific reel and row.
+   * @param reelIndex The index of the reel.
+   * @param rowIndex The index of the row.
+   * @param symbolKey The key of the symbol to display.
+   */
+  private updateSymbolText(reelIndex: number, rowIndex: number, symbolKey: string): void {
+    const symbolDisplay = this.symbolEmoji[symbolKey] || symbolKey; // Fallback to key if no emoji
+
+    let textObject = this.symbolTexts[reelIndex][rowIndex];
+    if (!textObject) {
+      // Calculate position relative to the reel container's top-left (0,0)
+      const symbolX = REEL_WIDTH / 2;
+      const symbolY = rowIndex * REEL_HEIGHT + REEL_HEIGHT / 2;
+
+      textObject = this.scene.add.text(symbolX, symbolY, symbolDisplay, {
+        fontSize: `${SYMBOL_FONT_SIZE}px`,
+        fontFamily: SYMBOL_FONT_FAMILY,
+        color: SYMBOL_COLOR,
+        align: 'center',
+      });
+      textObject.setOrigin(0.5); // Center the text within its bounds
+      this.reelContainers[reelIndex].add(textObject);
+      this.symbolTexts[reelIndex][rowIndex] = textObject;
+    } else {
+      textObject.setText(symbolDisplay);
+    }
+  }
+
+  /**
+   * Animates the reels spinning and then settling to the final `reelStops` state.
+   * @param state The final `SlotSpinState` after the spin.
+   * @param onComplete A callback function to execute once the animation finishes.
+   * @example
+   * this.slotUI.animateSpin(latestState, () => console.log('Spin animation complete!'));
+   */
+  public animateSpin(state: SlotSpinState, onComplete: () => void): void {
+    this.clearHighlights();
+    const tweens: Phaser.Tweens.Tween[] = [];
+
+    for (let reelIndex = 0; reelIndex < this.config.reelsCount; reelIndex++) {
+      const reelContainer = this.reelContainers[reelIndex];
+      const finalSymbols = state.reelStops[reelIndex];
+
+      // Create temporary symbols above the view for the "spinning" effect
+      const tempSymbols: Phaser.GameObjects.Text[] = [];
+      for (let i = 0; i < this.config.rowsCount * 2; i++) { // Enough symbols to scroll
+        const randomSymbolKey = this.config.symbols[this.scene.math.Between(0, this.config.symbols.length - 1)].key;
+        const symbolDisplay = this.symbolEmoji[randomSymbolKey] || randomSymbolKey;
+        const tempText = this.scene.add.text(REEL_WIDTH / 2, -REEL_HEIGHT * (i + 1), symbolDisplay, {
+          fontSize: `${SYMBOL_FONT_SIZE}px`,
+          fontFamily: SYMBOL_FONT_FAMILY,
+          color: SYMBOL_COLOR,
+          align: 'center',
+        }).setOrigin(0.5);
+        reelContainer.add(tempText);
+        tempSymbols.push(tempText);
+      }
+
+      // Add the final symbols below the view, ready to scroll up
+      const finalSymbolObjects: Phaser.GameObjects.Text[] = [];
+      for (let rowIndex = 0; rowIndex < this.config.rowsCount; rowIndex++) {
+        const symbolKey = finalSymbols[rowIndex];
+        const symbolDisplay = this.symbolEmoji[symbolKey] || symbolKey;
+        const textObject = this.scene.add.text(REEL_WIDTH / 2, (this.config.rowsCount + rowIndex) * REEL_HEIGHT + REEL_HEIGHT / 2, symbolDisplay, {
+          fontSize: `${SYMBOL_FONT_SIZE}px`,
+          fontFamily: SYMBOL_FONT_FAMILY,
+          color: SYMBOL_COLOR,
+          align: 'center',
+        }).setOrigin(0.5);
+        reelContainer.add(textObject);
+        finalSymbolObjects.push(textObject);
+      }
+
+      // Combine existing symbols, temp symbols, and final symbols for the tween
+      const allSymbolsInReel = [...this.symbolTexts[reelIndex], ...tempSymbols, ...finalSymbolObjects];
+
+      // Tween all symbols in the reel container
+      const totalSpinDistance = (this.config.rowsCount * 2 + this.config.rowsCount) * REEL_HEIGHT; // Distance to scroll
+      const finalYOffset = -this.config.rowsCount * REEL_HEIGHT; // Offset to bring final symbols into view
+
+      const reelTween = this.scene.tweens.add({
+        targets: allSymbolsInReel,
+        y: `-=${totalSpinDistance}`, // Scroll up
+        ease: SYMBOL_TWEEN_EASE,
+        duration: SPIN_DURATION_PER_REEL + reelIndex * REEL_SPIN_DELAY,
+        delay: reelIndex * REEL_SPIN_DELAY,
+        onComplete: () => {
+          // Clean up temporary symbols
+          tempSymbols.forEach(s => s.destroy());
+          // Update the actual symbolTexts array with the final symbols
+          for (let rowIndex = 0; rowIndex < this.config.rowsCount; rowIndex++) {
+            this.symbolTexts[reelIndex][rowIndex]?.destroy(); // Destroy old text object
+            this.symbolTexts[reelIndex][rowIndex] = finalSymbolObjects[rowIndex];
+            // Reposition final symbols to their correct relative positions within the container
+            finalSymbolObjects[rowIndex].y = rowIndex * REEL_HEIGHT + REEL_HEIGHT / 2;
+          }
+        },
+      });
+      tweens.push(reelTween);
+    }
+
+    // Wait for all reel tweens to complete
+    this.scene.tweens.chain({
+      tweens: tweens,
+      onComplete: () => {
+        // Ensure final state is rendered correctly after animation
+        this.render(state);
+        onComplete();
+      },
+    });
+  }
+
+  /**
+   * Highlights the positions of winning symbols on the reels.
+   * @param winLines An array of `SlotWinLine` objects detailing the wins.
+   * @example
+   * this.slotUI.highlightWins(latestState.winLines);
+   */
+  public highlightWins(winLines: SlotWinLine[]): void {
+    this.clearHighlights();
+
+    winLines.forEach(winLine => {
+      winLine.positions.forEach(pos => {
+        const reelIndex = pos.reel;
+        const rowIndex = pos.row;
+
+        const graphics = this.highlightGraphics[reelIndex];
+        // Position relative to the reel container's top-left (0,0)
+        const rectX = 0;
+        const rectY = rowIndex * REEL_HEIGHT;
+
+        graphics.lineStyle(HIGHLIGHT_THICKNESS, HIGHLIGHT_COLOR, HIGHLIGHT_ALPHA);
+        graphics.strokeRect(rectX, rectY, REEL_WIDTH, REEL_HEIGHT);
+        this.reelContainers[reelIndex].add(graphics); // Add graphics to reel container
+      });
+    });
+  }
+
+  /**
+   * Clears all active win highlights from the reels.
+   * @example
+   * this.slotUI.clearHighlights();
+   */
+  public clearHighlights(): void {
+    this.highlightGraphics.forEach(graphics => graphics.clear());
+  }
+
+  /**
+   * Destroys all Phaser GameObjects created by this UI class, cleaning up resources.
+   * @example
+   * this.slotUI.destroy();
+   */
+  public destroy(): void {
+    this.reelContainers.forEach(container => container.destroy());
+    this.highlightGraphics.forEach(graphics => graphics.destroy());
+    this.symbolTexts.forEach(reel => reel.forEach(text => text.destroy()));
+    this.reelContainers = [];
+    this.symbolTexts = [];
+    this.highlightGraphics = [];
+  }
+}
+```
+```typescript
+/**
+ * @file masquerade.config.ts
+ * @purpose Defines the configuration for the Midnight Masquerade slot game.
+ * @author Agent 934
+ * @date 2026-04-16
+ * @license Proprietary – available for licensing
+ */
+
+import { SlotConfig, SlotPayline, SlotSymbolDef } from '../SlotEngineLogic';
+
+// --- Symbol Definitions ---
+const GOLDEN_MASK = 'GOLDEN_MASK';
+const CHAMPAGNE = 'CHAMPAGNE';
+const PEACOCK = 'PEACOCK';
+const GLOVES = 'GLOVES';
+const CLOCK = 'CLOCK';
+const SLIPPER = 'SLIPPER';
+const INVITATION = 'INVITATION';
+const MUSIC = 'MUSIC';
+const WILD = 'WILD';
+const SCATTER = 'SCATTER';
+
+export const MASQUERADE_SYMBOLS: SlotSymbolDef[] = [
+  { key: GOLDEN_MASK, weight: 1 },
+  { key: CHAMPAGNE, weight: 2 },
+  { key: PEACOCK, weight: 3 },
+  { key: GLOVES, weight: 4 },
+  { key: CLOCK, weight: 5 },
+  { key: SLIPPER, weight: 6 },
+  { key: INVITATION, weight: 7 },
+  { key: MUSIC, weight: 8 },
+  { key: WILD, weight: 1, isWild: true },
+  { key: SCATTER, weight: 1, isScatter: true },
+];
+
+// --- Paylines ---
+// These 25 paylines are standard for many 5x3 slots.
+const PAYLINES: SlotPayline[] = [
+  { positions: [{reel:0,row:1},{reel:1,row:1},{reel:2,row:1},{reel:3,row:1},{reel:4,row:1}] },
+  { positions: [{reel:0,row:0},{reel:1,row:0},{reel:2,row:0},{reel:3,row:0},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:2},{reel:2,row:2},{reel:3,row:2},{reel:4,row:2}] },
+  { positions: [{reel:0,row:0},{reel:1,row:1},{reel:2,row:2},{reel:3,row:1},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:1},{reel:2,row:0},{reel:3,row:1},{reel:4,row:2}] },
+  { positions: [{reel:0,row:0},{reel:1,row:0},{reel:2,row:1},{reel:3,row:0},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:2},{reel:2,row:1},{reel:3,row:2},{reel:4,row:2}] },
+  { positions: [{reel:0,row:1},{reel:1,row:0},{reel:2,row:0},{reel:3,row:0},{reel:4,row:1}] },
+  { positions: [{reel:0,row:1},{reel:1,row:2},{reel:2,row:2},{reel:3,row:2},{reel:4,row:1}] },
+  { positions: [{reel:0,row:0},{reel:1,row:1},{reel:2,row:1},{reel:3,row:1},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:1},{reel:2,row:1},{reel:3,row:1},{reel:4,row:2}] },
+  { positions: [{reel:0,row:0},{reel:1,row:0},{reel:2,row:1},{reel:3,row:2},{reel:4,row:2}] },
+  { positions: [{reel:0,row:2},{reel:1,row:2},{reel:2,row:1},{reel:3,row:0},{reel:4,row:0}] },
+  { positions: [{reel:0,row:1},{reel:1,row:0},{reel:2,row:1},{reel:3,row:0},{reel:4,row:1}] },
+  { positions: [{reel:0,row:1},{reel:1,row:2},{reel:2,row:1},{reel:3,row:2},{reel:4,row:1}] },
+  { positions: [{reel:0,row:0},{reel:1,row:1},{reel:2,row:0},{reel:3,row:1},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:1},{reel:2,row:2},{reel:3,row:1},{reel:4,row:2}] },
+  { positions: [{reel:0,row:1},{reel:1,row:1},{reel:2,row:0},{reel:3,row:1},{reel:4,row:1}] },
+  { positions: [{reel:0,row:1},{reel:1,row:1},{reel:2,row:2},{reel:3,row:1},{reel:4,row:1}] },
+  { positions: [{reel:0,row:0},{reel:1,row:2},{reel:2,row:0},{reel:3,row:2},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:0},{reel:2,row:2},{reel:3,row:0},{reel:4,row:2}] },
+  { positions: [{reel:0,row:0},{reel:1,row:1},{reel:2,row:0},{reel:3,row:0},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:1},{reel:2,row:2},{reel:3,row:2},{reel:4,row:2}] },
+  { positions: [{reel:0,row:1},{reel:1,row:0},{reel:2,row:2},{reel:3,row:0},{reel:4,row:1}] },
+  { positions: [{reel:0,row:0},{reel:1,row:0},{reel:2,row:0},{reel:3,row:1},{reel:4,row:1}] },
+];
+
+// --- Pay Table ---
+export const MASQUERADE_PAYTABLE: Record<string, Record<number, number>> = {
+  [GOLDEN_MASK]: { 3: 10, 4: 50, 5: 200 },
+  [CHAMPAGNE]: { 3: 8, 4: 30, 5: 100 },
+  [PEACOCK]: { 3: 5, 4: 20, 5: 75 },
+  [GLOVES]: { 3: 4, 4: 15, 5: 50 },
+  [CLOCK]: { 3: 3, 4: 10, 5: 30 },
+  [SLIPPER]: { 3: 2, 4: 8, 5: 20 },
+  [INVITATION]: { 3: 2, 4: 6, 5: 15 },
+  [MUSIC]: { 3: 1, 4: 4, 5: 10 },
+  // WILD symbols typically don't have their own payout unless they form a line of only WILDs.
+  // The engine logic handles WILD substitution. If a line of only WILDs forms, it pays the highest symbol it could substitute.
+  // For simplicity, we can define a WILD payout if it's meant to be a high-paying symbol on its own.
+  // Here, we'll assume WILDs substitute and don't have a direct payout unless explicitly defined.
+  // If WILDs form a line, they will pay as the highest paying symbol they can substitute.
+  // For this config, we'll let WILD substitute and not have its own direct payout.
+};
+
+// --- Slot Configuration ---
+export const MASQUERADE_CONFIG: SlotConfig = {
+  reelsCount: 5,
+  rowsCount: 3,
+  symbols: MASQUERADE_SYMBOLS,
+  paylines: PAYLINES,
+  payTable: MASQUERADE_PAYTABLE,
+  freeSpinScatterCount: 3,
+  freeSpinsGranted: 10,
+  freeSpinsRetrigger: 5,
+  wildMultiplierChance: 0.25,
+};
+
+// --- Emoji Mapping for UI ---
+export const MASQUERADE_EMOJI: Record<string, string> = {
+  [GOLDEN_MASK]: '🎭',
+  [CHAMPAGNE]: '🍾',
+  [PEACOCK]: '🦚',
+  [GLOVES]: '🧤',
+  [CLOCK]: '🕰️',
+  [SLIPPER]: '👠',
+  [INVITATION]: '✉️',
+  [MUSIC]: '🎶',
+  [WILD]: '✨',
+  [SCATTER]: '💎',
+};
+```
+```typescript
+/**
+ * @file alchemist.config.ts
+ * @purpose Defines the configuration for The Alchemist slot game.
+ * @author Agent 934
+ * @date 2026-04-16
+ * @license Proprietary – available for licensing
+ */
+
+import { SlotConfig, SlotPayline, SlotSymbolDef } from '../SlotEngineLogic';
+
+// --- Symbol Definitions ---
+const PHILOSOPHERS_STONE = 'PHILOSOPHERS_STONE';
+const ELIXIR = 'ELIXIR';
+const GRIMOIRE = 'GRIMOIRE';
+const CAULDRON = 'CAULDRON';
+const HOURGLASS = 'HOURGLASS';
+const VIAL = 'VIAL';
+const MORTAR = 'MORTAR';
+const RUNE = 'RUNE';
+const WILD = 'WILD';
+const SCATTER = 'SCATTER';
+
+export const ALCHEMIST_SYMBOLS: SlotSymbolDef[] = [
+  { key: PHILOSOPHERS_STONE, weight: 1 },
+  { key: ELIXIR, weight: 2 },
+  { key: GRIMOIRE, weight: 3 },
+  { key: CAULDRON, weight: 4 },
+  { key: HOURGLASS, weight: 4 },
+  { key: VIAL, weight: 5 },
+  { key: MORTAR, weight: 5 },
+  { key: RUNE, weight: 4 },
+  { key: WILD, weight: 1, isWild: true },
+  { key: SCATTER, weight: 1, isScatter: true },
+];
+
+// --- Paylines ---
+// These 25 paylines are standard for many 5x3 slots.
+const PAYLINES: SlotPayline[] = [
+  { positions: [{reel:0,row:1},{reel:1,row:1},{reel:2,row:1},{reel:3,row:1},{reel:4,row:1}] },
+  { positions: [{reel:0,row:0},{reel:1,row:0},{reel:2,row:0},{reel:3,row:0},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:2},{reel:2,row:2},{reel:3,row:2},{reel:4,row:2}] },
+  { positions: [{reel:0,row:0},{reel:1,row:1},{reel:2,row:2},{reel:3,row:1},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:1},{reel:2,row:0},{reel:3,row:1},{reel:4,row:2}] },
+  { positions: [{reel:0,row:0},{reel:1,row:0},{reel:2,row:1},{reel:3,row:0},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:2},{reel:2,row:1},{reel:3,row:2},{reel:4,row:2}] },
+  { positions: [{reel:0,row:1},{reel:1,row:0},{reel:2,row:0},{reel:3,row:0},{reel:4,row:1}] },
+  { positions: [{reel:0,row:1},{reel:1,row:2},{reel:2,row:2},{reel:3,row:2},{reel:4,row:1}] },
+  { positions: [{reel:0,row:0},{reel:1,row:1},{reel:2,row:1},{reel:3,row:1},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:1},{reel:2,row:1},{reel:3,row:1},{reel:4,row:2}] },
+  { positions: [{reel:0,row:0},{reel:1,row:0},{reel:2,row:1},{reel:3,row:2},{reel:4,row:2}] },
+  { positions: [{reel:0,row:2},{reel:1,row:2},{reel:2,row:1},{reel:3,row:0},{reel:4,row:0}] },
+  { positions: [{reel:0,row:1},{reel:1,row:0},{reel:2,row:1},{reel:3,row:0},{reel:4,row:1}] },
+  { positions: [{reel:0,row:1},{reel:1,row:2},{reel:2,row:1},{reel:3,row:2},{reel:4,row:1}] },
+  { positions: [{reel:0,row:0},{reel:1,row:1},{reel:2,row:0},{reel:3,row:1},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:1},{reel:2,row:2},{reel:3,row:1},{reel:4,row:2}] },
+  { positions: [{reel:0,row:1},{reel:1,row:1},{reel:2,row:0},{reel:3,row:1},{reel:4,row:1}] },
+  { positions: [{reel:0,row:1},{reel:1,row:1},{reel:2,row:2},{reel:3,row:1},{reel:4,row:1}] },
+  { positions: [{reel:0,row:0},{reel:1,row:2},{reel:2,row:0},{reel:3,row:2},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:0},{reel:2,row:2},{reel:3,row:0},{reel:4,row:2}] },
+  { positions: [{reel:0,row:0},{reel:1,row:1},{reel:2,row:0},{reel:3,row:0},{reel:4,row:0}] },
+  { positions: [{reel:0,row:2},{reel:1,row:1},{reel:2,row:2},{reel:3,row:2},{reel:4,row:2}] },
+  { positions: [{reel:0,row:1},{reel:1,row:0},{reel:2,row:2},{reel:3,row:0},{reel:4,row:1}] },
+  { positions: [{reel:0,row:0},{reel:1,row:0},{reel:2,row:0},{reel:3,row:1},{reel:4,row:1}] },
+];
+
+// --- Pay Table ---
+export const ALCHEMIST_PAYTABLE: Record<string, Record<number, number>> = {
+  [PHILOSOPHERS_STONE]: { 3: 10, 4: 50, 5: 200 },
+  [ELIXIR]: { 3: 8, 4: 30, 5: 100 },
+  [GRIMOIRE]: { 3: 5, 4: 20, 5: 75 },
+  [CAULDRON]: { 3: 4, 4: 15, 5: 50 },
+  [HOURGLASS]: { 3: 3, 4: 10, 5: 30 },
+  [VIAL]: { 3: 2, 4: 8, 5: 20 },
+  [MORTAR]: { 3: 2, 4: 6, 5: 15 },
+  [RUNE]: { 3: 1, 4: 4, 5: 10 },
+};
+
+// --- Slot Configuration ---
+export const ALCHEMIST_CONFIG: SlotConfig = {
+  reelsCount: 5,
+  rowsCount: 3,
+  symbols: ALCHEMIST_SYMBOLS,
+  paylines: PAYLINES,
+  payTable: ALCHEMIST_PAYTABLE,
+  freeSpinScatterCount: 3,
+  freeSpinsGranted: 10,
+  freeSpinsRetrigger: 5,
+  wildMultiplierChance: 0.25,
+};
+
+// --- Emoji Mapping for UI ---
+export const ALCHEMIST_EMOJI: Record<string, string> = {
+  [PHILOSOPHERS_STONE]: '🪨',
+  [ELIXIR]: '🧪',
+  [GRIMOIRE]: '📜',
+  [CAULDRON]: '🍲',
+  [HOURGLASS]: '⏳',
+  [VIAL]: '⚗️',
+  [MORTAR]: '🥣',
+  [RUNE]: ' runes', // Using text for rune as emoji is less clear
+  [WILD]: '✨',
+  [SCATTER]: '💎',
+};
+```
+```typescript
+/**
+ * @file SlotEngineLogic.test.ts
+ * @purpose Jest test suite for the SlotEngineLogic module.
+ * @author Agent 934
+ * @date 2026-04-16
+ * @license Proprietary – available for licensing
+ */
+
+import {
+  createSlotState,
+  spinSlot,
+  simulateSlotRTP,
+  SlotSpinState,
+  SlotConfig,
+  SlotWinLine,
+} from '../shared/slot-engine/SlotEngineLogic';
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
+import { MASQUERADE_CONFIG } from '../shared/slot-engine/configs/masquerade.config';
+import { ALCHEMIST_CONFIG } from '../shared/slot-engine/configs/alchemist.config';
+
+describe('SlotEngineLogic', () => {
+  const BET_AMOUNT = 100;
+  const LINES_BET = 25;
+  const BET_PER_LINE = BET_AMOUNT / LINES_BET;
+
+  // Helper to get symbol keys from config
+  const getSymbolKey = (config: SlotConfig, isWild?: boolean, isScatter?: boolean, index: number = 0) => {
+    if (isWild) return config.symbols.find(s => s.isWild)?.key || 'WILD';
+    if (isScatter) return config.symbols.find(s => s.isScatter)?.key || 'SCATTER';
+    return config.symbols.filter(s => !s.isWild && !s.isScatter)[index]?.key || 'UNKNOWN';
+  };
+
+  it('1. createSlotState returns correct initial shape', () => {
+    const state = createSlotState(BET_AMOUNT, LINES_BET);
+    expect(state).toEqual({
+      bet: BET_AMOUNT,
+      linesBet: LINES_BET,
+      reelStops: [],
+      totalWin: 0,
+      winLines: [],
+      scatterCount: 0,
+      freeSpinsRemaining: 0,
+      isFreeSpinTriggered: false,
+      isFreeSpinRetriggered: false,
+      isComplete: false,
+      lastSpinSeed: '',
+    });
+  });
+
+  it('2. spinSlot with forcedReelStops returns deterministic win', () => {
+    const config = MASQUERADE_CONFIG;
+    const rng = new ProvablyFairRNG('test-win-seed'); // Seed doesn't matter for forced stops
+
+    const GOLDEN_MASK = getSymbolKey(config, false, false, 0); // Highest paying symbol
+    const WILD = getSymbolKey(config, true);
+
+    // Force a 5-of-a-kind GOLDEN_MASK win on the first payline (straight middle row)
+    const forcedStops: string[][] = [
+      [GOLDEN_MASK, GOLDEN_MASK, GOLDEN_MASK], // Reel 0
+      [GOLDEN_MASK, GOLDEN_MASK, GOLDEN_MASK], // Reel 1
+      [GOLDEN_MASK, GOLDEN_MASK, GOLDEN_MASK], // Reel 2
+      [GOLDEN_MASK, GOLDEN_MASK, GOLDEN_MASK], // Reel 3
+      [GOLDEN_MASK, GOLDEN_MASK, GOLDEN_MASK], // Reel 4
+    ];
+
+    let state = createSlotState(BET_AMOUNT, LINES_BET);
+    state = spinSlot(state, config, rng, forcedStops);
+
+    expect(state.totalWin).toBeGreaterThan(0);
+    expect(state.winLines.length).toBeGreaterThan(0);
+
+    // The first payline is [{reel:0,row:1},{reel:1,row:1},{reel:2,row:1},{reel:3,row:1},{reel:4,row:1}]
+    // This should be a 5-of-a-kind GOLDEN_MASK win.
+    const expectedMultiplier = config.payTable[GOLDEN_MASK][5];
+    const expectedPayout = expectedMultiplier * BET_PER_LINE;
+
+    const winLine = state.winLines.find(wl =>
+      wl.symbol === GOLDEN_MASK && wl.count === 5 && wl.paylineIndex === 0
+    );
+    expect(winLine).toBeDefined();
+    expect(winLine?.payout).toBe(expectedPayout);
+    expect(state.totalWin).toBe(expectedPayout); // Only one payline hit in this specific setup
+
+    // Test with WILD substitution
+    const forcedStopsWithWild: string[][] = [
+      [GOLDEN_MASK, GOLDEN_MASK, GOLDEN_MASK],
+      [GOLDEN_MASK, WILD, GOLDEN_MASK], // Wild on middle row, reel 1
+      [GOLDEN_MASK, GOLDEN_MASK, GOLDEN_MASK],
+      [GOLDEN_MASK, GOLDEN_MASK, GOLDEN_MASK],
+      [GOLDEN_MASK, GOLDEN_MASK, GOLDEN_MASK],
+    ];
+    state = createSlotState(BET_AMOUNT, LINES_BET);
+    state = spinSlot(state, config, rng, forcedStopsWithWild);
+
+    const winLineWild = state.winLines.find(wl =>
+      wl.symbol === GOLDEN_MASK && wl.count === 5 && wl.paylineIndex === 0
+    );
+    expect(winLineWild).toBeDefined();
+    expect(winLineWild?.payout).toBe(expectedPayout); // Payout should be the same
+    expect(winLineWild?.isWildContributed).toBe(true);
+  });
+
+  it('3. spinSlot scatter count triggers freeSpinTriggered', () => {
+    const config = MASQUERADE_CONFIG;
+    const rng = new ProvablyFairRNG('test-scatter-seed');
+
+    const SCATTER = getSymbolKey(config, false, true);
+    const OTHER_SYMBOL = getSymbolKey(config, false, false, 1);
+
+    // Force 3 scatters to trigger free spins
+    const forcedStops: string[][] = [
+      [OTHER_SYMBOL, SCATTER, OTHER_SYMBOL], // Reel 0
+      [OTHER_SYMBOL, OTHER_SYMBOL, SCATTER], // Reel 1
+      [SCATTER, OTHER_SYMBOL, OTHER_SYMBOL], // Reel 2
+      [OTHER_SYMBOL, OTHER_SYMBOL, OTHER_SYMBOL], // Reel 3
+      [OTHER_SYMBOL, OTHER_SYMBOL, OTHER_SYMBOL], // Reel 4
+    ];
+
+    let state = createSlotState(BET_AMOUNT, LINES_BET);
+    state = spinSlot(state, config, rng, forcedStops);
+
+    expect(state.scatterCount).toBe(3);
+    expect(state.isFreeSpinTriggered).toBe(true);
+    expect(state.freeSpinsRemaining).toBe(config.freeSpinsGranted);
+    expect(state.isComplete).toBe(false); // Not complete because free spins are active
+  });
+
+  it('4. spinSlot during free spin decrements freeSpinsRemaining and can retrigger', () => {
+    const config = MASQUERADE_CONFIG;
+    const rng = new ProvablyFairRNG('test-freespin-seed');
+
+    const SCATTER = getSymbolKey(config, false, true);
+    const OTHER_SYMBOL = getSymbolKey(config, false, false, 1);
+
+    let state = createSlotState(BET_AMOUNT, LINES_BET);
+    state.freeSpinsRemaining = 5; // Start with 5 free spins
+
+    // Spin 1: No scatters
+    const forcedStops1: string[][] = [
+      [OTHER_SYMBOL, OTHER_SYMBOL, OTHER_SYMBOL],
+      [OTHER_SYMBOL, OTHER_SYMBOL, OTHER_SYMBOL],
+      [OTHER_SYMBOL, OTHER_SYMBOL, OTHER_SYMBOL],
+      [OTHER_SYMBOL, OTHER_SYMBOL, OTHER_SYMBOL],
+      [OTHER_SYMBOL, OTHER_SYMBOL, OTHER_SYMBOL],
+    ];
+    state = spinSlot(state, config, rng, forcedStops1);
+    expect(state.freeSpinsRemaining).toBe(4); // Decremented
+    expect(state.isFreeSpinTriggered).toBe(false);
+    expect(state.isFreeSpinRetriggered).toBe(false);
+    expect(state.isComplete).toBe(false);
+
+    // Spin 2: Retrigger free spins with 3 scatters
+    const forcedStops2: string[][] = [
+      [OTHER_SYMBOL, SCATTER, OTHER_SYMBOL],
+      [OTHER_SYMBOL, OTHER_SYMBOL, SCATTER],
+      [SCATTER, OTHER_SYMBOL, OTHER_SYMBOL],
+      [OTHER_SYMBOL, OTHER_SYMBOL, OTHER_SYMBOL],
+      [OTHER_SYMBOL, OTHER_SYMBOL, OTHER_SYMBOL],
+    ];
+    state = spinSlot(state, config, rng, forcedStops2);
+    expect(state.scatterCount).toBe(3);
+    expect(state.isFreeSpinRetriggered).toBe(true);
+    expect(state.freeSpinsRemaining).toBe(4 + config.freeSpinsRetrigger - 1); // 4 remaining + 5 retriggered - 1 for current spin
+    expect(state.freeSpinsRemaining).toBe(8);
+    expect(state.isComplete).toBe(false);
+
+    // Spin until complete
+    while (state.freeSpinsRemaining > 0) {
+      state = spinSlot(state, config, rng, forcedStops1); // No scatters
+    }
+    expect(state.freeSpinsRemaining).toBe(0);
+    expect(state.isComplete).toBe(true);
+  });
+
+  it('5. simulateSlotRTP with MASQUERADE_CONFIG is between 0.90 and 1.05', () => {
+    const rounds = 100000; // A large number of rounds for a reasonable estimate
+    const rtp = simulateSlotRTP(MASQUERADE_CONFIG, rounds, BET_PER_LINE, LINES_BET);
+    console.log(`Masquerade RTP (${rounds} rounds): ${rtp.toFixed(4)}`);
+    expect(rtp).toBeGreaterThanOrEqual(0.90);
+    expect(rtp).toBeLessThanOrEqual(1.05);
+  });
+
+  it('6. simulateSlotRTP with ALCHEMIST_CONFIG is between 0.90 and 1.05', () => {
+    const rounds = 100000;
+    const rtp = simulateSlotRTP(ALCHEMIST_CONFIG, rounds, BET_PER_LINE, LINES_BET);
+    console.log(`Alchemist RTP (${rounds} rounds): ${rtp.toFixed(4)}`);
+    expect(rtp).toBeGreaterThanOrEqual(0.90);
+    expect(rtp).toBeLessThanOrEqual(1.05);
+  });
+
+  it('7. ProvablyFairRNG: same seed produces same sequence', () => {
+    const seed = 'deterministic-test';
+    const rng1 = new ProvablyFairRNG(seed);
+    const rng2 = new ProvablyFairRNG(seed);
+
+    const sequence1: number[] = [];
+    const sequence2: number[] = [];
+
+    for (let i = 0; i < 100; i++) {
+      sequence1.push(rng1.random());
+      sequence2.push(rng2.random());
+    }
+
+    expect(sequence1).toEqual(sequence2);
+  });
+
+  it('8. ProvablyFairRNG: randomInt(1, 6) always returns integer in [1..6]', () => {
+    const rng = new ProvablyFairRNG('random-int-test');
+    for (let i = 0; i < 1000; i++) {
+      const num = rng.randomInt(1, 6);
+      expect(num).toBeGreaterThanOrEqual(1);
+      expect(num).toBeLessThanOrEqual(6);
+      expect(Number.isInteger(num)).toBe(true);
+    }
+    // Test min == max
+    expect(rng.randomInt(5, 5)).toBe(5);
+  });
+
+  it('9. ProvablyFairRNG: weightedChoice respects weights over 1000 samples', () => {
+    const rng = new ProvablyFairRNG('weighted-choice-test');
+    const items = [
+      { value: 'A', weight: 1 },
+      { value: 'B', weight: 99 },
+      { value: 'C', weight: 0 }, // Should never be chosen
+    ];
+
+    const counts: Record<string, number> = { A: 0, B: 0, C: 0 };
+    const samples = 10000;
+
+    for (let i = 0; i < samples; i++) {
+      const choice = rng.weightedChoice(items);
+      counts[choice]++;
+    }
+
+    // 'C' should never be chosen
+    expect(counts['C']).toBe(0);
+
+    // 'B' should be chosen approximately 99 times more often than 'A'
+    // With 10000 samples, A should be ~100, B ~9900
+    const expectedA = samples * (1 / 100);
+    const expectedB = samples * (99 / 100);
+
+    // Allow for some statistical variance (e.g., +/- 10% for A, +/- 1% for B)
+    expect(counts['A']).toBeGreaterThan(expectedA * 0.7);
+    expect(counts['A']).toBeLessThan(expectedA * 1.3);
+    expect(counts['B']).toBeGreaterThan(expectedB * 0.95);
+    expect(counts['B']).toBeLessThan(expectedB * 1.05);
+  });
+});
+```
+```typescript
+/**
+ * @file ProvablyFairRNG.test.ts
+ * @purpose Jest test suite for the ProvablyFairRNG class.
+ * @author Agent 934
+ * @date 2026-04-16
+ * @license Proprietary – available for licensing
+ */
+
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
+
+describe('ProvablyFairRNG', () => {
+  it('1. Deterministic: two instances with same seed produce identical sequences for 100 calls', () => {
+    const seed = 'test-seed-123';
+    const rng1 = new ProvablyFairRNG(seed);
+    const rng2 = new ProvablyFairRNG(seed);
+
+    const sequence1: number[] = [];
+    const sequence2: number[] = [];
+
+    for (let i = 0; i < 100; i++) {
+      sequence1.push(rng1.random());
+      sequence2.push(rng2.random());
+    }
+
+    expect(sequence1).toEqual(sequence2);
+  });
+
+  it('2. Different seeds produce different sequences', () => {
+    const seed1 = 'test-seed-1';
+    const seed2 = 'test-seed-2';
+    const rng1 = new ProvablyFairRNG(seed1);
+    const rng2 = new ProvablyFairRNG(seed2);
+
+    const sequence1: number[] = [];
+    const sequence2: number[] = [];
+
+    for (let i = 0; i < 10; i++) { // Fewer calls are enough to show difference
+      sequence1.push(rng1.random());
+      sequence2.push(rng2.random());
+    }
+
+    expect(sequence1).not.toEqual(sequence2);
+  });
+
+  it('3. random() always returns a float in [0, 1)', () => {
+    const rng = new ProvablyFairRNG('range-test');
+    for (let i = 0; i < 1000; i++) {
+      const num = rng.random();
+      expect(num).toBeGreaterThanOrEqual(0);
+      expect(num).toBeLessThan(1);
+    }
+  });
+
+  it('4. randomInt(min, max) always in range, is integer, works with min==max', () => {
+    const rng = new ProvablyFairRNG('random-int-test');
+    const samples = 1000;
+
+    // Test positive range
+    const min1 = 1;
+    const max1 = 10;
+    for (let i = 0; i < samples; i++) {
+      const num = rng.randomInt(min1, max1);
+      expect(num).toBeGreaterThanOrEqual(min1);
+      expect(num).toBeLessThanOrEqual(max1);
+      expect(Number.isInteger(num)).toBe(true);
+    }
+
+    // Test negative range
+    const min2 = -5;
+    const max2 = 5;
+    for (let i = 0; i < samples; i++) {
+      const num = rng.randomInt(min2, max2);
+      expect(num).toBeGreaterThanOrEqual(min2);
+      expect(num).toBeLessThanOrEqual(max2);
+      expect(Number.isInteger(num)).toBe(true);
+    }
+
+    // Test min == max
+    const fixedNum = 7;
+    for (let i = 0; i < samples; i++) {
+      const num = rng.randomInt(fixedNum, fixedNum);
+      expect(num).toBe(fixedNum);
+      expect(Number.isInteger(num)).toBe(true);
+    }
+  });
+
+  it('5. weightedChoice: item with weight 0 is never chosen; item with weight 100 vs weight 1 is chosen ~99% of the time', () => {
+    const rng = new ProvablyFairRNG('weighted-choice-distribution-test');
+    const items = [
+      { value: 'A', weight: 1 },
+      { value: 'B', weight: 100 },
+      { value: 'C', weight: 0 }, // Should never be chosen
+      { value: 'D', weight: -5 }, // Should never be chosen
+    ];
+
+    const counts: Record<string, number> = { A: 0, B: 0, C: 0, D: 0 };
+    const samples = 10000;
+
+    for (let i = 0; i < samples; i++) {
+      const choice = rng.weightedChoice(items);
+      counts[choice]++;
+    }
+
+    // 'C' and 'D' should never be chosen
+    expect(counts['C']).toBe(0);
+    expect(counts['D']).toBe(0);
+
+    // 'B' should be chosen approximately 100 times more often than 'A'
+    // Total effective weight = 1 + 100 = 101
+    // A expected: 1/101 * samples
+    // B expected: 100/101 * samples
+    const expectedA = (1 / 101) * samples;
+    const expectedB = (100 / 101) * samples;
+
+    // Allow for some statistical variance (e.g., +/- 15% for A, +/- 5% for B)
+    expect(counts['A']).toBeGreaterThan(expectedA * 0.75);
+    expect(counts['A']).toBeLessThan(expectedA * 1.25);
+    expect(counts['B']).toBeGreaterThan(expectedB * 0.95);
+    expect(counts['B']).toBeLessThan(expectedB * 1.05);
+
+    // Test with all zero/negative weights
+    const zeroWeightItems = [{ value: 'X', weight: 0 }, { value: 'Y', weight: -1 }];
+    expect(() => rng.weightedChoice(zeroWeightItems)).toThrow('Cannot make a weighted choice from items with zero or negative total weight.');
+
+    // Test with only one positive weight
+    const singleItem = [{ value: 'Z', weight: 10 }];
+    for (let i = 0; i < 100; i++) {
+      expect(rng.weightedChoice(singleItem)).toBe('Z');
+    }
+  });
+
+  it('6. getSeed() returns a string', () => {
+    const seedString = 'my-custom-seed';
+    const rng1 = new ProvablyFairRNG(seedString);
+    expect(rng1.getSeed()).toBe(seedString);
+    expect(typeof rng1.getSeed()).toBe('string');
+
+    const seedNumber = 45678;
+    const rng2 = new ProvablyFairRNG(seedNumber);
+    expect(rng2.getSeed()).toBe(seedNumber.toString());
+    expect(typeof rng2.getSeed()).toBe('string');
+
+    const rng3 = new ProvablyFairRNG(); // Uses Date.now()
+    expect(typeof rng3.getSeed()).toBe('string');
+    expect(rng3.getSeed()).not.toBe('');
+  });
+
+  it('7. clone() produces same subsequent values as original at point of cloning', () => {
+    const rngOriginal = new ProvablyFairRNG('clone-test-seed');
+
+    // Advance original RNG a few times
+    rngOriginal.random();
+    rngOriginal.randomInt(1, 10);
+
+    // Clone the RNG
+    const rngClone = rngOriginal.clone();
+
+    // Get next values from both
+    const originalNext1 = rngOriginal.random();
+    const cloneNext1 = rngClone.random();
+
+    expect(originalNext1).toBe(cloneNext1);
+
+    const originalNext2 = rngOriginal.randomInt(1, 100);
+    const cloneNext2 = rngClone.randomInt(1, 100);
+
+    expect(originalNext2).toBe(cloneNext2);
+
+    // Ensure they continue to produce the same sequence
+    for (let i = 0; i < 50; i++) {
+      expect(rngOriginal.random()).toBe(rngClone.random());
+    }
+  });
+});
+```
+
+---
+
+## REFACTOR INSTRUCTIONS FOR EXISTING LOGIC FILES
+
+### FILE: src/games/MasqueradeLogic.ts
+CHANGE: Replace `import { getRandomSeedableRNG } from '../utils/RNG';` with `import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';`
+CHANGE: In the `spinMasquerade` function, replace `const rng = config.rng ?? getRandomSeedableRNG();` with:
+```typescript
+    const _rng = new ProvablyFairRNG(config.seed); // Use config.seed if available, otherwise ProvablyFairRNG will use Date.now()
+    const rng = config.rng ?? _rng.random.bind(_rng);
+```
+*Self-correction*: The existing `config.rng` is `() => number`. The new `ProvablyFairRNG` has a `random()` method. So `_rng.random.bind(_rng)` is the correct way to provide a function that matches the `() => number` signature. The `config.seed` should be passed to `ProvablyFairRNG` constructor if the `MasqueradeConfig` has a `seed` property. If not, `ProvablyFairRNG` will default to `Date.now()`. Assuming `MasqueradeConfig` doesn't have a `seed` property, the `ProvablyFairRNG()` constructor without arguments is fine. Let's stick to the simpler instruction.
+
+Corrected instruction for `MasqueradeLogic.ts`:
+CHANGE: Replace `import { getRandomSeedableRNG } from '../utils/RNG';` with `import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';`
+CHANGE: In the `spinMasquerade` function, replace `const rng = config.rng ?? getRandomSeedableRNG();` with:
+```typescript
+    const _rng = new ProvablyFairRNG();
+    const rng = config.rng ?? _rng.random.bind(_rng);
+```
+
+### FILE: src/games/AlchemistLogic.ts
+CHANGE: Replace `import { getRandomSeedableRNG } from '../utils/RNG';` with `import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';`
+CHANGE: In the `spinAlchemist` function, replace `const rng = config.rng ?? getRandomSeedableRNG();` with:
+```typescript
+    const _rng = new ProvablyFairRNG();
+    const rng = config.rng ?? _rng.random.bind(_rng);
+```
+
+### FILE: src/games/JettLogic.ts
+CHANGE: Add `import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';` at the top of the file.
+CHANGE: In the `spinJett` function, replace `const rng = config.rng ?? Math.random;` with:
+```typescript
+    const _rng = new ProvablyFairRNG();
+    const rng = config.rng ?? _rng.random.bind(_rng);
+```
+
+### FILE: src/games/ShatterStepLogic.ts
+CHANGE: Add `import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';` at the top of the file.
+CHANGE: In the `createShatterStepState` function, replace `const rng = config.rng ?? Math.random;` with:
+```typescript
+    const _rng = new ProvablyFairRNG();
+    const rng = config.rng ?? _rng.random.bind(_rng);
+```
+
+### FILE: src/games/DiceLogic.ts
+CHANGE: Add `import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';` at the top of the file.
+CHANGE: In the `rollDice` function, replace `const rng = config.rng ?? Math.random;` with:
+```typescript
+    const _rng = new ProvablyFairRNG();
+    const rng = config.rng ?? _rng.random.bind(_rng);
+```
+
+### FILE: src/games/MinesLogic.ts
+CHANGE: Add `import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';` at the top of the file.
+CHANGE: In the `revealMineTile` function, replace `const rng = config.rng ?? Math.random;` with:
+```typescript
+    const _rng = new ProvablyFairRNG();
+    const rng = config.rng ?? _rng.random.bind(_rng);
+```
+CHANGE: In the `createMinesState` function, replace `const rng = config.rng ?? Math.random;` with:
+```typescript
+    const _rng = new ProvablyFairRNG();
+    const rng = config.rng ?? _rng.random.bind(_rng);
+```
+
+### FILE: src/games/BallDropLogic.ts
+CHANGE: Add `import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';` at the top of the file.
+CHANGE: In the `dropBall` function, replace `const rng = config.rng ?? Math.random;` with:
+```typescript
+    const _rng = new ProvablyFairRNG();
+    const rng = config.rng ?? _rng.random.bind(_rng);
+```
+CHANGE: In the `dropBall` function, replace `Math.random()` with `rng()` on line(s) where it's used for physics calculations (e.g., `ball.vx = (Math.random() * 2 - 1) * INITIAL_HORIZONTAL_VELOCITY;`).
+
+### FILE: src/games/FlapFortuneLogic.ts
+CHANGE: Add `import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';` at the top of the file.
+CHANGE: In the `createFlapFortuneState` function, replace `const rng = config.rng ?? Math.random;` with:
+```typescript
+    const _rng = new ProvablyFairRNG();
+    const rng = config.rng ?? _rng.random.bind(_rng);
+```
+CHANGE: In the `updateFlapFortune` function, replace `Math.random()` with `rng()` on line(s) where it's used for pipe generation (e.g., `const gapY = PIPE_MIN_GAP_Y + Math.random() * (PIPE_MAX_GAP_Y - PIPE_MIN_GAP_Y);`).
