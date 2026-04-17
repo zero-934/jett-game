@@ -420,7 +420,7 @@ export class InfernoUI {
     const betSpacing = 68;
     const betStartX = CANVAS_WIDTH / 2 - (BET_OPTIONS.length - 1) * betSpacing / 2;
     BET_OPTIONS.forEach((bet, i) => {
-      const btn = this.scene.add.text(betStartX + i * betSpacing, 420, `$${bet}`, {
+      const btn = this.scene.add.text(betStartX + i * betSpacing, 536, `$${bet}`, {
         font: 'bold 18px Arial', color: GOLD_STR,
         backgroundColor: '#333333', padding: { x: 8, y: 5 }
       }).setOrigin(0.5).setDepth(100).setInteractive({ useHandCursor: true });
@@ -433,7 +433,7 @@ export class InfernoUI {
     // Bet Text
     this.betText = this.scene.add.text(
       CANVAS_WIDTH * 0.1,
-      540,
+      656,
       'BET: 100',
       { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
     ).setOrigin(0, 0.5).setDepth(100);
@@ -441,7 +441,7 @@ export class InfernoUI {
     // Win Text
     this.winText = this.scene.add.text(
       CANVAS_WIDTH * 0.9,
-      540,
+      656,
       'WIN: 0',
       { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
     ).setOrigin(1, 0.5).setDepth(100);
@@ -449,7 +449,7 @@ export class InfernoUI {
     // Spin Button
     const buttonWidth = 120;
     const buttonHeight = 60;
-    this.spinButton = this.scene.add.container(CANVAS_WIDTH / 2, 490).setDepth(100);
+    this.spinButton = this.scene.add.container(CANVAS_WIDTH / 2, 606).setDepth(100);
 
     const spinBg = this.scene.add.graphics();
     spinBg.fillStyle(GOLD, 1);

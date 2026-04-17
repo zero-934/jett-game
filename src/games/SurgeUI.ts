@@ -89,11 +89,11 @@ const CROWN_FLIP_BUTTON_SPACING = 20;
 const WIN_BADGE_DURATION = 1000;
 const WIN_BADGE_OFFSET_Y = 50;
 
-const SPIN_BUTTON_Y = 490;
+const SPIN_BUTTON_Y = 606;
 
 const BET_DISPLAY_X = 80;
 const WIN_DISPLAY_X = CANVAS_WIDTH - 80;
-const DISPLAY_Y = 540;
+const DISPLAY_Y = 656;
 
 export class SurgeUI {
   private scene: Phaser.Scene;
