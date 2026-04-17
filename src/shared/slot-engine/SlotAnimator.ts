@@ -79,6 +79,8 @@ export class SlotAnimator {
 
   /** reelCols[reel][symbolIndex] — world-space containers, (spinRows + rowsCount) per reel */
   private reelCols: Phaser.GameObjects.Container[][] = [];
+  /** Geometry mask graphics per reel to clip spin overflow */
+  private reelMasks: Phaser.GameObjects.Graphics[] = [];
 
   /** Cached grid X so snapReels / spinReel can use it */
   private gridX = 0;
@@ -97,6 +99,8 @@ export class SlotAnimator {
   }
 
   // ─── Derived layout helpers ────────────────────────────────────────────────
+
+  private get rowCount(): number { return this.config.rowsCount; }
 
   private get cellStep(): number {
     return this.config.symbolSize + this.config.reelGap;
@@ -153,6 +157,19 @@ export class SlotAnimator {
         c.setAlpha(0);
         this.reelCols[r].push(c);
       }
+
+      // Clip each reel to the exact 3-row visible window using a graphics mask
+      const maskShape = this.scene.add.graphics();
+      maskShape.fillStyle(0xffffff);
+      maskShape.fillRect(
+        reelX,
+        this.config.gridTop,
+        symbolSize,
+        this.rowCount * this.cellStep - this.config.reelGap
+      );
+      const mask = maskShape.createGeometryMask();
+      this.reelCols[r].forEach(c => c.setMask(mask));
+      this.reelMasks.push(maskShape);
     }
 
     this.buildFlashOverlay();
@@ -333,7 +350,9 @@ export class SlotAnimator {
    */
   public destroy(): void {
     this.reelCols.forEach(col => col.forEach(c => c.destroy()));
+    this.reelMasks.forEach(m => m.destroy());
     this.reelCols = [];
+    this.reelMasks = [];
     this.flashOverlay?.destroy();
     this.flashOverlay = null;
     this.flashMsg     = null;
