@@ -21,7 +21,7 @@ import type { AlchemistState } from './AlchemistLogic';
 // ─── Layout constants ─────────────────────────────────────────────────────────
 const SYM        = 66;
 const REEL_GAP   = 4;
-const GRID_TOP   = 190;
+const GRID_TOP   = 290;
 const SPIN_ROWS  = 8;
 const REEL_DELAY = 120;
 
