@@ -101,7 +101,7 @@ src/scenes/<Name>Scene.ts    ← Wires Logic + UI. Registered in Phaser game con
 
 ## House Edge Rules
 
-- **RTP target: 97%** (3% house edge on all games)
+- **RTP target: 96%** (4% house edge on all games)
 - House edge must be applied in the Logic file, not the UI
 - Every Logic file must have an RTP simulation function (e.g. `simulateJettRTP`)
 - Tests must verify RTP is reasonable (not >100%, not <50% for standard play)
@@ -133,6 +133,7 @@ src/scenes/<Name>Scene.ts    ← Wires Logic + UI. Registered in Phaser game con
 
 ## What NOT to Do
 
+- ❌ Do NOT use `Math.random()` directly — always use `ProvablyFairRNG` from `src/shared/rng/ProvablyFairRNG.ts`
 - ❌ Do NOT import Phaser into a `Logic.ts` file — ever
 - ❌ Do NOT put game math/RNG in a `UI.ts` or `Scene.ts` file
 - ❌ Do NOT use `console.log` debugging in committed code
@@ -172,7 +173,15 @@ jett-game/
 │   │   ├── DiceLogic.test.ts
 │   │   ├── MinesLogic.test.ts
 │   │   └── BallDropLogic.test.ts
-│   └── shared/                    ← Shared utilities (if any)
+│   └── shared/
+│       ├── rng/
+│       │   └── ProvablyFairRNG.ts ← xoroshiro128+ PRNG, Solana VRF-ready
+│       └── slot-engine/
+│           ├── SlotEngineLogic.ts ← Pure TS slot engine (96% RTP, reel strips)
+│           ├── SlotEngineUI.ts    ← Phaser renderer for slots
+│           └── configs/
+│               ├── masquerade.config.ts
+│               └── alchemist.config.ts
 ├── public/                        ← Static assets
 ├── AGENTS.md                      ← YOU ARE HERE (AI agent guide)
 ├── AGENT_RULES.md                 ← Legacy rules (defer to AGENTS.md)
