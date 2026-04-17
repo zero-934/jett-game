@@ -79,27 +79,31 @@ export class InfernoScene extends Phaser.Scene {
     this.infernoUI.updateBet(this.currentBet);
     this.infernoUI.updateWin(this.infernoState.totalWin);
 
-    // Balance display
+    // Nav bar background
+    this.add.graphics().fillStyle(0x000000, 0.7).fillRect(0, 0, this.scale.width, 36).setDepth(9);
+
+    // Balance display — right side of nav bar
     this.balanceText = this.add
-      .text(this.scale.width * 0.5, 10, `BALANCE: $${this.balance}`, {
+      .text(this.scale.width - 12, 18, `BAL: $${this.balance}`, {
         fontFamily: 'Arial',
-        fontSize: '28px',
+        fontSize: '16px',
         color: GOLD_STR,
       })
-      .setOrigin(0.5, 0)
+      .setOrigin(1, 0.5)
       .setDepth(10);
 
     // Bet selector buttons
     const betButtonY = this.scale.height * 0.85;
-    const betButtonStartX = this.scale.width / 2 - (BET_OPTIONS.length - 1) * 60; // Center buttons
+    const betSpacing = 68;
+    const betButtonStartX = this.scale.width / 2 - (BET_OPTIONS.length - 1) * betSpacing / 2;
     BET_OPTIONS.forEach((betAmount, index) => {
       const button = this.add
-        .text(betButtonStartX + index * 120, betButtonY, `$${betAmount}`, {
+        .text(betButtonStartX + index * betSpacing, betButtonY, `$${betAmount}`, {
           fontFamily: 'Arial',
-          fontSize: '24px',
+          fontSize: '20px',
           color: GOLD_STR,
           backgroundColor: '#333333',
-          padding: { x: 15, y: 8 },
+          padding: { x: 10, y: 6 },
         })
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true })
@@ -123,14 +127,14 @@ export class InfernoScene extends Phaser.Scene {
       .on('pointerdown', this.handleSpin, this)
       .setDepth(10);
 
-    // Back button
+    // Back button — left side of nav bar
     this.add
-      .text(20, 18, '< BACK', {
+      .text(12, 18, '‹ HOME', {
         fontFamily: 'Arial',
-        fontSize: '24px',
+        fontSize: '16px',
         color: GOLD_STR,
       })
-      .setOrigin(0, 0)
+      .setOrigin(0, 0.5)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', this.goHome, this)
       .setDepth(10);
@@ -188,7 +192,7 @@ export class InfernoScene extends Phaser.Scene {
     this.betButtons.forEach((btn) => btn.disableInteractive().setAlpha(0.5));
 
     this.balance -= this.currentBet;
-    this.balanceText.setText(`BALANCE: $${this.balance}`);
+    this.balanceText.setText(`BAL: $${this.balance}`);
     this.infernoUI.updateWin(0); // Reset win display for new spin
 
     // Check if the next spin should be an Inferno Spin based on previous state's heat meter
@@ -332,7 +336,7 @@ export class InfernoScene extends Phaser.Scene {
    */
   private endSpin(): void {
     this.balance += this.infernoState.totalWin;
-    this.balanceText.setText(`BALANCE: $${this.balance}`);
+    this.balanceText.setText(`BAL: $${this.balance}`);
     this.infernoUI.updateWin(0); // Reset win display for next spin
 
     this.isSpinning = false;
