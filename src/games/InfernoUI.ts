@@ -358,23 +358,22 @@ export class InfernoUI {
    * @param symbolKey The key of the symbol to draw.
    */
   private drawSymbol(container: Phaser.GameObjects.Container, symbolKey: string): void {
+    container.removeAll(true);
     const { symbolSize } = THREE_REEL_PRESET;
-    const inset = 6;
-    const rectSize = symbolSize - inset * 2;
-    const radius = 8;
+    const inset = 3;
 
     const bg = this.scene.add.graphics();
-    bg.fillStyle(SYMBOL_BG[symbolKey] || 0x000000, 1);
-    bg.fillRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
-    bg.lineStyle(2, GOLD, 1);
-    bg.strokeRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
+    bg.fillStyle(SYMBOL_BG[symbolKey] || 0x222222, 1);
+    bg.fillRoundedRect(inset, inset, symbolSize - inset * 2, symbolSize - inset * 2, 8);
+    bg.lineStyle(2, GOLD, 0.8);
+    bg.strokeRoundedRect(inset, inset, symbolSize - inset * 2, symbolSize - inset * 2, 8);
     container.add(bg);
 
     const emoji = SYMBOL_EMOJI[symbolKey] || '?';
-    const text = this.scene.add.text(0, 0, emoji, {
-      font: `bold ${symbolSize * 0.6}px Arial`,
+    const text = this.scene.add.text(symbolSize / 2, symbolSize / 2, emoji, {
+      font: `bold ${Math.floor(symbolSize * 0.5)}px Arial`,
       color: '#ffffff',
-      align: 'center'
+      align: 'center',
     }).setOrigin(0.5);
     container.add(text);
   }
@@ -385,14 +384,11 @@ export class InfernoUI {
    * @param container The Phaser.GameObjects.Container to draw into.
    */
   private drawBlur(container: Phaser.GameObjects.Container): void {
+    container.removeAll(true);
     const { symbolSize } = THREE_REEL_PRESET;
-    const inset = 6;
-    const rectSize = symbolSize - inset * 2;
-    const radius = 8;
-
     const bg = this.scene.add.graphics();
-    bg.fillStyle(0x666666, 1);
-    bg.fillRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
+    bg.fillStyle(0x2a2a3a, 0.75);
+    bg.fillRoundedRect(3, 3, symbolSize - 6, symbolSize - 6, 7);
     container.add(bg);
   }
 
