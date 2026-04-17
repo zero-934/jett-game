@@ -71,6 +71,10 @@ export class AlchemistUI {
   private spinBtnLabel: Phaser.GameObjects.Text      | null = null;
   private winDisplay:   Phaser.GameObjects.Text      | null = null;
   private betDisplay:   Phaser.GameObjects.Text      | null = null;
+  private balance:      number = 10000;
+  private currentBet:   number = 25;
+  private balanceText:  Phaser.GameObjects.Text | null = null;
+  private betBtns:      Phaser.GameObjects.Text[] = [];
   private fsDisplay:    Phaser.GameObjects.Text      | null = null;
   private flashOverlay: Phaser.GameObjects.Container | null = null;
 
@@ -105,6 +109,10 @@ export class AlchemistUI {
     this.spinBtnLabel = null;
     this.winDisplay   = null;
     this.betDisplay   = null;
+    this.balanceText?.destroy();
+    this.balanceText  = null;
+    this.betBtns.forEach(b => b.destroy());
+    this.betBtns      = [];
     this.fsDisplay    = null;
     this.flashOverlay = null;
     this.state        = null;
@@ -226,7 +234,33 @@ export class AlchemistUI {
     const { width } = this.scene.scale;
     const hudY = GRID_TOP + this.gridH + 16;
 
-    this.betDisplay = this.scene.add.text(16, hudY, `BET  ${BET_PER_LINE * LINES_COUNT}`, {
+    // Balance display
+    this.balanceText = this.scene.add.text(width - 16, hudY - 30, `BAL  ${this.balance.toLocaleString()}`, {
+      fontFamily: FONT_UI, fontSize: '13px', color: GOLD_STR,
+    }).setOrigin(1, 0.5);
+
+    // Bet selector
+    const BET_OPTIONS_A = [1, 10, 50, 250, 1000];
+    const betSpacingA = Math.floor((width - 32) / BET_OPTIONS_A.length);
+    BET_OPTIONS_A.forEach((bet: number, i: number) => {
+      const bx = 16 + betSpacingA * i + betSpacingA / 2;
+      const btn = this.scene.add.text(bx, hudY + 30, `$${bet.toLocaleString()}`, {
+        fontFamily: FONT_UI, fontSize: '13px',
+        color: this.currentBet === bet ? DARK_STR : GOLD_STR,
+        backgroundColor: this.currentBet === bet ? GOLD_STR : '#333333',
+        padding: { x: 8, y: 4 },
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      btn.on('pointerdown', () => {
+        this.currentBet = bet;
+        this.betBtns.forEach((b, j) => {
+          b.setStyle({ backgroundColor: j === i ? GOLD_STR : '#333333', color: j === i ? DARK_STR : GOLD_STR });
+        });
+        this.betDisplay?.setText(`BET  ${bet.toLocaleString()}`);
+      });
+      this.betBtns.push(btn);
+    });
+
+    this.betDisplay = this.scene.add.text(16, hudY, `BET  ${this.currentBet.toLocaleString()}`, {
       fontFamily: FONT_UI, fontSize: '14px', color: COPPER_STR,
     });
 
@@ -539,7 +573,9 @@ export class AlchemistUI {
     }
 
     Promise.all(reelPromises).then(() => {
+      this.balance += snap.totalWin - this.currentBet;
       this.winDisplay?.setText(`WIN  ${snap.totalWin > 0 ? snap.totalWin.toFixed(2) : '—'}`);
+      this.balanceText?.setText(`BAL  ${this.balance.toLocaleString()}`);
       if (snap.freeSpinsRemaining > 0) {
         this.fsDisplay?.setText(`FREE SPINS: ${snap.freeSpinsRemaining}`);
       }
