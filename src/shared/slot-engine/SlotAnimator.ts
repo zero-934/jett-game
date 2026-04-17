@@ -159,21 +159,31 @@ export class SlotAnimator {
 
     }
 
-    // Cover bars above and below the grid to hide scrolling symbols outside the window
-    // Same technique as MasqueradeUI side bars but horizontal
+    // Narrow cover strips that ONLY hide the spin buffer zones (just above/below the 3-row window)
+    // These must NOT extend over nav bar, meters, buttons or HUD
     const coverColor = 0x000000;
-    const canvasH = this.scene.game.config.height as number || 844;
     const gridBottom = this.config.gridTop + this.gridH;
+    const bufferHeight = this.config.spinRows * this.cellStep;
 
-    // Top cover — hides symbols scrolling in from above
-    const topCover = this.scene.add.graphics().setDepth(20);
+    // Top cover — only covers the buffer zone directly above the grid
+    const topCover = this.scene.add.graphics().setDepth(15);
     topCover.fillStyle(coverColor, 1);
-    topCover.fillRect(0, 0, canvasWidth, this.config.gridTop);
+    topCover.fillRect(
+      this.gridX,
+      this.config.gridTop - bufferHeight,
+      this.gridW,
+      bufferHeight
+    );
 
-    // Bottom cover — hides symbols scrolling out below
-    const bottomCover = this.scene.add.graphics().setDepth(20);
+    // Bottom cover — only covers the buffer zone directly below the grid
+    const bottomCover = this.scene.add.graphics().setDepth(15);
     bottomCover.fillStyle(coverColor, 1);
-    bottomCover.fillRect(0, gridBottom, canvasWidth, canvasH - gridBottom);
+    bottomCover.fillRect(
+      this.gridX,
+      gridBottom,
+      this.gridW,
+      bufferHeight
+    );
 
     this.buildFlashOverlay();
     return this.gridX;
