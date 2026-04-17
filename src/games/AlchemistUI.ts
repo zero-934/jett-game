@@ -272,7 +272,7 @@ export class AlchemistUI {
       fontFamily: FONT_UI, fontSize: '14px', color: '#ff8800',
     }).setOrigin(0.5, 0);
 
-    const btnY = hudY + 56;
+    const btnY = hudY + 110;
     const bg   = this.scene.add.graphics();
     this.drawBtnBg(bg, false);
     const label = this.scene.add.text(0, 0, 'SPIN', {

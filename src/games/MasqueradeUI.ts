@@ -310,7 +310,7 @@ export class MasqueradeUI {
     }).setOrigin(0.5, 0);
 
     // SPIN button
-    const btnY = hudY + 56;
+    const btnY = hudY + 110;
     const bg   = this.scene.add.graphics();
     this.drawBtnBg(bg, false);
 
