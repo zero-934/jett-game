@@ -1,0 +1,1648 @@
+```typescript
+/**
+ * @file src/shared/slot-engine/SlotAnimator.ts
+ * @purpose A reusable Phaser animation helper for any slot game on the platform. Pure Phaser — no game logic.
+ * @author Agent 934
+ * @date 2026-04-16
+ * @license Proprietary
+ */
+
+import * as Phaser from 'phaser';
+import type { Tween } from 'phaser/src/tweens';
+
+// --- Constants ---
+const GOLD = 0xc9a84c;
+const GOLD_STR = '#c9a84c';
+const WIN_PULSE_DURATION = 160; // ms
+const WIN_PULSE_SCALE = 1.15;
+const WIN_PULSE_REPEATS = 3;
+const CELL_FLASH_DURATION = 150; // ms for fade out, then fade in
+const FLASH_IN_DURATION = 180; // ms
+const FLASH_OUT_DURATION = 200; // ms
+
+// --- Interfaces and Presets ---
+
+export interface SlotAnimatorConfig {
+  reelsCount: number;       // 3 or 5
+  rowsCount: number;        // 3
+  symbolSize: number;       // px (66 for 5-reel, 100 for 3-reel)
+  reelGap: number;          // px between reels
+  spinRows: number;         // off-screen buffer rows (e.g., 8 for 5-reel, 6 for 3-reel)
+  reelDelay: number;        // ms stagger between reels stopping
+  baseDuration: number;     // ms for reel 0 spin duration
+  gridTop: number;          // y position of grid top
+}
+
+/**
+ * Preset configuration for a 5-reel, 3-row slot game (e.g., MasqueradeUI).
+ */
+export const FIVE_REEL_PRESET: SlotAnimatorConfig = {
+  reelsCount: 5,
+  rowsCount: 3,
+  symbolSize: 66,
+  reelGap: 4,
+  spinRows: 8,
+  reelDelay: 120,
+  baseDuration: 700,
+  gridTop: 190,
+};
+
+/**
+ * Preset configuration for a 3-reel, 3-row slot game (e.g., InfernoUI, SurgeUI).
+ */
+export const THREE_REEL_PRESET: SlotAnimatorConfig = {
+  reelsCount: 3,
+  rowsCount: 3,
+  symbolSize: 100,
+  reelGap: 6,
+  spinRows: 6,
+  reelDelay: 100,
+  baseDuration: 600,
+  gridTop: 277, // Centered on 390x844 canvas: (844 - (3*100 + 2*6)) / 2 = (844 - 312) / 2 = 532 / 2 = 266. Let's adjust slightly for header/footer.
+                // (844 - (3*100)) / 2 = (844 - 300) / 2 = 272. Let's use 277 for a bit more top padding.
+};
+
+/**
+ * A reusable Phaser animation helper for any slot game on the platform.
+ * Pure Phaser — no game logic.
+ */
+export class SlotAnimator {
+  private scene: Phaser.Scene;
+  private config: SlotAnimatorConfig;
+
+  private reelColumns: Phaser.GameObjects.Container[] = [];
+  private symbolContainers: Phaser.GameObjects.Container[][] = []; // [reel][symbolIndex]
+
+  private drawSymbolCallback: (container: Phaser.GameObjects.Container, symbolKey: string) => void;
+  private drawBlurCallback: (container: Phaser.GameObjects.Container) => void;
+
+  private flashOverlayRect: Phaser.GameObjects.Rectangle;
+  private flashOverlayMessage: Phaser.GameObjects.Text;
+  private flashOverlaySub: Phaser.GameObjects.Text;
+  private flashOverlayContainer: Phaser.GameObjects.Container;
+
+  /**
+   * Creates an instance of SlotAnimator.
+   * @param scene The Phaser Scene this animator belongs to.
+   * @param config Configuration for the slot grid and animations.
+   */
+  constructor(scene: Phaser.Scene, config: SlotAnimatorConfig) {
+    this.scene = scene;
+    this.config = config;
+
+    // Initialize flash overlay, hidden by default
+    this.flashOverlayContainer = this.scene.add.container(0, 0).setDepth(1000).setVisible(false);
+    this.flashOverlayRect = this.scene.add.rectangle(
+      this.scene.scale.width / 2,
+      this.scene.scale.height / 2,
+      this.scene.scale.width,
+      this.scene.scale.height,
+      0x000000,
+      0.8
+    ).setAlpha(0);
+    this.flashOverlayMessage = this.scene.add.text(
+      this.scene.scale.width / 2,
+      this.scene.scale.height / 2 - 40,
+      '',
+      { font: 'bold 48px Arial', color: GOLD_STR, align: 'center' }
+    ).setOrigin(0.5).setAlpha(0);
+    this.flashOverlaySub = this.scene.add.text(
+      this.scene.scale.width / 2,
+      this.scene.scale.height / 2 + 20,
+      '',
+      { font: '24px Arial', color: '#ffffff', align: 'center' }
+    ).setOrigin(0.5).setAlpha(0);
+
+    this.flashOverlayContainer.add([this.flashOverlayRect, this.flashOverlayMessage, this.flashOverlaySub]);
+  }
+
+  /**
+   * Builds reel containers. Must be called once during scene create().
+   * This method creates all the necessary Phaser.GameObjects.Container objects
+   * for the reels and their individual symbol cells.
+   * It also sets up the initial state with blur symbols.
+   *
+   * @param drawSymbol A callback function to draw a specific symbol into a container.
+   *                   The container is cleared before drawing.
+   * @param drawBlur A callback function to draw a blur placeholder into a container.
+   *                 The container is cleared before drawing.
+   * @returns The calculated X position of the left edge of the grid, useful for positioning other UI elements.
+   */
+  public buildReels(
+    drawSymbol: (container: Phaser.GameObjects.Container, symbolKey: string) => void,
+    drawBlur: (container: Phaser.GameObjects.Container) => void
+  ): number {
+    this.drawSymbolCallback = drawSymbol;
+    this.drawBlurCallback = drawBlur;
+
+    const { reelsCount, rowsCount, symbolSize, reelGap, spinRows, gridTop } = this.config;
+    const totalGridWidth = reelsCount * symbolSize + (reelsCount - 1) * reelGap;
+    const gridX = (this.scene.scale.width - totalGridWidth) / 2;
+
+    const totalSymbolsPerReel = spinRows + rowsCount;
+
+    for (let r = 0; r < reelsCount; r++) {
+      const reelColumn = this.scene.add.container(
+        gridX + r * (symbolSize + reelGap),
+        gridTop
+      ).setDepth(10); // Reels should be above background, below HUD
+
+      this.reelColumns.push(reelColumn);
+      this.symbolContainers.push([]);
+
+      for (let s = 0; s < totalSymbolsPerReel; s++) {
+        const symbolContainer = this.scene.add.container(0, (s - spinRows) * symbolSize);
+        this.symbolContainers[r].push(symbolContainer);
+        reelColumn.add(symbolContainer);
+
+        // Initially draw blur symbols for all cells
+        this.drawBlurCallback(symbolContainer);
+      }
+    }
+
+    return gridX;
+  }
+
+  /**
+   * Instantly snaps all reels to the given symbol grid (no animation).
+   * This method clears existing symbols and draws the final symbols in their correct positions.
+   * Off-screen symbols are hidden.
+   *
+   * @param grid A 2D array representing the final symbol layout. `grid[reel][row]` = symbol key string.
+   */
+  public snapReels(grid: string[][]): void {
+    const { reelsCount, rowsCount, spinRows } = this.config;
+
+    for (let r = 0; r < reelsCount; r++) {
+      // Ensure reel column is at its base position
+      this.reelColumns[r].y = this.config.gridTop;
+
+      const finalSymbolsForReel = grid[r];
+      if (!finalSymbolsForReel || finalSymbolsForReel.length !== rowsCount) {
+        console.warn(`SlotAnimator: Invalid final grid for reel ${r}. Expected ${rowsCount} symbols, got ${finalSymbolsForReel?.length || 0}.`);
+        continue;
+      }
+
+      // Draw visible symbols
+      for (let row = 0; row < rowsCount; row++) {
+        const symbolContainer = this.symbolContainers[r][spinRows + row];
+        symbolContainer.setVisible(true);
+        this.clearContainer(symbolContainer);
+        this.drawSymbolCallback(symbolContainer, finalSymbolsForReel[row]);
+      }
+
+      // Hide and clear off-screen symbols
+      for (let s = 0; s < spinRows; s++) {
+        const symbolContainer = this.symbolContainers[r][s];
+        symbolContainer.setVisible(false);
+        this.clearContainer(symbolContainer);
+      }
+      for (let s = spinRows + rowsCount; s < this.symbolContainers[r].length; s++) {
+        const symbolContainer = this.symbolContainers[r][s];
+        symbolContainer.setVisible(false);
+        this.clearContainer(symbolContainer);
+      }
+    }
+  }
+
+  /**
+   * Animates spinning all reels, then snaps to finalGrid.
+   * Calls onComplete when all reels have stopped.
+   * Uses staggered stop: reel 0 stops first, reel N last.
+   *
+   * @param finalGrid A 2D array representing the final symbol layout. `finalGrid[reel][row]` = symbol key string.
+   * @param onComplete Callback function to be executed when all reels have finished spinning.
+   */
+  public spinReels(finalGrid: string[][], onComplete: () => void): void {
+    const { reelsCount, rowsCount, symbolSize, spinRows, reelDelay, baseDuration } = this.config;
+    const spinPromises: Promise<void>[] = [];
+
+    for (let r = 0; r < reelsCount; r++) {
+      const reelColumn = this.reelColumns[r];
+      const spinDuration = baseDuration + r * reelDelay; // Staggered duration
+
+      // Prepare reel for spin: draw blur symbols in all cells
+      for (const symbolContainer of this.symbolContainers[r]) {
+        this.clearContainer(symbolContainer);
+        this.drawBlurCallback(symbolContainer);
+        symbolContainer.setVisible(true); // Make sure all blur symbols are visible during spin
+      }
+
+      // Reset reel column Y to 0 relative to its parent (gridTop)
+      reelColumn.y = this.config.gridTop;
+
+      const totalDist = (spinRows + rowsCount) * symbolSize;
+
+      const spinPromise = new Promise<void>(resolve => {
+        this.scene.time.delayedCall(r * reelDelay, () => {
+          this.scene.tweens.add({
+            targets: reelColumn,
+            y: `+=${totalDist}`, // Scroll down
+            duration: spinDuration,
+            ease: 'Cubic.easeOut',
+            onComplete: () => {
+              // Reset reel column Y to its original position
+              reelColumn.y = this.config.gridTop;
+              // Snap this specific reel to its final symbols
+              this.snapReel(r, finalGrid[r]);
+              resolve();
+            },
+          });
+        });
+      });
+      spinPromises.push(spinPromise);
+    }
+
+    Promise.all(spinPromises).then(() => {
+      onComplete();
+    });
+  }
+
+  /**
+   * Pulses winning cells (scaleX/Y bounce).
+   *
+   * @param positions An array of {reel, row} objects indicating which cells to highlight.
+   */
+  public animateWin(positions: { reel: number; row: number }[]): void {
+    const { spinRows } = this.config;
+
+    for (const pos of positions) {
+      const cellContainer = this.getCellContainer(pos.reel, pos.row);
+      if (cellContainer) {
+        this.scene.tweens.add({
+          targets: cellContainer,
+          scaleX: WIN_PULSE_SCALE,
+          scaleY: WIN_PULSE_SCALE,
+          duration: WIN_PULSE_DURATION,
+          yoyo: true,
+          repeat: WIN_PULSE_REPEATS,
+          ease: 'Sine.easeInOut',
+          onComplete: () => {
+            cellContainer.setScale(1); // Ensure it returns to normal scale
+          },
+        });
+      }
+    }
+  }
+
+  /**
+   * Returns the Phaser Container for a given reel/row visible cell.
+   * Useful for adding overlays or badges on specific cells.
+   *
+   * @param reel The reel index (0-based).
+   * @param row The row index (0-based, visible rows only).
+   * @returns The Phaser.GameObjects.Container for the specified cell, or null if invalid.
+   */
+  public getCellContainer(reel: number, row: number): Phaser.GameObjects.Container | null {
+    const { reelsCount, rowsCount, spinRows } = this.config;
+    if (reel < 0 || reel >= reelsCount || row < 0 || row >= rowsCount) {
+      console.warn(`SlotAnimator: Invalid reel (${reel}) or row (${row}) requested.`);
+      return null;
+    }
+    // Visible rows start after spinRows buffer
+    return this.symbolContainers[reel][spinRows + row];
+  }
+
+  /**
+   * Animates a cell fading out and back in (for cascade/transmute effects).
+   *
+   * @param reel The reel index (0-based).
+   * @param row The row index (0-based, visible rows only).
+   * @param onComplete Callback function to be executed after the flash animation finishes.
+   */
+  public animateCellFlash(reel: number, row: number, onComplete: () => void): void {
+    const cellContainer = this.getCellContainer(reel, row);
+    if (cellContainer) {
+      this.scene.tweens.add({
+        targets: cellContainer,
+        alpha: 0,
+        duration: CELL_FLASH_DURATION,
+        ease: 'Sine.easeOut',
+        onComplete: () => {
+          this.scene.tweens.add({
+            targets: cellContainer,
+            alpha: 1,
+            duration: CELL_FLASH_DURATION,
+            ease: 'Sine.easeIn',
+            onComplete: onComplete,
+          });
+        },
+      });
+    } else {
+      onComplete(); // Call onComplete immediately if cell is invalid
+    }
+  }
+
+  /**
+   * Shows a full-screen flash overlay with message + sub-text.
+   * Fade in 180ms → hold durationMs → fade out 200ms → onDone().
+   *
+   * @param message The main message to display.
+   * @param sub The sub-text message to display.
+   * @param durationMs The duration in milliseconds to hold the flash overlay visible.
+   * @param onDone Callback function to be executed after the flash animation completes.
+   */
+  public showFlash(message: string, sub: string, durationMs: number, onDone: () => void): void {
+    this.flashOverlayMessage.setText(message);
+    this.flashOverlaySub.setText(sub);
+    this.flashOverlayContainer.setVisible(true);
+
+    this.scene.tweens.timeline({
+      tweens: [
+        {
+          targets: [this.flashOverlayRect, this.flashOverlayMessage, this.flashOverlaySub],
+          alpha: 1,
+          duration: FLASH_IN_DURATION,
+          ease: 'Sine.easeOut',
+        },
+        {
+          targets: [], // Placeholder for hold duration
+          duration: durationMs,
+        },
+        {
+          targets: [this.flashOverlayRect, this.flashOverlayMessage, this.flashOverlaySub],
+          alpha: 0,
+          duration: FLASH_OUT_DURATION,
+          ease: 'Sine.easeIn',
+          onComplete: () => {
+            this.flashOverlayContainer.setVisible(false);
+            onDone();
+          },
+        },
+      ],
+    });
+  }
+
+  /**
+   * Cleanup — destroy all Phaser objects created by this instance.
+   */
+  public destroy(): void {
+    this.reelColumns.forEach(col => col.destroy());
+    this.symbolContainers.forEach(reelSymbols => reelSymbols.forEach(sym => sym.destroy()));
+    this.flashOverlayContainer.destroy();
+
+    this.reelColumns = [];
+    this.symbolContainers = [];
+  }
+
+  /**
+   * Clears all children from a Phaser.GameObjects.Container.
+   * @param container The container to clear.
+   */
+  private clearContainer(container: Phaser.GameObjects.Container): void {
+    container.removeAll(true); // true to destroy children
+  }
+
+  /**
+   * Snaps a single reel to its final symbols.
+   * This is a helper for spinReels' onComplete.
+   * @param reelIndex The index of the reel to snap.
+   * @param finalSymbolsForReel An array of symbol keys for the visible rows of this reel.
+   */
+  private snapReel(reelIndex: number, finalSymbolsForReel: string[]): void {
+    const { rowsCount, spinRows } = this.config;
+
+    if (!finalSymbolsForReel || finalSymbolsForReel.length !== rowsCount) {
+      console.warn(`SlotAnimator: Invalid final symbols for reel ${reelIndex}. Expected ${rowsCount} symbols, got ${finalSymbolsForReel?.length || 0}.`);
+      return;
+    }
+
+    // Draw visible symbols
+    for (let row = 0; row < rowsCount; row++) {
+      const symbolContainer = this.symbolContainers[reelIndex][spinRows + row];
+      symbolContainer.setVisible(true);
+      this.clearContainer(symbolContainer);
+      this.drawSymbolCallback(symbolContainer, finalSymbolsForReel[row]);
+    }
+
+    // Hide and clear off-screen symbols
+    for (let s = 0; s < spinRows; s++) {
+      const symbolContainer = this.symbolContainers[reelIndex][s];
+      symbolContainer.setVisible(false);
+      this.clearContainer(symbolContainer);
+    }
+    for (let s = spinRows + rowsCount; s < this.symbolContainers[reelIndex].length; s++) {
+      const symbolContainer = this.symbolContainers[reelIndex][s];
+      symbolContainer.setVisible(false);
+      this.clearContainer(symbolContainer);
+    }
+  }
+}
+```
+```typescript
+/**
+ * @file src/games/InfernoUI.ts
+ * @purpose UI implementation for the Inferno slot game, utilizing SlotAnimator for core animations.
+ * @author Agent 934
+ * @date 2026-04-16
+ * @license Proprietary
+ */
+
+import * as Phaser from 'phaser';
+import { SlotAnimator, THREE_REEL_PRESET } from '../shared/slot-engine/SlotAnimator';
+import type { InfernoState, InfernoCluster, InfernoSymbol } from './InfernoLogic'; // Assuming InfernoLogic defines these types
+
+// --- Constants ---
+const GOLD = 0xc9a84c;
+const GOLD_STR = '#c9a84c';
+const CANVAS_WIDTH = 390;
+const CANVAS_HEIGHT = 844;
+const HEADER_HEIGHT = 80; // Example header height
+const FOOTER_HEIGHT = 120; // Example footer height
+const HUD_TEXT_COLOR = '#ffffff';
+const HUD_FONT_SIZE = '24px';
+const BUTTON_FONT_SIZE = '28px';
+const WIN_BADGE_FONT_SIZE = '36px';
+const INFERNO_BANNER_FONT_SIZE = '60px';
+
+const SYMBOL_EMOJI: Record<string, string> = {
+  EMBER: '🔥', FLAME: '🌋', COAL: '⚫', ASH: '💨', SMOKE: '🌫️', WILD: '⭐', SCATTER: '💠'
+};
+
+const SYMBOL_BG: Record<string, number> = {
+  EMBER: 0xff4500, FLAME: 0xff6600, COAL: 0x333333, ASH: 0x888888, SMOKE: 0xaaaaaa,
+  WILD: 0xc9a84c, SCATTER: 0x0055ff
+};
+
+const HEAT_METER_SEGMENTS = 5;
+const HEAT_METER_WIDTH = THREE_REEL_PRESET.reelsCount * THREE_REEL_PRESET.symbolSize + (THREE_REEL_PRESET.reelsCount - 1) * THREE_REEL_PRESET.reelGap;
+const HEAT_METER_HEIGHT = 20;
+const HEAT_METER_Y = HEADER_HEIGHT + 20; // Below header
+const HEAT_METER_INACTIVE_COLOR = 0x333333;
+const HEAT_METER_ACTIVE_COLOR_START = 0xff8c00; // Dark Orange
+const HEAT_METER_ACTIVE_COLOR_END = GOLD; // Gold
+
+const CROWN_FLIP_MODAL_Z_INDEX = 2000;
+const CROWN_FLIP_COIN_RADIUS = 60;
+
+/**
+ * InfernoUI class manages the visual representation and animations for the Inferno slot game.
+ * It uses SlotAnimator for core reel animations and handles game-specific UI elements.
+ */
+export class InfernoUI {
+  private scene: Phaser.Scene;
+  private animator: SlotAnimator;
+  private gridX: number = 0; // Left edge of the slot grid
+
+  // HUD elements
+  private betText: Phaser.GameObjects.Text;
+  private winText: Phaser.GameObjects.Text;
+  private spinButton: Phaser.GameObjects.Container;
+
+  // Heat Meter elements
+  private heatMeterSegments: Phaser.GameObjects.Graphics[] = [];
+
+  // Crown Flip Modal elements
+  private crownFlipOverlay: Phaser.GameObjects.Rectangle;
+  private crownFlipContainer: Phaser.GameObjects.Container;
+  private crownFlipCoin: Phaser.GameObjects.Graphics;
+  private crownFlipWinText: Phaser.GameObjects.Text;
+  private crownFlipButton: Phaser.GameObjects.Container;
+  private crownWalkButton: Phaser.GameObjects.Container;
+
+  /**
+   * Creates an instance of InfernoUI.
+   * @param scene The Phaser Scene this UI belongs to.
+   */
+  constructor(scene: Phaser.Scene) {
+    this.scene = scene;
+    this.animator = new SlotAnimator(this.scene, THREE_REEL_PRESET);
+  }
+
+  /**
+   * Initializes the UI elements and sets up the initial game state.
+   * Must be called once during the scene's create method.
+   * @param initialGrid The initial symbol grid to display.
+   * @param onSpin A callback function to be invoked when the spin button is pressed.
+   */
+  public start(initialGrid: InfernoSymbol[][], onSpin: () => void): void {
+    this.gridX = this.animator.buildReels(
+      this.drawSymbol.bind(this),
+      this.drawBlur.bind(this)
+    );
+    this.buildHeatMeter();
+    this.buildHUD(onSpin);
+    this.buildCrownFlipModal();
+    this.animator.snapReels(initialGrid);
+  }
+
+  /**
+   * Renders the current game grid instantly without animation.
+   * @param state The current game state, containing the reel stops.
+   */
+  public renderGrid(state: InfernoState): void {
+    this.animator.snapReels(state.reelStops);
+  }
+
+  /**
+   * Animates the reels spinning and then snapping to the final grid.
+   * @param finalGrid The final symbol grid after the spin.
+   * @param onComplete Callback function to be executed after the spin animation finishes.
+   */
+  public animateSpin(finalGrid: InfernoSymbol[][], onComplete: () => void): void {
+    this.animator.spinReels(finalGrid, onComplete);
+  }
+
+  /**
+   * Animates winning clusters by pulsing the winning cells.
+   * @param clusters An array of winning clusters.
+   * @param onComplete Callback function to be executed after the win animation finishes.
+   */
+  public animateClusters(clusters: InfernoCluster[], onComplete: () => void): void {
+    const positions = clusters.flatMap(cluster => cluster.positions);
+    this.animator.animateWin(positions);
+    this.scene.time.delayedCall(600, onComplete); // Wait for win pulse to complete
+  }
+
+  /**
+   * Animates a cascade effect, where winning cells flash, then the grid updates.
+   * @param state The new game state after the cascade.
+   * @param onComplete Callback function to be executed after the cascade animation finishes.
+   */
+  public animateCascade(state: InfernoState, onComplete: () => void): void {
+    const winningPositions = state.winningClusters.flatMap(cluster => cluster.positions);
+    let completedFlashes = 0;
+    const totalFlashes = winningPositions.length;
+
+    if (totalFlashes === 0) {
+      this.renderGrid(state);
+      this.scene.time.delayedCall(300, onComplete);
+      return;
+    }
+
+    winningPositions.forEach(pos => {
+      this.animator.animateCellFlash(pos.reel, pos.row, () => {
+        completedFlashes++;
+        if (completedFlashes === totalFlashes) {
+          this.renderGrid(state);
+          this.scene.time.delayedCall(300, onComplete); // Short delay after grid update
+        }
+      });
+    });
+  }
+
+  /**
+   * Shows the Crown Flip modal, allowing the player to choose to flip a coin or walk away.
+   * @param currentWin The amount won that can be gambled.
+   * @param onFlip Callback when the player chooses to flip.
+   * @param onWalk Callback when the player chooses to walk away.
+   */
+  public showCrownFlip(currentWin: number, onFlip: () => void, onWalk: () => void): void {
+    this.crownFlipWinText.setText(`Gamble ${currentWin}`);
+    this.crownFlipButton.once('pointerup', onFlip);
+    this.crownWalkButton.once('pointerup', onWalk);
+    this.crownFlipContainer.setVisible(true);
+    this.scene.tweens.add({
+      targets: [this.crownFlipOverlay, this.crownFlipContainer],
+      alpha: 1,
+      duration: 200,
+      ease: 'Sine.easeOut'
+    });
+  }
+
+  /**
+   * Hides the Crown Flip modal.
+   */
+  public hideCrownFlip(): void {
+    this.scene.tweens.add({
+      targets: [this.crownFlipOverlay, this.crownFlipContainer],
+      alpha: 0,
+      duration: 200,
+      ease: 'Sine.easeOut',
+      onComplete: () => {
+        this.crownFlipContainer.setVisible(false);
+      }
+    });
+  }
+
+  /**
+   * Shows a win badge animation (e.g., "+1000") floating upwards and fading.
+   * @param amount The win amount to display.
+   */
+  public showWinBadge(amount: number): void {
+    const winBadge = this.scene.add.text(
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2,
+      `+${amount}`,
+      { font: `bold ${WIN_BADGE_FONT_SIZE} Arial`, color: GOLD_STR, align: 'center' }
+    ).setOrigin(0.5).setDepth(100);
+
+    this.scene.tweens.add({
+      targets: winBadge,
+      y: winBadge.y - 100,
+      alpha: 0,
+      duration: 1500,
+      ease: 'Cubic.easeOut',
+      onComplete: () => {
+        winBadge.destroy();
+      }
+    });
+  }
+
+  /**
+   * Shows an "INFERNO SPIN!" banner animation.
+   * @param onComplete Callback function to be executed after the banner animation finishes.
+   */
+  public showInfernoBanner(onComplete: () => void): void {
+    const bannerText = this.scene.add.text(
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2,
+      'INFERNO SPIN!',
+      {
+        font: `bold ${INFERNO_BANNER_FONT_SIZE} Arial`,
+        color: GOLD_STR, // Start with gold, can add gradient later if needed
+        align: 'center',
+        stroke: '#ff0000',
+        strokeThickness: 8,
+        shadow: {
+          offsetX: 0,
+          offsetY: 0,
+          color: '#ff8c00',
+          blur: 16,
+          stroke: true,
+          fill: true
+        }
+      }
+    ).setOrigin(0.5).setScale(0).setDepth(100);
+
+    this.scene.tweens.timeline({
+      tweens: [
+        {
+          targets: bannerText,
+          scale: 1.2,
+          duration: 300,
+          ease: 'Back.easeOut',
+        },
+        {
+          targets: bannerText,
+          scale: 1.0,
+          duration: 150,
+          ease: 'Sine.easeIn',
+        },
+        {
+          targets: bannerText,
+          duration: 1200, // Hold duration
+        },
+        {
+          targets: bannerText,
+          scale: 0,
+          alpha: 0,
+          duration: 300,
+          ease: 'Back.easeIn',
+          onComplete: () => {
+            bannerText.destroy();
+            onComplete();
+          },
+        },
+      ],
+    });
+  }
+
+  /**
+   * Updates the visual representation of the heat meter.
+   * @param level The current heat level (0-5).
+   */
+  public updateHeatMeter(level: number): void {
+    this.heatMeterSegments.forEach((segment, index) => {
+      const isActive = index < level;
+      segment.clear();
+      const color = isActive
+        ? Phaser.Display.Color.Interpolate.ColorWithColor(
+            new Phaser.Display.Color(HEAT_METER_ACTIVE_COLOR_START),
+            new Phaser.Display.Color(HEAT_METER_ACTIVE_COLOR_END),
+            HEAT_METER_SEGMENTS,
+            index + 1
+          ).color
+        : HEAT_METER_INACTIVE_COLOR;
+      segment.fillStyle(color, 1);
+      segment.fillRoundedRect(0, 0, segment.width, segment.height, 4);
+
+      if (isActive) {
+        // Add a subtle glow tween
+        this.scene.tweens.add({
+          targets: segment,
+          alpha: { from: 1, to: 0.8 },
+          duration: 500,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut'
+        });
+      } else {
+        this.scene.tweens.killTweensOf(segment);
+        segment.setAlpha(1);
+      }
+    });
+  }
+
+  /**
+   * Updates the displayed bet amount in the HUD.
+   * @param bet The new bet amount.
+   */
+  public updateBet(bet: number): void {
+    if (this.betText) {
+      this.betText.setText(`BET: ${bet}`);
+    }
+  }
+
+  /**
+   * Updates the displayed win amount in the HUD.
+   * @param win The new win amount.
+   */
+  public updateWin(win: number): void {
+    if (this.winText) {
+      this.winText.setText(`WIN: ${win}`);
+    }
+  }
+
+  /**
+   * Cleans up all Phaser objects created by this UI instance.
+   */
+  public destroy(): void {
+    this.animator.destroy();
+    if (this.betText) this.betText.destroy();
+    if (this.winText) this.winText.destroy();
+    if (this.spinButton) this.spinButton.destroy();
+    this.heatMeterSegments.forEach(s => s.destroy());
+    if (this.crownFlipContainer) this.crownFlipContainer.destroy();
+    if (this.crownFlipOverlay) this.crownFlipOverlay.destroy();
+  }
+
+  /**
+   * Draws a specific symbol into a given container.
+   * This method is passed to SlotAnimator as a callback.
+   * @param container The Phaser.GameObjects.Container to draw into.
+   * @param symbolKey The key of the symbol to draw.
+   */
+  private drawSymbol(container: Phaser.GameObjects.Container, symbolKey: string): void {
+    const { symbolSize } = THREE_REEL_PRESET;
+    const inset = 6;
+    const rectSize = symbolSize - inset * 2;
+    const radius = 8;
+
+    const bg = this.scene.add.graphics();
+    bg.fillStyle(SYMBOL_BG[symbolKey] || 0x000000, 1);
+    bg.fillRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
+    bg.lineStyle(2, GOLD, 1);
+    bg.strokeRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
+    container.add(bg);
+
+    const emoji = SYMBOL_EMOJI[symbolKey] || '?';
+    const text = this.scene.add.text(0, 0, emoji, {
+      font: `bold ${symbolSize * 0.6}px Arial`,
+      color: '#ffffff',
+      align: 'center'
+    }).setOrigin(0.5);
+    container.add(text);
+  }
+
+  /**
+   * Draws a blur placeholder into a given container.
+   * This method is passed to SlotAnimator as a callback.
+   * @param container The Phaser.GameObjects.Container to draw into.
+   */
+  private drawBlur(container: Phaser.GameObjects.Container): void {
+    const { symbolSize } = THREE_REEL_PRESET;
+    const inset = 6;
+    const rectSize = symbolSize - inset * 2;
+    const radius = 8;
+
+    const bg = this.scene.add.graphics();
+    bg.fillStyle(0x666666, 1);
+    bg.fillRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
+    container.add(bg);
+  }
+
+  /**
+   * Builds the Heat Meter UI element.
+   */
+  private buildHeatMeter(): void {
+    const segmentWidth = HEAT_METER_WIDTH / HEAT_METER_SEGMENTS;
+    const meterX = (CANVAS_WIDTH - HEAT_METER_WIDTH) / 2;
+
+    for (let i = 0; i < HEAT_METER_SEGMENTS; i++) {
+      const segment = this.scene.add.graphics();
+      segment.x = meterX + i * segmentWidth;
+      segment.y = HEAT_METER_Y;
+      segment.width = segmentWidth;
+      segment.height = HEAT_METER_HEIGHT;
+      segment.fillStyle(HEAT_METER_INACTIVE_COLOR, 1);
+      segment.fillRoundedRect(0, 0, segmentWidth - 2, HEAT_METER_HEIGHT, 4); // -2 for small gap
+      this.heatMeterSegments.push(segment);
+    }
+  }
+
+  /**
+   * Builds the Head-Up Display (HUD) elements like bet, win, and spin button.
+   * @param onSpin Callback function for the spin button.
+   */
+  private buildHUD(onSpin: () => void): void {
+    // Bet Text
+    this.betText = this.scene.add.text(
+      CANVAS_WIDTH * 0.1,
+      CANVAS_HEIGHT - FOOTER_HEIGHT / 2,
+      'BET: 100',
+      { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
+    ).setOrigin(0, 0.5).setDepth(100);
+
+    // Win Text
+    this.winText = this.scene.add.text(
+      CANVAS_WIDTH * 0.9,
+      CANVAS_HEIGHT - FOOTER_HEIGHT / 2,
+      'WIN: 0',
+      { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
+    ).setOrigin(1, 0.5).setDepth(100);
+
+    // Spin Button
+    const buttonWidth = 120;
+    const buttonHeight = 60;
+    this.spinButton = this.scene.add.container(CANVAS_WIDTH / 2, CANVAS_HEIGHT - FOOTER_HEIGHT / 2).setDepth(100);
+
+    const spinBg = this.scene.add.graphics();
+    spinBg.fillStyle(GOLD, 1);
+    spinBg.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
+    this.spinButton.add(spinBg);
+
+    const spinText = this.scene.add.text(0, 0, 'SPIN', {
+      font: `bold ${BUTTON_FONT_SIZE} Arial`,
+      color: '#000000'
+    }).setOrigin(0.5);
+    this.spinButton.add(spinText);
+
+    this.spinButton.setInteractive(new Phaser.Geom.Rectangle(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
+    this.spinButton.on('pointerup', onSpin);
+  }
+
+  /**
+   * Builds the Crown Flip modal, initially hidden.
+   */
+  private buildCrownFlipModal(): void {
+    this.crownFlipContainer = this.scene.add.container(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2).setDepth(CROWN_FLIP_MODAL_Z_INDEX).setAlpha(0).setVisible(false);
+
+    // Dark overlay
+    this.crownFlipOverlay = this.scene.add.rectangle(
+      CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, CANVAS_WIDTH, CANVAS_HEIGHT, 0x000000, 0.8
+    ).setDepth(CROWN_FLIP_MODAL_Z_INDEX - 1).setAlpha(0).setVisible(false);
+
+    // Modal background
+    const modalBg = this.scene.add.graphics();
+    modalBg.fillStyle(0x333333, 1);
+    modalBg.fillRoundedRect(-150, -200, 300, 400, 15);
+    this.crownFlipContainer.add(modalBg);
+
+    // Coin
+    this.crownFlipCoin = this.scene.add.graphics();
+    this.crownFlipCoin.fillStyle(GOLD, 1);
+    this.crownFlipCoin.fillCircle(0, -100, CROWN_FLIP_COIN_RADIUS);
+    this.crownFlipCoin.lineStyle(4, 0xaaaaaa, 1);
+    this.crownFlipCoin.strokeCircle(0, -100, CROWN_FLIP_COIN_RADIUS);
+    this.crownFlipContainer.add(this.crownFlipCoin);
+
+    // Win text
+    this.crownFlipWinText = this.scene.add.text(0, 0, 'Gamble 0', {
+      font: 'bold 32px Arial',
+      color: GOLD_STR
+    }).setOrigin(0.5);
+    this.crownFlipContainer.add(this.crownFlipWinText);
+
+    // Flip button
+    const flipButtonWidth = 180;
+    const flipButtonHeight = 60;
+    this.crownFlipButton = this.scene.add.container(0, 80);
+    const flipBg = this.scene.add.graphics();
+    flipBg.fillStyle(GOLD, 1);
+    flipBg.fillRoundedRect(-flipButtonWidth / 2, -flipButtonHeight / 2, flipButtonWidth, flipButtonHeight, 10);
+    this.crownFlipButton.add(flipBg);
+    const flipText = this.scene.add.text(0, 0, 'FLIP', {
+      font: `bold ${BUTTON_FONT_SIZE} Arial`,
+      color: '#000000'
+    }).setOrigin(0.5);
+    this.crownFlipButton.add(flipText);
+    this.crownFlipButton.setInteractive(new Phaser.Geom.Rectangle(-flipButtonWidth / 2, -flipButtonHeight / 2, flipButtonWidth, flipButtonHeight), Phaser.Geom.Rectangle.Contains);
+    this.crownFlipContainer.add(this.crownFlipButton);
+
+    // Walk button
+    const walkButtonWidth = 180;
+    const walkButtonHeight = 60;
+    this.crownWalkButton = this.scene.add.container(0, 160);
+    const walkBg = this.scene.add.graphics();
+    walkBg.fillStyle(0x666666, 1);
+    walkBg.fillRoundedRect(-walkButtonWidth / 2, -walkButtonHeight / 2, walkButtonWidth, walkButtonHeight, 10);
+    this.crownWalkButton.add(walkBg);
+    const walkText = this.scene.add.text(0, 0, 'WALK', {
+      font: `bold ${BUTTON_FONT_SIZE} Arial`,
+      color: '#ffffff'
+    }).setOrigin(0.5);
+    this.crownWalkButton.add(walkText);
+    this.crownWalkButton.setInteractive(new Phaser.Geom.Rectangle(-walkButtonWidth / 2, -walkButtonHeight / 2, walkButtonWidth, walkButtonHeight), Phaser.Geom.Rectangle.Contains);
+    this.crownFlipContainer.add(this.crownWalkButton);
+  }
+}
+```
+```typescript
+/**
+ * @file src/games/AlchemistUI.ts
+ * @purpose UI implementation for the Alchemist slot game, utilizing SlotAnimator for core animations.
+ * @author Agent 934
+ * @date 2026-04-16
+ * @license Proprietary
+ */
+
+import * as Phaser from 'phaser';
+import { SlotAnimator, FIVE_REEL_PRESET } from '../shared/slot-engine/SlotAnimator';
+import type { AlchemistState, AlchemistWinLine, AlchemistSymbol } from './AlchemistLogic'; // Assuming AlchemistLogic defines these types
+
+// --- Constants ---
+const GOLD = 0xc9a84c;
+const GOLD_STR = '#c9a84c';
+const CANVAS_WIDTH = 390;
+const CANVAS_HEIGHT = 844;
+const HEADER_HEIGHT = 80;
+const FOOTER_HEIGHT = 120;
+const HUD_TEXT_COLOR = '#ffffff';
+const HUD_FONT_SIZE = '24px';
+const BUTTON_FONT_SIZE = '28px';
+
+const SYMBOL_EMOJI: Record<string, string> = {
+  PHILOSOPHERS_STONE: '💎', ELIXIR: '🧪', GRIMOIRE: '📖', CAULDRON: '🫕',
+  HOURGLASS: '⏳', VIAL: '⚗️', MORTAR: '🔮', RUNE: '🌀',
+  WILD: '⭐', SCATTER: '✨', TRANSMUTING: '🔄'
+};
+
+const SYMBOL_BG: Record<string, number> = {
+  PHILOSOPHERS_STONE: 0xc9a84c, ELIXIR: 0x00aaff, GRIMOIRE: 0x8b4513,
+  CAULDRON: 0x2d4a1e, HOURGLASS: 0x8b7355, VIAL: 0x7fb3d3,
+  MORTAR: 0x696969, RUNE: 0x4b0082, WILD: 0xffd700, SCATTER: 0xc9a84c,
+  TRANSMUTING: 0xff8c00
+};
+
+const JACKPOT_PANEL_Y = HEADER_HEIGHT + 20;
+const JACKPOT_PLAQUE_WIDTH = 100;
+const JACKPOT_PLAQUE_HEIGHT = 40;
+const JACKPOT_PLAQUE_GAP = 10;
+
+/**
+ * AlchemistUI class manages the visual representation and animations for the Alchemist slot game.
+ * It uses SlotAnimator for core reel animations and handles game-specific UI elements.
+ */
+export class AlchemistUI {
+  private scene: Phaser.Scene;
+  private animator: SlotAnimator;
+  private gridX: number = 0; // Left edge of the slot grid
+
+  // HUD elements
+  private betText: Phaser.GameObjects.Text;
+  private winText: Phaser.GameObjects.Text;
+  private spinButton: Phaser.GameObjects.Container;
+
+  // Jackpot Panel elements
+  private jackpotPlaques: { label: Phaser.GameObjects.Text; value: Phaser.GameObjects.Text }[] = [];
+
+  /**
+   * Creates an instance of AlchemistUI.
+   * @param scene The Phaser Scene this UI belongs to.
+   */
+  constructor(scene: Phaser.Scene) {
+    this.scene = scene;
+    this.animator = new SlotAnimator(this.scene, FIVE_REEL_PRESET);
+  }
+
+  /**
+   * Initializes the UI elements and sets up the initial game state.
+   * Must be called once during the scene's create method.
+   * @param initialGrid The initial symbol grid to display.
+   * @param onSpin A callback function to be invoked when the spin button is pressed.
+   */
+  public start(initialGrid: AlchemistSymbol[][], onSpin: () => void): void {
+    this.gridX = this.animator.buildReels(
+      this.drawSymbol.bind(this),
+      this.drawBlur.bind(this)
+    );
+    this.buildJackpotPanel();
+    this.buildHUD(onSpin);
+    this.animator.snapReels(initialGrid);
+  }
+
+  /**
+   * Renders the current game reels instantly without animation.
+   * @param state The current game state, containing the reel stops.
+   */
+  public renderReels(state: AlchemistState): void {
+    this.animator.snapReels(state.reelStops);
+  }
+
+  /**
+   * Animates the reels spinning and then snapping to the final grid.
+   * @param reelStops The final symbol grid after the spin.
+   * @param onComplete Callback function to be executed after the spin animation finishes.
+   */
+  public animateSpin(reelStops: AlchemistSymbol[][], onComplete: () => void): void {
+    this.animator.spinReels(reelStops, onComplete);
+  }
+
+  /**
+   * Animates winning lines by pulsing the winning cells.
+   * @param winLines An array of winning lines.
+   */
+  public animateWin(winLines: AlchemistWinLine[]): void {
+    const positions = winLines.flatMap(line => line.positions);
+    this.animator.animateWin(positions);
+  }
+
+  /**
+   * Animates transmuting cells by flashing them.
+   * @param positions An array of {reel, row} objects indicating which cells are transmuting.
+   * @param onComplete Callback function to be executed after all transmute animations finish.
+   */
+  public animateTransmute(positions: { reel: number; row: number }[], onComplete: () => void): void {
+    let completedFlashes = 0;
+    const totalFlashes = positions.length;
+
+    if (totalFlashes === 0) {
+      onComplete();
+      return;
+    }
+
+    positions.forEach(pos => {
+      this.animator.animateCellFlash(pos.reel, pos.row, () => {
+        completedFlashes++;
+        if (completedFlashes === totalFlashes) {
+          onComplete();
+        }
+      });
+    });
+  }
+
+  /**
+   * Shows a full-screen flash overlay with message + sub-text.
+   * Delegates to SlotAnimator's showFlash method.
+   * @param message The main message to display.
+   * @param sub The sub-text message to display.
+   * @param durationMs The duration in milliseconds to hold the flash overlay visible.
+   * @param onDone Callback function to be executed after the flash animation completes.
+   */
+  public showFlash(message: string, sub: string, durationMs: number, onDone: () => void): void {
+    this.animator.showFlash(message, sub, durationMs, onDone);
+  }
+
+  /**
+   * Updates the displayed win amount in the HUD.
+   * @param amount The new win amount.
+   */
+  public updateWin(amount: number): void {
+    if (this.winText) {
+      this.winText.setText(`WIN: ${amount}`);
+    }
+  }
+
+  /**
+   * Cleans up all Phaser objects created by this UI instance.
+   */
+  public destroy(): void {
+    this.animator.destroy();
+    if (this.betText) this.betText.destroy();
+    if (this.winText) this.winText.destroy();
+    if (this.spinButton) this.spinButton.destroy();
+    this.jackpotPlaques.forEach(plaque => {
+      plaque.label.destroy();
+      plaque.value.destroy();
+    });
+  }
+
+  /**
+   * Draws a specific symbol into a given container.
+   * This method is passed to SlotAnimator as a callback.
+   * @param container The Phaser.GameObjects.Container to draw into.
+   * @param symbolKey The key of the symbol to draw.
+   */
+  private drawSymbol(container: Phaser.GameObjects.Container, symbolKey: string): void {
+    const { symbolSize } = FIVE_REEL_PRESET;
+    const inset = 4;
+    const rectSize = symbolSize - inset * 2;
+    const radius = 6;
+
+    const bg = this.scene.add.graphics();
+    bg.fillStyle(SYMBOL_BG[symbolKey] || 0x000000, 1);
+    bg.fillRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
+    container.add(bg);
+
+    const emoji = SYMBOL_EMOJI[symbolKey] || '?';
+    const text = this.scene.add.text(0, 0, emoji, {
+      font: `bold ${symbolSize * 0.6}px Arial`,
+      color: '#ffffff',
+      align: 'center'
+    }).setOrigin(0.5);
+    container.add(text);
+  }
+
+  /**
+   * Draws a blur placeholder into a given container.
+   * This method is passed to SlotAnimator as a callback.
+   * @param container The Phaser.GameObjects.Container to draw into.
+   */
+  private drawBlur(container: Phaser.GameObjects.Container): void {
+    const { symbolSize } = FIVE_REEL_PRESET;
+    const inset = 4;
+    const rectSize = symbolSize - inset * 2;
+    const radius = 6;
+
+    const bg = this.scene.add.graphics();
+    bg.fillStyle(0x666666, 1);
+    bg.fillRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
+    container.add(bg);
+  }
+
+  /**
+   * Builds the Jackpot Panel UI element.
+   */
+  private buildJackpotPanel(): void {
+    const jackpotLabels = ['PHILOSOPHER', 'GRAND', 'MINOR'];
+    const totalPanelWidth = jackpotLabels.length * JACKPOT_PLAQUE_WIDTH + (jackpotLabels.length - 1) * JACKPOT_PLAQUE_GAP;
+    const startX = (CANVAS_WIDTH - totalPanelWidth) / 2;
+
+    jackpotLabels.forEach((label, index) => {
+      const plaqueX = startX + index * (JACKPOT_PLAQUE_WIDTH + JACKPOT_PLAQUE_GAP);
+      const plaqueY = JACKPOT_PANEL_Y;
+
+      const plaqueBg = this.scene.add.graphics();
+      let plaqueColor = 0x8b4513; // Copper
+      if (label === 'GRAND') plaqueColor = 0xffa500; // Amber
+      if (label === 'PHILOSOPHER') plaqueColor = GOLD; // Gold
+      plaqueBg.fillStyle(plaqueColor, 1);
+      plaqueBg.fillRoundedRect(plaqueX, plaqueY, JACKPOT_PLAQUE_WIDTH, JACKPOT_PLAQUE_HEIGHT, 8);
+      plaqueBg.lineStyle(2, 0x000000, 0.5);
+      plaqueBg.strokeRoundedRect(plaqueX, plaqueY, JACKPOT_PLAQUE_WIDTH, JACKPOT_PLAQUE_HEIGHT, 8);
+      plaqueBg.setDepth(10);
+
+      const labelText = this.scene.add.text(
+        plaqueX + JACKPOT_PLAQUE_WIDTH / 2,
+        plaqueY + JACKPOT_PLAQUE_HEIGHT / 4,
+        label,
+        { font: 'bold 12px Arial', color: '#ffffff' }
+      ).setOrigin(0.5).setDepth(11);
+
+      const valueText = this.scene.add.text(
+        plaqueX + JACKPOT_PLAQUE_WIDTH / 2,
+        plaqueY + JACKPOT_PLAQUE_HEIGHT * 3 / 4,
+        '$10000', // Placeholder value
+        { font: 'bold 16px Arial', color: '#ffffff' }
+      ).setOrigin(0.5).setDepth(11);
+
+      this.jackpotPlaques.push({ label: labelText, value: valueText });
+    });
+  }
+
+  /**
+   * Builds the Head-Up Display (HUD) elements like bet, win, and spin button.
+   * @param onSpin Callback function for the spin button.
+   */
+  private buildHUD(onSpin: () => void): void {
+    // Bet Text
+    this.betText = this.scene.add.text(
+      CANVAS_WIDTH * 0.1,
+      CANVAS_HEIGHT - FOOTER_HEIGHT / 2,
+      'BET: 100',
+      { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
+    ).setOrigin(0, 0.5).setDepth(100);
+
+    // Win Text
+    this.winText = this.scene.add.text(
+      CANVAS_WIDTH * 0.9,
+      CANVAS_HEIGHT - FOOTER_HEIGHT / 2,
+      'WIN: 0',
+      { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
+    ).setOrigin(1, 0.5).setDepth(100);
+
+    // Spin Button
+    const buttonWidth = 120;
+    const buttonHeight = 60;
+    this.spinButton = this.scene.add.container(CANVAS_WIDTH / 2, CANVAS_HEIGHT - FOOTER_HEIGHT / 2).setDepth(100);
+
+    const spinBg = this.scene.add.graphics();
+    spinBg.fillStyle(GOLD, 1);
+    spinBg.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
+    this.spinButton.add(spinBg);
+
+    const spinText = this.scene.add.text(0, 0, 'SPIN', {
+      font: `bold ${BUTTON_FONT_SIZE} Arial`,
+      color: '#000000'
+    }).setOrigin(0.5);
+    this.spinButton.add(spinText);
+
+    this.spinButton.setInteractive(new Phaser.Geom.Rectangle(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
+    this.spinButton.on('pointerup', onSpin);
+  }
+}
+```
+```typescript
+/**
+ * @file src/games/MasqueradeUI.ts
+ * @purpose UI implementation for the Masquerade slot game, utilizing SlotAnimator for core animations.
+ * @author Agent 934
+ * @date 2026-04-16
+ * @license Proprietary
+ */
+
+import * as Phaser from 'phaser';
+import { SlotAnimator, FIVE_REEL_PRESET } from '../shared/slot-engine/SlotAnimator';
+import type { MasqueradeState, MasqueradeWinLine, MasqueradeSymbol } from './MasqueradeLogic'; // Assuming MasqueradeLogic defines these types
+
+// --- Constants ---
+const GOLD = 0xc9a84c;
+const GOLD_STR = '#c9a84c';
+const CANVAS_WIDTH = 390;
+const CANVAS_HEIGHT = 844;
+const HEADER_HEIGHT = 80;
+const FOOTER_HEIGHT = 120;
+const HUD_TEXT_COLOR = '#ffffff';
+const HUD_FONT_SIZE = '24px';
+const BUTTON_FONT_SIZE = '28px';
+
+const SYMBOL_COLORS: Record<MasqueradeSymbol, number> = {
+  GOLDEN_MASK: 0xc9a84c, CHAMPAGNE: 0x90c8e0, PEACOCK: 0x008080, GLOVES: 0x7b2fbe,
+  CLOCK: 0xa8a8a8, SLIPPER: 0xe87c8a, INVITATION: 0xe8c44a, MUSIC: 0x6ab0d8,
+  WILD: 0x0a0a1a, SCATTER: 0xc9a84c, MASKED: 0x3a0068
+};
+
+const SYMBOL_LABEL: Record<MasqueradeSymbol, string> = {
+  GOLDEN_MASK: 'MASK', CHAMPAGNE: 'CHMP', PEACOCK: 'PCCK', GLOVES: 'GLVS',
+  CLOCK: 'CLK', SLIPPER: 'SLPR', INVITATION: 'INVT', MUSIC: 'MUSC',
+  WILD: 'WILD', SCATTER: '✦', MASKED: '?'
+};
+
+const JACKPOT_PANEL_Y = HEADER_HEIGHT + 20;
+const JACKPOT_PLAQUE_WIDTH = 100;
+const JACKPOT_PLAQUE_HEIGHT = 40;
+const JACKPOT_PLAQUE_GAP = 10;
+
+/**
+ * MasqueradeUI class manages the visual representation and animations for the Masquerade slot game.
+ * It uses SlotAnimator for core reel animations and handles game-specific UI elements.
+ */
+export class MasqueradeUI {
+  private scene: Phaser.Scene;
+  private animator: SlotAnimator;
+  private gridX: number = 0; // Left edge of the slot grid
+
+  // HUD elements
+  private betText: Phaser.GameObjects.Text;
+  private winText: Phaser.GameObjects.Text;
+  private freeSpinsText: Phaser.GameObjects.Text;
+  private spinButton: Phaser.GameObjects.Container;
+
+  // Jackpot Panel elements
+  private jackpotPlaques: { label: Phaser.GameObjects.Text; value: Phaser.GameObjects.Text }[] = [];
+
+  /**
+   * Creates an instance of MasqueradeUI.
+   * @param scene The Phaser Scene this UI belongs to.
+   */
+  constructor(scene: Phaser.Scene) {
+    this.scene = scene;
+    this.animator = new SlotAnimator(this.scene, FIVE_REEL_PRESET);
+  }
+
+  /**
+   * Initializes the UI elements and sets up the initial game state.
+   * Must be called once during the scene's create method.
+   * @param initialGrid The initial symbol grid to display.
+   * @param onSpin A callback function to be invoked when the spin button is pressed.
+   */
+  public start(initialGrid: MasqueradeSymbol[][], onSpin: () => void): void {
+    this.gridX = this.animator.buildReels(
+      this.drawSymbol.bind(this),
+      this.drawBlur.bind(this)
+    );
+    this.buildJackpotPanel();
+    this.buildHUD(onSpin);
+    this.animator.snapReels(initialGrid);
+  }
+
+  /**
+   * Renders the current game reels instantly without animation.
+   * @param state The current game state, containing the reel stops.
+   */
+  public renderReels(state: MasqueradeState): void {
+    this.animator.snapReels(state.reelStops);
+  }
+
+  /**
+   * Animates the reels spinning and then snapping to the final grid.
+   * @param reelStops The final symbol grid after the spin.
+   * @param onComplete Callback function to be executed after the spin animation finishes.
+   */
+  public animateSpin(reelStops: MasqueradeSymbol[][], onComplete: () => void): void {
+    this.animator.spinReels(reelStops, onComplete);
+  }
+
+  /**
+   * Animates the unmasking of MASKED symbols.
+   * @param positions An array of {reel, row} objects indicating which cells to unmask.
+   * @param finalSymbols The final symbols to reveal at those positions.
+   * @param onComplete Callback function to be executed after all unmask animations finish.
+   */
+  public animateUnmask(positions: { reel: number; row: number }[], finalSymbols: MasqueradeSymbol[], onComplete: () => void): void {
+    let completedUnmasks = 0;
+    const totalUnmasks = positions.length;
+
+    if (totalUnmasks === 0) {
+      onComplete();
+      return;
+    }
+
+    positions.forEach((pos, index) => {
+      const cellContainer = this.animator.getCellContainer(pos.reel, pos.row);
+      if (cellContainer) {
+        this.scene.tweens.add({
+          targets: cellContainer,
+          scaleX: 0, // Shrink to hide current symbol
+          duration: 150,
+          ease: 'Sine.easeOut',
+          onComplete: () => {
+            // Clear and draw the new symbol
+            this.clearContainer(cellContainer);
+            this.drawSymbol(cellContainer, finalSymbols[index]);
+
+            this.scene.tweens.add({
+              targets: cellContainer,
+              scaleX: 1, // Grow to reveal new symbol
+              duration: 150,
+              ease: 'Sine.easeIn',
+              onComplete: () => {
+                completedUnmasks++;
+                if (completedUnmasks === totalUnmasks) {
+                  onComplete();
+                }
+              },
+            });
+          },
+        });
+      } else {
+        completedUnmasks++;
+        if (completedUnmasks === totalUnmasks) {
+          onComplete();
+        }
+      }
+    });
+  }
+
+  /**
+   * Animates winning lines by pulsing the winning cells.
+   * @param winLines An array of winning lines.
+   */
+  public animateWin(winLines: MasqueradeWinLine[]): void {
+    const positions = winLines.flatMap(line => line.positions);
+    this.animator.animateWin(positions);
+  }
+
+  /**
+   * Shows a full-screen flash overlay with message + sub-text.
+   * Delegates to SlotAnimator's showFlash method.
+   * @param message The main message to display.
+   * @param sub The sub-text message to display.
+   * @param durationMs The duration in milliseconds to hold the flash overlay visible.
+   * @param onDone Callback function to be executed after the flash animation completes.
+   */
+  public showFlash(message: string, sub: string, durationMs: number, onDone: () => void): void {
+    this.animator.showFlash(message, sub, durationMs, onDone);
+  }
+
+  /**
+   * Updates the displayed bet amount in the HUD.
+   * @param bet The new bet amount.
+   */
+  public updateBet(bet: number): void {
+    if (this.betText) {
+      this.betText.setText(`BET: ${bet}`);
+    }
+  }
+
+  /**
+   * Updates the displayed win amount in the HUD.
+   * @param win The new win amount.
+   */
+  public updateWin(win: number): void {
+    if (this.winText) {
+      this.winText.setText(`WIN: ${win}`);
+    }
+  }
+
+  /**
+   * Updates the displayed free spins count in the HUD.
+   * @param freeSpins The current number of free spins.
+   */
+  public updateFreeSpins(freeSpins: number): void {
+    if (this.freeSpinsText) {
+      this.freeSpinsText.setText(`FREE SPINS: ${freeSpins}`);
+    }
+  }
+
+  /**
+   * Cleans up all Phaser objects created by this UI instance.
+   */
+  public destroy(): void {
+    this.animator.destroy();
+    if (this.betText) this.betText.destroy();
+    if (this.winText) this.winText.destroy();
+    if (this.freeSpinsText) this.freeSpinsText.destroy();
+    if (this.spinButton) this.spinButton.destroy();
+    this.jackpotPlaques.forEach(plaque => {
+      plaque.label.destroy();
+      plaque.value.destroy();
+    });
+  }
+
+  /**
+   * Clears all children from a Phaser.GameObjects.Container.
+   * @param container The container to clear.
+   */
+  private clearContainer(container: Phaser.GameObjects.Container): void {
+    container.removeAll(true); // true to destroy children
+  }
+
+  /**
+   * Draws a specific symbol into a given container using Masquerade's custom shapes.
+   * This method is passed to SlotAnimator as a callback.
+   * @param container The Phaser.GameObjects.Container to draw into.
+   * @param symbolKey The key of the symbol to draw.
+   */
+  private drawSymbol(container: Phaser.GameObjects.Container, symbolKey: string): void {
+    const { symbolSize } = FIVE_REEL_PRESET;
+    const color = SYMBOL_COLORS[symbolKey] || 0x000000;
+    const label = SYMBOL_LABEL[symbolKey] || '?';
+
+    // Center the drawing in the container
+    const centerX = 0;
+    const centerY = 0;
+
+    const graphics = this.scene.add.graphics();
+    graphics.fillStyle(color, 1);
+    graphics.lineStyle(2, 0x000000, 0.5);
+
+    switch (symbolKey) {
+      case 'GOLDEN_MASK':
+        graphics.fillCircle(centerX, centerY, symbolSize / 2 - 4);
+        graphics.strokeCircle(centerX, centerY, symbolSize / 2 - 4);
+        break;
+      case 'CHAMPAGNE':
+        graphics.fillRect(centerX - symbolSize / 2 + 4, centerY - symbolSize / 2 + 4, symbolSize - 8, symbolSize - 8);
+        graphics.strokeRect(centerX - symbolSize / 2 + 4, centerY - symbolSize / 2 + 4, symbolSize - 8, symbolSize - 8);
+        break;
+      case 'SCATTER': // Hexagon
+        const hexRadius = symbolSize / 2 - 4;
+        graphics.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const angle = (Math.PI / 3) * i;
+          const x = centerX + hexRadius * Math.cos(angle);
+          const y = centerY + hexRadius * Math.sin(angle);
+          if (i === 0) graphics.moveTo(x, y);
+          else graphics.lineTo(x, y);
+        }
+        graphics.closePath();
+        graphics.fillPath();
+        graphics.strokePath();
+        break;
+      case 'WILD': // Star
+        const starPoints = 5;
+        const outerRadius = symbolSize / 2 - 4;
+        const innerRadius = outerRadius / 2;
+        graphics.beginPath();
+        for (let i = 0; i < starPoints * 2; i++) {
+          const radius = i % 2 === 0 ? outerRadius : innerRadius;
+          const angle = Math.PI / starPoints * i - Math.PI / 2; // Start at top
+          const x = centerX + radius * Math.cos(angle);
+          const y = centerY + radius * Math.sin(angle);
+          if (i === 0) graphics.moveTo(x, y);
+          else graphics.lineTo(x, y);
+        }
+        graphics.closePath();
+        graphics.fillPath();
+        graphics.strokePath();
+        break;
+      case 'MASKED': // Question mark in a dark purple rounded rect
+        graphics.fillStyle(SYMBOL_COLORS.MASKED, 1);
+        graphics.fillRoundedRect(centerX - symbolSize / 2 + 4, centerY - symbolSize / 2 + 4, symbolSize - 8, symbolSize - 8, 8);
+        graphics.lineStyle(2, 0x000000, 0.5);
+        graphics.strokeRoundedRect(centerX - symbolSize / 2 + 4, centerY - symbolSize / 2 + 4, symbolSize - 8, symbolSize - 8, 8);
+        break;
+      default: // Default to rounded rectangle
+        graphics.fillRoundedRect(centerX - symbolSize / 2 + 4, centerY - symbolSize / 2 + 4, symbolSize - 8, symbolSize - 8, 8);
+        graphics.strokeRoundedRect(centerX - symbolSize / 2 + 4, centerY - symbolSize / 2 + 4, symbolSize - 8, symbolSize - 8, 8);
+        break;
+    }
+    container.add(graphics);
+
+    const text = this.scene.add.text(centerX, centerY, label, {
+      font: `bold ${symbolSize * 0.3}px Arial`,
+      color: '#ffffff',
+      align: 'center'
+    }).setOrigin(0.5);
+    container.add(text);
+  }
+
+  /**
+   * Draws a blur placeholder into a given container.
+   * This method is passed to SlotAnimator as a callback.
+   * @param container The Phaser.GameObjects.Container to draw into.
+   */
+  private drawBlur(container: Phaser.GameObjects.Container): void {
+    const { symbolSize } = FIVE_REEL_PRESET;
+    const inset = 4;
+    const rectSize = symbolSize - inset * 2;
+    const radius = 8;
+
+    const bg = this.scene.add.graphics();
+    bg.fillStyle(0x666666, 1);
+    bg.fillRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
+    container.add(bg);
+  }
+
+  /**
+   * Builds the Jackpot Panel UI element.
+   */
+  private buildJackpotPanel(): void {
+    const jackpotLabels = ['PHANTOM', 'MARQUIS', 'VEIL'];
+    const totalPanelWidth = jackpotLabels.length * JACKPOT_PLAQUE_WIDTH + (jackpotLabels.length - 1) * JACKPOT_PLAQUE_GAP;
+    const startX = (CANVAS_WIDTH - totalPanelWidth) / 2;
+
+    jackpotLabels.forEach((label, index) => {
+      const plaqueX = startX + index * (JACKPOT_PLAQUE_WIDTH + JACKPOT_PLAQUE_GAP);
+      const plaqueY = JACKPOT_PANEL_Y;
+
+      const plaqueBg = this.scene.add.graphics();
+      let plaqueColor = 0x8b4513; // Copper
+      if (label === 'MARQUIS') plaqueColor = 0xffa500; // Amber
+      if (label === 'PHANTOM') plaqueColor = GOLD; // Gold
+      plaqueBg.fillStyle(plaqueColor, 1);
+      plaqueBg.fillRoundedRect(plaqueX, plaqueY, JACKPOT_PLAQUE_WIDTH, JACKPOT_PLAQUE_HEIGHT, 8);
+      plaqueBg.lineStyle(2, 0x000000, 0.5);
+      plaqueBg.strokeRoundedRect(plaqueX, plaqueY, JACKPOT_PLAQUE_WIDTH, JACKPOT_PLAQUE_HEIGHT, 8);
+      plaqueBg.setDepth(10);
+
+      const labelText = this.scene.add.text(
+        plaqueX + JACKPOT_PLAQUE_WIDTH / 2,
+        plaqueY + JACKPOT_PLAQUE_HEIGHT / 4,
+        label,
+        { font: 'bold 12px Arial', color: '#ffffff' }
+      ).setOrigin(0.5).setDepth(11);
+
+      const valueText = this.scene.add.text(
+        plaqueX + JACKPOT_PLAQUE_WIDTH / 2,
+        plaqueY + JACKPOT_PLAQUE_HEIGHT * 3 / 4,
+        '$10000', // Placeholder value
+        { font: 'bold 16px Arial', color: '#ffffff' }
+      ).setOrigin(0.5).setDepth(11);
+
+      this.jackpotPlaques.push({ label: labelText, value: valueText });
+    });
+  }
+
+  /**
+   * Builds the Head-Up Display (HUD) elements like bet, win, free spins, and spin button.
+   * @param onSpin Callback function for the spin button.
+   */
+  private buildHUD(onSpin: () => void): void {
+    // Bet Text
+    this.betText = this.scene.add.text(
+      CANVAS_WIDTH * 0.1,
+      CANVAS_HEIGHT - FOOTER_HEIGHT / 2,
+      'BET: 100',
+      { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
+    ).setOrigin(0, 0.5).setDepth(100);
+
+    // Win Text
+    this.winText = this.scene.add.text(
+      CANVAS_WIDTH * 0.9,
+      CANVAS_HEIGHT - FOOTER_HEIGHT / 2,
+      'WIN: 0',
+      { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
+    ).setOrigin(1, 0.5).setDepth(100);
+
+    // Free Spins Text (centered below win/bet, or adjusted)
+    this.freeSpinsText = this.scene.add.text(
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT - FOOTER_HEIGHT + 20, // Example position
+      'FREE SPINS: 0',
+      { font: `${HUD_FONT_SIZE} Arial`, color: GOLD_STR }
+    ).setOrigin(0.5).setDepth(100);
+
+    // Spin Button
+    const buttonWidth = 120;
+    const buttonHeight = 60;
+    this.spinButton = this.scene.add.container(CANVAS_WIDTH / 2, CANVAS_HEIGHT - FOOTER_HEIGHT / 2).setDepth(100);
+
+    const spinBg = this.scene.add.graphics();
+    spinBg.fillStyle(GOLD, 1);
+    spinBg.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
+    this.spinButton.add(spinBg);
+
+    const spinText = this.scene.add.text(0, 0, 'SPIN', {
+      font: `bold ${BUTTON_FONT_SIZE} Arial`,
+      color: '#000000'
+    }).setOrigin(0.5);
+    this.spinButton.add(spinText);
+
+    this.spinButton.setInteractive(new Phaser.Geom.Rectangle(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
+    this.spinButton.on('pointerup', onSpin);
+  }
+}
+```

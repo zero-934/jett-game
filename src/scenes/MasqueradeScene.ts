@@ -8,6 +8,8 @@
 
 import * as Phaser from 'phaser';
 import { MasqueradeUI } from '../games/MasqueradeUI';
+import { createMasqueradeState, BET_PER_LINE, LINES_COUNT } from '../games/MasqueradeLogic';
+import type { MasqueradeSymbol } from '../games/MasqueradeLogic';
 
 const GOLD_STR = '#c9a84c';
 
@@ -52,8 +54,10 @@ export class MasqueradeScene extends Phaser.Scene {
     div.fillStyle(0xc9a84c, 0.3);
     div.fillRect(20, 58, width - 40, 1);
 
-    this.masqueradeUI = new MasqueradeUI(this, { houseEdge: 0.03 });
-    this.masqueradeUI.start();
+    this.masqueradeUI = new MasqueradeUI(this);
+    const initState = createMasqueradeState(BET_PER_LINE * LINES_COUNT, LINES_COUNT);
+    const initGrid = initState.reelStops as MasqueradeSymbol[][];
+    this.masqueradeUI.start(initGrid, () => {}); // spin handled internally by UI
 
     // Universal nav bar
     const navBg = this.add.graphics();
@@ -65,6 +69,6 @@ export class MasqueradeScene extends Phaser.Scene {
   }
 
   shutdown(): void {
-    this.masqueradeUI?.cleanup();
+    this.masqueradeUI?.destroy();
   }
 }

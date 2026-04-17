@@ -71,7 +71,7 @@ export class InfernoScene extends Phaser.Scene {
     this.infernoState = createInfernoState(this.currentBet);
 
     // Initialize UI
-    this.infernoUI = new InfernoUI(this, this.scale.width / 2, this.scale.height / 2);
+    this.infernoUI = new InfernoUI(this);
     this.infernoUI.renderGrid(this.infernoState);
     this.infernoUI.updateHeatMeter(this.infernoState.heatMeter);
     this.infernoUI.updateBet(this.currentBet);
@@ -221,7 +221,7 @@ export class InfernoScene extends Phaser.Scene {
    * @param previousState The state of the game *before* the current cascade step.
    * @private
    */
-  private processSpinResult(previousState: InfernoState): void {
+  private processSpinResult(_previousState: InfernoState): void {
     // Evaluate clusters for the current grid state
     this.infernoState = evaluateClusters(this.infernoState);
 
@@ -244,7 +244,7 @@ export class InfernoScene extends Phaser.Scene {
         const stateAfterCascadeLogic = cascadeInferno(this.infernoState, { rng: this.rng });
 
         // Animate cells exploding and new ones falling in
-        this.infernoUI.animateCascade(previousState, stateAfterCascadeLogic, () => {
+        this.infernoUI.animateCascade(stateAfterCascadeLogic, () => {
           this.infernoState = stateAfterCascadeLogic; // Update scene's state to the new cascaded state
           this.infernoUI.updateHeatMeter(this.infernoState.heatMeter);
 

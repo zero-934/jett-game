@@ -1,586 +1,508 @@
 /**
- * @file InfernoUI.ts
- * @purpose Provides the Phaser 3 UI components and animations for the Inferno game.
+ * @file src/games/InfernoUI.ts
+ * @purpose UI implementation for the Inferno slot game, utilizing SlotAnimator for core animations.
  * @author Agent 934
  * @date 2026-04-16
- * @license Proprietary – available for licensing
+ * @license Proprietary
  */
 
 import * as Phaser from 'phaser';
-import type { InfernoState, InfernoCluster, InfernoSymbol } from '../games/InfernoLogic';
+import { SlotAnimator, THREE_REEL_PRESET } from '../shared/slot-engine/SlotAnimator';
+import type { InfernoState, InfernoCluster, InfernoSymbol } from './InfernoLogic'; // Assuming InfernoLogic defines these types
 
 // --- Constants ---
 const GOLD = 0xc9a84c;
 const GOLD_STR = '#c9a84c';
-const DARK_CELL_BG = 0x1a0a00;
-const CHARCOAL_BG = 0x0d0d0d;
+const CANVAS_WIDTH = 390;
+const CANVAS_HEIGHT = 844;
+const HEADER_HEIGHT = 80; // Example header height
+const FOOTER_HEIGHT = 120; // Example footer height
+const HUD_TEXT_COLOR = '#ffffff';
+const HUD_FONT_SIZE = '24px';
+const BUTTON_FONT_SIZE = '28px';
+const WIN_BADGE_FONT_SIZE = '36px';
+const INFERNO_BANNER_FONT_SIZE = '60px';
 
-const CELL_SIZE = 100;
-const GRID_GAP = 10;
-const GRID_ROWS = 3;
-const GRID_COLS = 3;
-
-const ANIM_DURATION_CLUSTER_GLOW = 300;
-const ANIM_DURATION_CELL_EXPLODE = 200;
-const ANIM_DURATION_CELL_FALL = 300;
-const ANIM_DURATION_INFERNO_BANNER = 1500;
-const ANIM_DURATION_CROWN_FLIP = 500;
-
-const SYMBOL_EMOJIS: Record<InfernoSymbol, string> = {
-  EMBER: '🔥',
-  FLAME: '🌋',
-  COAL: '⚫',
-  ASH: '💨',
-  SMOKE: '🌫️',
-  WILD: '⭐',
-  SCATTER: '💠',
+const SYMBOL_EMOJI: Record<string, string> = {
+  EMBER: '🔥', FLAME: '🌋', COAL: '⚫', ASH: '💨', SMOKE: '🌫️', WILD: '⭐', SCATTER: '💠'
 };
 
-// --- InfernoUI Class ---
+const SYMBOL_BG: Record<string, number> = {
+  EMBER: 0xff4500, FLAME: 0xff6600, COAL: 0x333333, ASH: 0x888888, SMOKE: 0xaaaaaa,
+  WILD: 0xc9a84c, SCATTER: 0x0055ff
+};
+
+const HEAT_METER_SEGMENTS = 5;
+const HEAT_METER_WIDTH = THREE_REEL_PRESET.reelsCount * THREE_REEL_PRESET.symbolSize + (THREE_REEL_PRESET.reelsCount - 1) * THREE_REEL_PRESET.reelGap;
+const HEAT_METER_HEIGHT = 20;
+const HEAT_METER_Y = HEADER_HEIGHT + 20; // Below header
+const HEAT_METER_INACTIVE_COLOR = 0x333333;
+const HEAT_METER_ACTIVE_COLOR_START = 0xff8c00; // Dark Orange
+const HEAT_METER_ACTIVE_COLOR_END = GOLD; // Gold
+
+const CROWN_FLIP_MODAL_Z_INDEX = 2000;
+const CROWN_FLIP_COIN_RADIUS = 60;
+
+/**
+ * InfernoUI class manages the visual representation and animations for the Inferno slot game.
+ * It uses SlotAnimator for core reel animations and handles game-specific UI elements.
+ */
 export class InfernoUI {
   private scene: Phaser.Scene;
-  private gridContainer: Phaser.GameObjects.Container;
-  private cellGraphics: Phaser.GameObjects.Graphics[][];
-  private cellSymbols: Phaser.GameObjects.Text[][];
-  private heatMeterGraphics: Phaser.GameObjects.Graphics;
-  private heatMeterLevel: number = 0;
-  private crownFlipContainer: Phaser.GameObjects.Container | null = null;
-  private betText: Phaser.GameObjects.Text;
-  private winText: Phaser.GameObjects.Text;
-  private currentWinBadge: Phaser.GameObjects.Text | null = null;
-  private infernoBanner: Phaser.GameObjects.Text | null = null;
+  private animator: SlotAnimator;
+
+  // HUD elements
+  private betText!: Phaser.GameObjects.Text;
+  private winText!: Phaser.GameObjects.Text;
+  private spinButton!: Phaser.GameObjects.Container;
+
+  // Heat Meter elements
+  private heatMeterSegments: Phaser.GameObjects.Graphics[] = [];
+
+  // Crown Flip Modal elements
+  private crownFlipOverlay!: Phaser.GameObjects.Rectangle;
+  private crownFlipContainer!: Phaser.GameObjects.Container;
+  private crownFlipCoin!: Phaser.GameObjects.Graphics;
+  private crownFlipWinText!: Phaser.GameObjects.Text;
+  private crownFlipButton!: Phaser.GameObjects.Container;
+  private crownWalkButton!: Phaser.GameObjects.Container;
 
   /**
    * Creates an instance of InfernoUI.
-   *
    * @param scene The Phaser Scene this UI belongs to.
-   * @param x The X coordinate for the center of the grid.
-   * @param y The Y coordinate for the center of the grid.
-   * @example
-   * const ui = new InfernoUI(this, 390 / 2, 844 / 2);
    */
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  constructor(scene: Phaser.Scene) {
     this.scene = scene;
-
-    // Calculate grid dimensions
-    const gridWidth = GRID_COLS * CELL_SIZE + (GRID_COLS - 1) * GRID_GAP;
-    const gridHeight = GRID_ROWS * CELL_SIZE + (GRID_ROWS - 1) * GRID_GAP;
-
-    // Create grid container
-    this.gridContainer = scene.add.container(x - gridWidth / 2, y - gridHeight / 2);
-
-    this.cellGraphics = [];
-    this.cellSymbols = [];
-
-    // Initialize grid cells
-    for (let r = 0; r < GRID_ROWS; r++) {
-      this.cellGraphics[r] = [];
-      this.cellSymbols[r] = [];
-      for (let c = 0; c < GRID_COLS; c++) {
-        const cellX = c * (CELL_SIZE + GRID_GAP);
-        const cellY = r * (CELL_SIZE + GRID_GAP);
-
-        const graphics = scene.add.graphics();
-        graphics.fillStyle(DARK_CELL_BG, 1);
-        graphics.fillRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
-        graphics.lineStyle(2, GOLD, 1);
-        graphics.strokeRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
-        this.gridContainer.add(graphics);
-        this.cellGraphics[r][c] = graphics;
-
-        const symbolText = scene.add
-          .text(cellX + CELL_SIZE / 2, cellY + CELL_SIZE / 2, '', {
-            fontFamily: 'Arial',
-            fontSize: `${CELL_SIZE * 0.7}px`,
-            color: '#ffffff',
-            align: 'center',
-          })
-          .setOrigin(0.5);
-        this.gridContainer.add(symbolText);
-        this.cellSymbols[r][c] = symbolText;
-      }
-    }
-
-    // Heat Meter
-    this.heatMeterGraphics = scene.add.graphics();
-    this.heatMeterGraphics.setDepth(10); // Ensure it's on top
-    this.updateHeatMeter(0); // Initial empty meter
-
-    // Bet and Win displays
-    this.betText = scene.add
-      .text(scene.scale.width * 0.1, scene.scale.height * 0.95, 'BET: $0', {
-        fontFamily: 'Arial',
-        fontSize: '24px',
-        color: GOLD_STR,
-      })
-      .setOrigin(0, 0.5)
-      .setDepth(10);
-
-    this.winText = scene.add
-      .text(scene.scale.width * 0.9, scene.scale.height * 0.95, 'WIN: $0', {
-        fontFamily: 'Arial',
-        fontSize: '24px',
-        color: GOLD_STR,
-      })
-      .setOrigin(1, 0.5)
-      .setDepth(10);
+    this.animator = new SlotAnimator(this.scene, THREE_REEL_PRESET);
   }
 
   /**
-   * Renders the full 3x3 grid from the given game state.
-   * This function updates the visual representation of each cell,
-   * including its symbol and whether it's currently falling.
-   *
-   * @param state The current `InfernoState` to render.
-   * @example
-   * ui.renderGrid(currentState);
+   * Initializes the UI elements and sets up the initial game state.
+   * Must be called once during the scene's create method.
+   * @param initialGrid The initial symbol grid to display.
+   * @param onSpin A callback function to be invoked when the spin button is pressed.
    */
-  renderGrid(state: InfernoState): void {
-    for (let r = 0; r < GRID_ROWS; r++) {
-      for (let c = 0; c < GRID_COLS; c++) {
-        const cell = state.grid[r][c];
-        const symbolText = this.cellSymbols[r][c];
-        const graphics = this.cellGraphics[r][c];
-
-        symbolText.setText(SYMBOL_EMOJIS[cell.symbol]);
-        symbolText.setAlpha(1);
-        symbolText.setScale(1);
-
-        graphics.clear();
-        graphics.fillStyle(DARK_CELL_BG, 1);
-        graphics.fillRect(0, 0, CELL_SIZE, CELL_SIZE);
-        graphics.lineStyle(2, GOLD, 1);
-        graphics.strokeRect(0, 0, CELL_SIZE, CELL_SIZE);
-
-        // Position for falling animation
-        const targetY = r * (CELL_SIZE + GRID_GAP);
-        const startY = targetY - CELL_SIZE * 2; // Start above the grid
-
-        if (cell.isFalling) {
-          symbolText.y = startY + CELL_SIZE / 2;
-          graphics.y = startY;
-          this.scene.tweens.add({
-            targets: [symbolText, graphics],
-            y: targetY + CELL_SIZE / 2, // For text
-            duration: ANIM_DURATION_CELL_FALL,
-            ease: 'Bounce.easeOut',
-            onComplete: () => {
-              symbolText.y = targetY + CELL_SIZE / 2; // Ensure final position
-              graphics.y = targetY;
-            },
-          });
-        } else {
-          symbolText.y = targetY + CELL_SIZE / 2;
-          graphics.y = targetY;
-        }
-      }
-    }
+  public start(initialGrid: InfernoSymbol[][], onSpin: () => void): void {
+    /* _gridX = */ this.animator.buildReels(
+      this.drawSymbol.bind(this),
+      this.drawBlur.bind(this)
+    );
+    this.buildHeatMeter();
+    this.buildHUD(onSpin);
+    this.buildCrownFlipModal();
+    this.animator.snapReels(initialGrid);
   }
 
   /**
-   * Animates winning clusters with a glowing/pulsing effect.
-   *
-   * @param clusters An array of `InfernoCluster` objects representing the winning clusters.
-   * @param onComplete Callback function to execute after the animation finishes.
-   * @example
-   * ui.animateClusters(currentState.clusters, () => {
-   *   console.log('Cluster animation complete!');
-   * });
+   * Renders the current game grid instantly without animation.
+   * @param state The current game state, containing the reel stops.
    */
-  animateClusters(clusters: InfernoCluster[], onComplete: () => void): void {
-    if (clusters.length === 0) {
-      onComplete();
+  public renderGrid(state: InfernoState): void {
+    this.animator.snapReels(state.grid.map(row => row.map(cell => cell.symbol)));
+  }
+
+  /**
+   * Animates the reels spinning and then snapping to the final grid.
+   * @param finalGrid The final symbol grid after the spin.
+   * @param onComplete Callback function to be executed after the spin animation finishes.
+   */
+  public animateSpin(finalGrid: InfernoSymbol[][], onComplete: () => void): void {
+    this.animator.spinReels(finalGrid, onComplete);
+  }
+
+  /**
+   * Animates winning clusters by pulsing the winning cells.
+   * @param clusters An array of winning clusters.
+   * @param onComplete Callback function to be executed after the win animation finishes.
+   */
+  public animateClusters(clusters: InfernoCluster[], onComplete: () => void): void {
+    const positions = clusters.flatMap(cluster =>
+      cluster.cells.map((cell: { row: number; col: number }) => ({ reel: cell.col, row: cell.row }))
+    );
+    this.animator.animateWin(positions);
+    this.scene.time.delayedCall(600, onComplete); // Wait for win pulse to complete
+  }
+
+  /**
+   * Animates a cascade effect, where winning cells flash, then the grid updates.
+   * @param state The new game state after the cascade.
+   * @param onComplete Callback function to be executed after the cascade animation finishes.
+   */
+  public animateCascade(state: InfernoState, onComplete: () => void): void {
+    const winningPositions = state.clusters.flatMap(cluster => cluster.cells);
+    let completedFlashes = 0;
+    const totalFlashes = winningPositions.length;
+
+    if (totalFlashes === 0) {
+      this.renderGrid(state);
+      this.scene.time.delayedCall(300, onComplete);
       return;
     }
 
-    const winningCells: Set<string> = new Set();
-    clusters.forEach((cluster) => {
-      cluster.cells.forEach((cell) => winningCells.add(`${cell.row},${cell.col}`));
-    });
-
-    const tweens: Phaser.Tweens.Tween[] = [];
-
-    winningCells.forEach((key) => {
-      const [r, c] = key.split(',').map(Number);
-      const graphics = this.cellGraphics[r][c];
-
-      // Create a temporary glow graphic
-      const glow = this.scene.add.graphics();
-      glow.setDepth(1); // Above cell background, below symbol
-      glow.fillStyle(GOLD, 0);
-      glow.fillRoundedRect(
-        graphics.x + this.gridContainer.x,
-        graphics.y + this.gridContainer.y,
-        CELL_SIZE,
-        CELL_SIZE,
-        10,
-      );
-      this.gridContainer.add(glow); // Add to container for relative positioning
-
-      const tween = this.scene.tweens.add({
-        targets: glow,
-        alpha: { from: 0, to: 0.8 },
-        scale: { from: 1, to: 1.1 },
-        duration: ANIM_DURATION_CLUSTER_GLOW,
-        yoyo: true,
-        repeat: 1, // Glow in, glow out
-        ease: 'Sine.easeInOut',
-        onComplete: () => {
-          glow.destroy();
-        },
-      });
-      tweens.push(tween);
-    });
-
-    // Wait for all tweens to complete
-    if (tweens.length > 0) {
-      this.scene.tweens.chain({
-        tweens: tweens,
-        onComplete: onComplete,
-      });
-    } else {
-      onComplete();
-    }
-  }
-
-  /**
-   * Animates cells exploding (winning cells shrinking/fading) and new cells falling in.
-   * This function should be called after `cascadeInferno` has updated the state.
-   *
-   * @param previousState The state *before* the cascade, used to identify exploding cells.
-   * @param newState The state *after* the cascade, used to identify falling cells.
-   * @param onComplete Callback function to execute after the animation finishes.
-   * @example
-   * ui.animateCascade(oldState, newState, () => {
-   *   console.log('Cascade animation complete!');
-   * });
-   */
-  animateCascade(previousState: InfernoState, newState: InfernoState, onComplete: () => void): void {
-    const tweens: Phaser.Tweens.Tween[] = [];
-
-    // Animate winning cells exploding
-    for (let r = 0; r < GRID_ROWS; r++) {
-      for (let c = 0; c < GRID_COLS; c++) {
-        if (previousState.grid[r][c].isWinning) {
-          const symbolText = this.cellSymbols[r][c];
-          const graphics = this.cellGraphics[r][c];
-
-          tweens.push(
-            this.scene.tweens.add({
-              targets: [symbolText, graphics],
-              alpha: 0,
-              scale: 0,
-              duration: ANIM_DURATION_CELL_EXPLODE,
-              ease: 'Quad.easeOut',
-              onComplete: () => {
-                // Reset for next render cycle
-                symbolText.setAlpha(1).setScale(1);
-                graphics.setAlpha(1).setScale(1);
-              },
-            }),
-          );
+    winningPositions.forEach(pos => {
+      this.animator.animateCellFlash(pos.col, pos.row, () => {
+        completedFlashes++;
+        if (completedFlashes === totalFlashes) {
+          this.renderGrid(state);
+          this.scene.time.delayedCall(300, onComplete); // Short delay after grid update
         }
-      }
-    }
-
-    // Animate new cells falling in (handled by renderGrid after this)
-    // The renderGrid function will detect `isFalling` and apply the tween.
-    // So, we just need to ensure the explosion tweens complete.
-
-    if (tweens.length > 0) {
-      this.scene.tweens.chain({
-        tweens: tweens,
-        onComplete: () => {
-          this.renderGrid(newState); // Render the new state with falling animations
-          // Wait for falling animations to complete before calling onComplete
-          this.scene.time.delayedCall(ANIM_DURATION_CELL_FALL, onComplete);
-        },
       });
-    } else {
-      this.renderGrid(newState); // Just render if no explosions
-      this.scene.time.delayedCall(ANIM_DURATION_CELL_FALL, onComplete);
-    }
-  }
-
-  /**
-   * Updates the visual representation of the heat meter bar.
-   *
-   * @param level The current heat meter level (0-5).
-   * @example
-   * ui.updateHeatMeter(3); // Fills 3 segments of the meter
-   */
-  updateHeatMeter(level: number): void {
-    this.heatMeterLevel = level;
-    this.heatMeterGraphics.clear();
-
-    const meterWidth = this.scene.scale.width * 0.6;
-    const meterHeight = 20;
-    const meterX = (this.scene.scale.width - meterWidth) / 2;
-    const meterY = this.scene.scale.height * 0.05;
-    const segmentWidth = meterWidth / 5;
-
-    // Draw background
-    this.heatMeterGraphics.lineStyle(2, GOLD, 1);
-    this.heatMeterGraphics.strokeRect(meterX, meterY, meterWidth, meterHeight);
-
-    // Draw filled segments
-    for (let i = 0; i < this.heatMeterLevel; i++) {
-      const segmentX = meterX + i * segmentWidth;
-      this.heatMeterGraphics.fillStyle(0xff8c00, 1); // Ember orange
-      this.heatMeterGraphics.fillRect(segmentX, meterY, segmentWidth, meterHeight);
-    }
-  }
-
-  /**
-   * Shows the Crown Flip modal, allowing the player to flip or walk away.
-   *
-   * @param currentWin The current win amount to be displayed in the modal.
-   * @param onFlip Callback function for when the player chooses to flip.
-   * @param onWalk Callback function for when the player chooses to walk away.
-   * @example
-   * ui.showCrownFlip(200, () => {
-   *   console.log('Player chose to flip!');
-   * }, () => {
-   *   console.log('Player chose to walk!');
-   * });
-   */
-  showCrownFlip(currentWin: number, onFlip: () => void, onWalk: () => void): void {
-    this.hideCrownFlip(); // Ensure any existing modal is removed
-
-    const screenWidth = this.scene.scale.width;
-    const screenHeight = this.scene.scale.height;
-
-    this.crownFlipContainer = this.scene.add.container(screenWidth / 2, screenHeight / 2);
-    this.crownFlipContainer.setDepth(100); // Ensure it's on top of everything
-
-    // Dark overlay
-    const overlay = this.scene.add.graphics();
-    overlay.fillStyle(CHARCOAL_BG, 0.8);
-    overlay.fillRect(-screenWidth / 2, -screenHeight / 2, screenWidth, screenHeight);
-    this.crownFlipContainer.add(overlay);
-
-    // Crown graphic (gold circle)
-    const crownRadius = 100;
-    const crown = this.scene.add.graphics();
-    crown.fillStyle(GOLD, 1);
-    crown.fillCircle(0, -crownRadius / 2, crownRadius);
-    crown.lineStyle(5, 0xffd700, 1); // Brighter gold outline
-    crown.strokeCircle(0, -crownRadius / 2, crownRadius);
-    this.crownFlipContainer.add(crown);
-
-    // Win amount text
-    const winText = this.scene.add
-      .text(0, -crownRadius / 2, `$${currentWin}`, {
-        fontFamily: 'Arial',
-        fontSize: '48px',
-        color: '#ffffff',
-        align: 'center',
-      })
-      .setOrigin(0.5)
-      .setDepth(101);
-    this.crownFlipContainer.add(winText);
-
-    // FLIP button
-    const flipButton = this.scene.add
-      .text(0, crownRadius + 50, 'FLIP', {
-        fontFamily: 'Arial',
-        fontSize: '36px',
-        color: GOLD_STR,
-        backgroundColor: '#333333',
-        padding: { x: 20, y: 10 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => {
-        this.scene.tweens.add({
-          targets: crown,
-          angle: 360,
-          duration: ANIM_DURATION_CROWN_FLIP,
-          ease: 'Linear',
-          onComplete: () => {
-            onFlip();
-          },
-        });
-      });
-    this.crownFlipContainer.add(flipButton);
-
-    // WALK button
-    const walkButton = this.scene.add
-      .text(0, crownRadius + 120, 'WALK AWAY', {
-        fontFamily: 'Arial',
-        fontSize: '24px',
-        color: '#aaaaaa',
-        backgroundColor: '#333333',
-        padding: { x: 15, y: 8 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => {
-        onWalk();
-      });
-    this.crownFlipContainer.add(walkButton);
-
-    this.crownFlipContainer.setScale(0);
-    this.scene.tweens.add({
-      targets: this.crownFlipContainer,
-      scale: 1,
-      duration: 300,
-      ease: 'Back.easeOut',
     });
   }
 
   /**
-   * Hides and destroys the Crown Flip modal.
-   * @example
-   * ui.hideCrownFlip();
+   * Shows the Crown Flip modal, allowing the player to choose to flip a coin or walk away.
+   * @param currentWin The amount won that can be gambled.
+   * @param onFlip Callback when the player chooses to flip.
+   * @param onWalk Callback when the player chooses to walk away.
    */
-  hideCrownFlip(): void {
-    if (this.crownFlipContainer) {
-      this.scene.tweens.add({
-        targets: this.crownFlipContainer,
-        alpha: 0,
-        scale: 0,
-        duration: 200,
-        ease: 'Quad.easeIn',
-        onComplete: () => {
-          this.crownFlipContainer?.destroy();
-          this.crownFlipContainer = null;
-        },
-      });
-    }
+  public showCrownFlip(currentWin: number, onFlip: () => void, onWalk: () => void): void {
+    this.crownFlipWinText.setText(`Gamble ${currentWin}`);
+    this.crownFlipButton.once('pointerup', onFlip);
+    this.crownWalkButton.once('pointerup', onWalk);
+    this.crownFlipContainer.setVisible(true);
+    this.scene.tweens.add({
+      targets: [this.crownFlipOverlay, this.crownFlipContainer],
+      alpha: 1,
+      duration: 200,
+      ease: 'Sine.easeOut'
+    });
   }
 
   /**
-   * Shows a win amount badge animating upward from the center of the grid.
-   *
-   * @param amount The win amount to display.
-   * @example
-   * ui.showWinBadge(150);
+   * Hides the Crown Flip modal.
    */
-  showWinBadge(amount: number): void {
-    if (this.currentWinBadge) {
-      this.currentWinBadge.destroy();
-    }
+  public hideCrownFlip(): void {
+    this.scene.tweens.add({
+      targets: [this.crownFlipOverlay, this.crownFlipContainer],
+      alpha: 0,
+      duration: 200,
+      ease: 'Sine.easeOut',
+      onComplete: () => {
+        this.crownFlipContainer.setVisible(false);
+      }
+    });
+  }
 
-    const gridCenterX = this.gridContainer.x + this.gridContainer.width / 2;
-    const gridCenterY = this.gridContainer.y + this.gridContainer.height / 2;
-
-    this.currentWinBadge = this.scene.add
-      .text(gridCenterX, gridCenterY, `+$${amount}`, {
-        fontFamily: 'Arial',
-        fontSize: '48px',
-        color: GOLD_STR,
-        stroke: '#000000',
-        strokeThickness: 6,
-      })
-      .setOrigin(0.5)
-      .setDepth(50);
+  /**
+   * Shows a win badge animation (e.g., "+1000") floating upwards and fading.
+   * @param amount The win amount to display.
+   */
+  public showWinBadge(amount: number): void {
+    const winBadge = this.scene.add.text(
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2,
+      `+${amount}`,
+      { font: `bold ${WIN_BADGE_FONT_SIZE} Arial`, color: GOLD_STR, align: 'center' }
+    ).setOrigin(0.5).setDepth(100);
 
     this.scene.tweens.add({
-      targets: this.currentWinBadge,
-      y: gridCenterY - 100,
+      targets: winBadge,
+      y: winBadge.y - 100,
       alpha: 0,
       duration: 1500,
-      ease: 'Quad.easeOut',
+      ease: 'Cubic.easeOut',
       onComplete: () => {
-        this.currentWinBadge?.destroy();
-        this.currentWinBadge = null;
-      },
+        winBadge.destroy();
+      }
     });
   }
 
   /**
-   * Updates the displayed bet amount.
-   *
-   * @param bet The new bet amount.
-   * @example
-   * ui.updateBet(25);
+   * Shows an "INFERNO SPIN!" banner animation.
+   * @param onComplete Callback function to be executed after the banner animation finishes.
    */
-  updateBet(bet: number): void {
-    this.betText.setText(`BET: $${bet}`);
-  }
-
-  /**
-   * Updates the displayed total win amount for the current spin.
-   *
-   * @param win The new total win amount.
-   * @example
-   * ui.updateWin(50);
-   */
-  updateWin(win: number): void {
-    this.winText.setText(`WIN: $${win}`);
-  }
-
-  /**
-   * Shows a dramatic "INFERNO SPIN" banner animation.
-   *
-   * @param onComplete Callback function to execute after the banner animation finishes.
-   * @example
-   * ui.showInfernoBanner(() => {
-   *   console.log('Inferno banner complete!');
-   * });
-   */
-  showInfernoBanner(onComplete: () => void): void {
-    if (this.infernoBanner) {
-      this.infernoBanner.destroy();
-    }
-
-    this.infernoBanner = this.scene.add
-      .text(this.scene.scale.width / 2, this.scene.scale.height / 2, 'INFERNO SPIN!', {
-        fontFamily: 'Arial Black',
-        fontSize: '80px',
-        color: '#ff0000',
-        stroke: GOLD_STR,
-        strokeThickness: 10,
+  public showInfernoBanner(onComplete: () => void): void {
+    const bannerText = this.scene.add.text(
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2,
+      'INFERNO SPIN!',
+      {
+        font: `bold ${INFERNO_BANNER_FONT_SIZE} Arial`,
+        color: GOLD_STR, // Start with gold, can add gradient later if needed
+        align: 'center',
+        stroke: '#ff0000',
+        strokeThickness: 8,
         shadow: {
-          offsetX: 5,
-          offsetY: 5,
-          color: '#000',
-          blur: 10,
-          fill: true,
-        },
-      })
-      .setOrigin(0.5)
-      .setDepth(200)
-      .setScale(0)
-      .setAlpha(0);
+          offsetX: 0,
+          offsetY: 0,
+          color: '#ff8c00',
+          blur: 16,
+          stroke: true,
+          fill: true
+        }
+      }
+    ).setOrigin(0.5).setScale(0).setDepth(100);
 
-    this.scene.tweens.add({
-      targets: this.infernoBanner,
-      alpha: 1,
-      scale: 1.2,
-      duration: ANIM_DURATION_INFERNO_BANNER / 2,
-      ease: 'Back.easeOut',
-      onComplete: () => {
-        this.scene.tweens.add({
-          targets: this.infernoBanner,
-          alpha: 0,
+    this.scene.tweens.chain({
+      tweens: [
+        {
+          targets: bannerText,
+          scale: 1.2,
+          duration: 300,
+          ease: 'Back.easeOut',
+        },
+        {
+          targets: bannerText,
+          scale: 1.0,
+          duration: 150,
+          ease: 'Sine.easeIn',
+        },
+        {
+          targets: bannerText,
+          duration: 1200, // Hold duration
+        },
+        {
+          targets: bannerText,
           scale: 0,
-          duration: ANIM_DURATION_INFERNO_BANNER / 2,
+          alpha: 0,
+          duration: 300,
           ease: 'Back.easeIn',
-          delay: 500, // Hold for a bit
           onComplete: () => {
-            this.infernoBanner?.destroy();
-            this.infernoBanner = null;
+            bannerText.destroy();
             onComplete();
           },
-        });
-      },
+        },
+      ],
     });
   }
 
   /**
-   * Destroys all UI elements created by this class, cleaning up resources.
-   * @example
-   * ui.destroy();
+   * Updates the visual representation of the heat meter.
+   * @param level The current heat level (0-5).
    */
-  destroy(): void {
-    this.gridContainer.destroy();
-    this.heatMeterGraphics.destroy();
-    this.betText.destroy();
-    this.winText.destroy();
-    this.currentWinBadge?.destroy();
-    this.infernoBanner?.destroy();
-    this.hideCrownFlip(); // Ensure crown flip container is destroyed
+  public updateHeatMeter(level: number): void {
+    this.heatMeterSegments.forEach((segment, index) => {
+      const isActive = index < level;
+      segment.clear();
+      const color = isActive
+        ? Phaser.Display.Color.Interpolate.ColorWithColor(
+            new Phaser.Display.Color(HEAT_METER_ACTIVE_COLOR_START),
+            new Phaser.Display.Color(HEAT_METER_ACTIVE_COLOR_END),
+            HEAT_METER_SEGMENTS,
+            index + 1
+          ).color
+        : HEAT_METER_INACTIVE_COLOR;
+      segment.fillStyle(color, 1);
+      const sw = HEAT_METER_WIDTH / HEAT_METER_SEGMENTS;
+      segment.fillRoundedRect(0, 0, sw, HEAT_METER_HEIGHT, 4);
+
+      if (isActive) {
+        // Add a subtle glow tween
+        this.scene.tweens.add({
+          targets: segment,
+          alpha: { from: 1, to: 0.8 },
+          duration: 500,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut'
+        });
+      } else {
+        this.scene.tweens.killTweensOf(segment);
+        segment.setAlpha(1);
+      }
+    });
+  }
+
+  /**
+   * Updates the displayed bet amount in the HUD.
+   * @param bet The new bet amount.
+   */
+  public updateBet(bet: number): void {
+    if (this.betText) {
+      this.betText.setText(`BET: ${bet}`);
+    }
+  }
+
+  /**
+   * Updates the displayed win amount in the HUD.
+   * @param win The new win amount.
+   */
+  public updateWin(win: number): void {
+    if (this.winText) {
+      this.winText.setText(`WIN: ${win}`);
+    }
+  }
+
+  /**
+   * Cleans up all Phaser objects created by this UI instance.
+   */
+  public destroy(): void {
+    this.animator.destroy();
+    if (this.betText) this.betText.destroy();
+    if (this.winText) this.winText.destroy();
+    if (this.spinButton) this.spinButton.destroy();
+    this.heatMeterSegments.forEach(s => s.destroy());
+    if (this.crownFlipContainer) this.crownFlipContainer.destroy();
+    if (this.crownFlipOverlay) this.crownFlipOverlay.destroy();
+  }
+
+  /**
+   * Draws a specific symbol into a given container.
+   * This method is passed to SlotAnimator as a callback.
+   * @param container The Phaser.GameObjects.Container to draw into.
+   * @param symbolKey The key of the symbol to draw.
+   */
+  private drawSymbol(container: Phaser.GameObjects.Container, symbolKey: string): void {
+    const { symbolSize } = THREE_REEL_PRESET;
+    const inset = 6;
+    const rectSize = symbolSize - inset * 2;
+    const radius = 8;
+
+    const bg = this.scene.add.graphics();
+    bg.fillStyle(SYMBOL_BG[symbolKey] || 0x000000, 1);
+    bg.fillRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
+    bg.lineStyle(2, GOLD, 1);
+    bg.strokeRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
+    container.add(bg);
+
+    const emoji = SYMBOL_EMOJI[symbolKey] || '?';
+    const text = this.scene.add.text(0, 0, emoji, {
+      font: `bold ${symbolSize * 0.6}px Arial`,
+      color: '#ffffff',
+      align: 'center'
+    }).setOrigin(0.5);
+    container.add(text);
+  }
+
+  /**
+   * Draws a blur placeholder into a given container.
+   * This method is passed to SlotAnimator as a callback.
+   * @param container The Phaser.GameObjects.Container to draw into.
+   */
+  private drawBlur(container: Phaser.GameObjects.Container): void {
+    const { symbolSize } = THREE_REEL_PRESET;
+    const inset = 6;
+    const rectSize = symbolSize - inset * 2;
+    const radius = 8;
+
+    const bg = this.scene.add.graphics();
+    bg.fillStyle(0x666666, 1);
+    bg.fillRoundedRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize, radius);
+    container.add(bg);
+  }
+
+  /**
+   * Builds the Heat Meter UI element.
+   */
+  private buildHeatMeter(): void {
+    const segmentWidth = HEAT_METER_WIDTH / HEAT_METER_SEGMENTS;
+    const meterX = (CANVAS_WIDTH - HEAT_METER_WIDTH) / 2;
+
+    for (let i = 0; i < HEAT_METER_SEGMENTS; i++) {
+      const segment = this.scene.add.graphics();
+      segment.x = meterX + i * segmentWidth;
+      segment.y = HEAT_METER_Y;
+      // segment dimensions stored in constants
+      segment.fillStyle(HEAT_METER_INACTIVE_COLOR, 1);
+      segment.fillRoundedRect(0, 0, segmentWidth - 2, HEAT_METER_HEIGHT, 4); // -2 for small gap
+      this.heatMeterSegments.push(segment);
+    }
+  }
+
+  /**
+   * Builds the Head-Up Display (HUD) elements like bet, win, and spin button.
+   * @param onSpin Callback function for the spin button.
+   */
+  private buildHUD(onSpin: () => void): void {
+    // Bet Text
+    this.betText = this.scene.add.text(
+      CANVAS_WIDTH * 0.1,
+      CANVAS_HEIGHT - FOOTER_HEIGHT / 2,
+      'BET: 100',
+      { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
+    ).setOrigin(0, 0.5).setDepth(100);
+
+    // Win Text
+    this.winText = this.scene.add.text(
+      CANVAS_WIDTH * 0.9,
+      CANVAS_HEIGHT - FOOTER_HEIGHT / 2,
+      'WIN: 0',
+      { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
+    ).setOrigin(1, 0.5).setDepth(100);
+
+    // Spin Button
+    const buttonWidth = 120;
+    const buttonHeight = 60;
+    this.spinButton = this.scene.add.container(CANVAS_WIDTH / 2, CANVAS_HEIGHT - FOOTER_HEIGHT / 2).setDepth(100);
+
+    const spinBg = this.scene.add.graphics();
+    spinBg.fillStyle(GOLD, 1);
+    spinBg.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
+    this.spinButton.add(spinBg);
+
+    const spinText = this.scene.add.text(0, 0, 'SPIN', {
+      font: `bold ${BUTTON_FONT_SIZE} Arial`,
+      color: '#000000'
+    }).setOrigin(0.5);
+    this.spinButton.add(spinText);
+
+    this.spinButton.setInteractive(new Phaser.Geom.Rectangle(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
+    this.spinButton.on('pointerup', onSpin);
+  }
+
+  /**
+   * Builds the Crown Flip modal, initially hidden.
+   */
+  private buildCrownFlipModal(): void {
+    this.crownFlipContainer = this.scene.add.container(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2).setDepth(CROWN_FLIP_MODAL_Z_INDEX).setAlpha(0).setVisible(false);
+
+    // Dark overlay
+    this.crownFlipOverlay = this.scene.add.rectangle(
+      CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, CANVAS_WIDTH, CANVAS_HEIGHT, 0x000000, 0.8
+    ).setDepth(CROWN_FLIP_MODAL_Z_INDEX - 1).setAlpha(0).setVisible(false);
+
+    // Modal background
+    const modalBg = this.scene.add.graphics();
+    modalBg.fillStyle(0x333333, 1);
+    modalBg.fillRoundedRect(-150, -200, 300, 400, 15);
+    this.crownFlipContainer.add(modalBg);
+
+    // Coin
+    this.crownFlipCoin = this.scene.add.graphics();
+    this.crownFlipCoin.fillStyle(GOLD, 1);
+    this.crownFlipCoin.fillCircle(0, -100, CROWN_FLIP_COIN_RADIUS);
+    this.crownFlipCoin.lineStyle(4, 0xaaaaaa, 1);
+    this.crownFlipCoin.strokeCircle(0, -100, CROWN_FLIP_COIN_RADIUS);
+    this.crownFlipContainer.add(this.crownFlipCoin);
+
+    // Win text
+    this.crownFlipWinText = this.scene.add.text(0, 0, 'Gamble 0', {
+      font: 'bold 32px Arial',
+      color: GOLD_STR
+    }).setOrigin(0.5);
+    this.crownFlipContainer.add(this.crownFlipWinText);
+
+    // Flip button
+    const flipButtonWidth = 180;
+    const flipButtonHeight = 60;
+    this.crownFlipButton = this.scene.add.container(0, 80);
+    const flipBg = this.scene.add.graphics();
+    flipBg.fillStyle(GOLD, 1);
+    flipBg.fillRoundedRect(-flipButtonWidth / 2, -flipButtonHeight / 2, flipButtonWidth, flipButtonHeight, 10);
+    this.crownFlipButton.add(flipBg);
+    const flipText = this.scene.add.text(0, 0, 'FLIP', {
+      font: `bold ${BUTTON_FONT_SIZE} Arial`,
+      color: '#000000'
+    }).setOrigin(0.5);
+    this.crownFlipButton.add(flipText);
+    this.crownFlipButton.setInteractive(new Phaser.Geom.Rectangle(-flipButtonWidth / 2, -flipButtonHeight / 2, flipButtonWidth, flipButtonHeight), Phaser.Geom.Rectangle.Contains);
+    this.crownFlipContainer.add(this.crownFlipButton);
+
+    // Walk button
+    const walkButtonWidth = 180;
+    const walkButtonHeight = 60;
+    this.crownWalkButton = this.scene.add.container(0, 160);
+    const walkBg = this.scene.add.graphics();
+    walkBg.fillStyle(0x666666, 1);
+    walkBg.fillRoundedRect(-walkButtonWidth / 2, -walkButtonHeight / 2, walkButtonWidth, walkButtonHeight, 10);
+    this.crownWalkButton.add(walkBg);
+    const walkText = this.scene.add.text(0, 0, 'WALK', {
+      font: `bold ${BUTTON_FONT_SIZE} Arial`,
+      color: '#ffffff'
+    }).setOrigin(0.5);
+    this.crownWalkButton.add(walkText);
+    this.crownWalkButton.setInteractive(new Phaser.Geom.Rectangle(-walkButtonWidth / 2, -walkButtonHeight / 2, walkButtonWidth, walkButtonHeight), Phaser.Geom.Rectangle.Contains);
+    this.crownFlipContainer.add(this.crownWalkButton);
   }
 }

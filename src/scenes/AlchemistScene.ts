@@ -8,6 +8,8 @@
 
 import * as Phaser from 'phaser';
 import { AlchemistUI } from '../games/AlchemistUI';
+import { createAlchemistState } from '../games/AlchemistLogic';
+import type { AlchemistSymbol } from '../games/AlchemistLogic';
 
 const GOLD_STR   = '#c9a84c';
 const COPPER_STR = '#b87333';
@@ -53,8 +55,10 @@ export class AlchemistScene extends Phaser.Scene {
       color:      GOLD_STR,
     }).setOrigin(0.5).setAlpha(0.65);
 
-    this.alchemistUI = new AlchemistUI(this, { houseEdge: 0.03 });
-    this.alchemistUI.start();
+    this.alchemistUI = new AlchemistUI(this);
+    const initState = createAlchemistState(1, 25);
+    const initGrid = initState.reelStops as AlchemistSymbol[][];
+    this.alchemistUI.start(initGrid, () => {}); // spin handled internally by UI
 
     // Universal nav bar
     const navBg = this.add.graphics();
@@ -66,6 +70,6 @@ export class AlchemistScene extends Phaser.Scene {
   }
 
   shutdown(): void {
-    this.alchemistUI?.cleanup();
+    this.alchemistUI?.destroy();
   }
 }
