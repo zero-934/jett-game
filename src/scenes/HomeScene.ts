@@ -144,6 +144,14 @@ export class HomeScene extends Phaser.Scene {
         accentStr: '#0055ff',
         drawIcon: (scene, x, y) => scene.drawSurgeCard(x, y),
       },
+      {
+        key: 'DiceDuelScene',
+        title: 'DICE DUEL',
+        subtitle: '3 Dice · You vs House\nDouble Down · 2× Win!',
+        accent: 0xcc3333,
+        accentStr: '#cc3333',
+        drawIcon: (scene, x, y) => scene.drawDiceDuelCard(x, y),
+      },
     ];
 
     const cardH      = 108;
@@ -622,6 +630,34 @@ export class HomeScene extends Phaser.Scene {
     g.fillCircle(cx - 16, cy - 8, 2);
     g.fillCircle(cx + 18, cy - 4, 2);
     g.fillCircle(cx + 8, cy - 20, 2);
+    this.scrollContainer?.add(g);
+  }
+
+  drawDiceDuelCard(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    // Two dice side by side
+    const diceSize = 18;
+    // Die 1
+    g.fillStyle(0xffffff, 1);
+    g.fillRoundedRect(cx - 22, cy - 12, diceSize, diceSize, 3);
+    g.lineStyle(1.5, 0xc9a84c, 1);
+    g.strokeRoundedRect(cx - 22, cy - 12, diceSize, diceSize, 3);
+    g.fillStyle(0x080812, 1);
+    g.fillCircle(cx - 16, cy - 6, 2.5);
+    g.fillCircle(cx - 10, cy, 2.5);
+    g.fillCircle(cx - 16, cy + 2, 2.5);
+    // Die 2
+    g.fillStyle(0xffffff, 1);
+    g.fillRoundedRect(cx + 4, cy - 12, diceSize, diceSize, 3);
+    g.lineStyle(1.5, 0xc9a84c, 1);
+    g.strokeRoundedRect(cx + 4, cy - 12, diceSize, diceSize, 3);
+    g.fillStyle(0x080812, 1);
+    g.fillCircle(cx + 10, cy - 6, 2.5);
+    g.fillCircle(cx + 16, cy - 6, 2.5);
+    g.fillCircle(cx + 10, cy + 2, 2.5);
+    g.fillCircle(cx + 16, cy + 2, 2.5);
+    // VS in between
+    this.add.text(cx - 3, cy - 3, 'VS', { fontFamily: 'Arial', fontSize: '8px', color: '#cc3333', fontStyle: 'bold' }).setOrigin(0.5);
     this.scrollContainer?.add(g);
   }
 

@@ -11,6 +11,7 @@ import type { DiceConfig, DiceTier } from './DiceLogic';
 import { createDiceState, rollDice, selectTier } from './DiceLogic';
 
 const GOLD     = 0xc9a84c;
+const FONT_UI  = 'Arial, sans-serif';
 const GOLD_STR = '#c9a84c';
 const DARK     = 0x080812;
 const DARK_STR = '#080812'; // Added for consistent string colors
@@ -102,6 +103,9 @@ export class DiceUI {
       this.tierBgs.set(tier, bg);
       this.tierCenters.set(tier, { cx, cy: y });
 
+      this.scene.add.text(cx, y - 32, '🎲', {
+        fontFamily: FONT_UI, fontSize: '20px',
+      }).setOrigin(0.5).setDepth(2);
       const label = this.scene.add.text(cx, y - 10, tierLabels[i], {
         fontFamily: '"Fredoka One", sans-serif',
         fontSize: '32px', color: tier === this.state!.selectedTier ? DARK_STR : GOLD_STR,
@@ -146,7 +150,7 @@ export class DiceUI {
 
   private buildDice(): void {
     const { width, height } = this.scene.scale;
-    const diceSize = 72;
+    const diceSize = 96;
     const gap = 18;
     const total = 3 * diceSize + 2 * gap;
     const startX = (width - total) / 2;
@@ -177,7 +181,7 @@ export class DiceUI {
     g.fillRoundedRect(cx - half, cy - half, size, size, r * 2);
 
     // Border
-    g.lineStyle(3, GOLD, 0.8); // Thicker, more prominent gold border
+    g.lineStyle(3, GOLD, 1);
     g.strokeRoundedRect(cx - half, cy - half, size, size, r * 2);
 
     if (val === 0) {
@@ -201,7 +205,7 @@ export class DiceUI {
       [[-o, -o], [o, -o], [-o, 0], [o, 0], [-o, o], [o, o]],   // 6
     ];
 
-    g.fillStyle(DARK, 1); // Darker dots for contrast
+    g.fillStyle(0x080812, 1);
     for (const [dx, dy] of dotPositions[val]) {
       g.fillCircle(cx + dx, cy + dy, dot);
     }
@@ -211,11 +215,16 @@ export class DiceUI {
     const { width, height } = this.scene.scale;
     const cx = width / 2, cy = height * 0.70;
 
-    this.rollBtn = this.scene.add.rectangle(cx, cy, 200, 60, GOLD, 1) // Slightly larger button
+    const rollBg = this.scene.add.graphics();
+    rollBg.fillStyle(GOLD, 1);
+    rollBg.fillRoundedRect(cx - 110, cy - 33, 220, 66, 14);
+    rollBg.lineStyle(2, 0xfff4cc, 0.5);
+    rollBg.strokeRoundedRect(cx - 110, cy - 33, 220, 66, 14);
+    this.rollBtn = this.scene.add.rectangle(cx, cy, 220, 66, 0, 0)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.handleRoll())
-      .on('pointerover', () => this.rollBtn?.setFillStyle(0xddb83a))
-      .on('pointerout',  () => this.rollBtn?.setFillStyle(GOLD));
+      .on('pointerover', () => { rollBg.clear(); rollBg.fillStyle(0xddb83a,1); rollBg.fillRoundedRect(cx-110,cy-33,220,66,14); })
+      .on('pointerout',  () => { rollBg.clear(); rollBg.fillStyle(GOLD,1);    rollBg.fillRoundedRect(cx-110,cy-33,220,66,14); });
 
     this.rollLabel = this.scene.add.text(cx, cy, 'ROLL', {
       fontFamily: '"Fredoka One", sans-serif', fontSize: '30px', color: DARK_STR,
@@ -277,7 +286,7 @@ export class DiceUI {
         ticks++;
         for (let i = 0; i < 3; i++) {
           const { width } = this.scene.scale;
-          const diceSize = 72;
+          const diceSize = 96;
           const gap      = 18;
           const total    = 3 * diceSize + 2 * gap;
           const startX   = (width - total) / 2;
@@ -293,7 +302,7 @@ export class DiceUI {
             rollDice(this.state!, this.config);
             const vals = this.state!.diceValues;
             const { width } = this.scene.scale;
-            const diceSize = 72, gap2 = 18;
+            const diceSize = 96, gap2 = 18;
             const total2 = 3 * diceSize + 2 * gap2;
             const startX2 = (width - total2) / 2;
             for (let i = 0; i < 3; i++) {
