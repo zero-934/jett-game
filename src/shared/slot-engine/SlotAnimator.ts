@@ -163,27 +163,17 @@ export class SlotAnimator {
     // These must NOT extend over nav bar, meters, buttons or HUD
     const coverColor = 0x000000;
     const gridBottom = this.config.gridTop + this.gridH;
-    const bufferHeight = this.config.spinRows * this.cellStep;
+    const bufferHeight = this.cellStep; // Only hide one cell height above/below grid
 
-    // Top cover — only covers the buffer zone directly above the grid
+    // Top cover — full width strip just above the grid to hide scrolling buffer
     const topCover = this.scene.add.graphics().setDepth(15);
     topCover.fillStyle(coverColor, 1);
-    topCover.fillRect(
-      this.gridX,
-      this.config.gridTop - bufferHeight,
-      this.gridW,
-      bufferHeight
-    );
+    topCover.fillRect(0, this.config.gridTop - bufferHeight, canvasWidth, bufferHeight);
 
-    // Bottom cover — only covers the buffer zone directly below the grid
+    // Bottom cover — full width strip just below the grid to hide scrolling buffer  
     const bottomCover = this.scene.add.graphics().setDepth(15);
     bottomCover.fillStyle(coverColor, 1);
-    bottomCover.fillRect(
-      this.gridX,
-      gridBottom,
-      this.gridW,
-      bufferHeight
-    );
+    bottomCover.fillRect(0, gridBottom, canvasWidth, bufferHeight);
 
     this.buildFlashOverlay();
     return this.gridX;
