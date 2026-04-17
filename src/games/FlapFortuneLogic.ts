@@ -1,3 +1,5 @@
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
+
 /**
  * @file FlapFortuneLogic.ts
  * @purpose Pure game logic for Flap Fortune — gravity physics, Mario-style red pipe generation,
@@ -111,7 +113,8 @@ export function tickFlapFortune(
   const scrollSpeed      = config.scrollSpeed      ?? DEFAULT_SCROLL_SPEED;
   const houseEdge        = config.houseEdge        ?? DEFAULT_HOUSE_EDGE;
   const combustionChance = config.combustionChancePerTick ?? DEFAULT_COMBUSTION_CHANCE;
-  const rng              = config.rng              ?? Math.random;
+  const _rng = new ProvablyFairRNG();
+  const rng              = config.rng              ?? _rng.random.bind(_rng);
 
   if (isFlapping) state.playerVelocityY = flapStrength;
   state.playerVelocityY += gravity;
@@ -194,7 +197,8 @@ export function generateFlapPipe(spawnX: number, config: FlapFortuneConfig): Fla
   const gapHeight  = config.pipeGapHeight ?? DEFAULT_GAP_HEIGHT;
   const margin     = 70;
   const maxTop     = config.worldHeight - gapHeight - margin;
-  const topHeight  = margin + Math.random() * (maxTop - margin);
+  const _pipeRng = new ProvablyFairRNG();
+  const topHeight  = margin + _pipeRng.random() * (maxTop - margin);
   const bottomHeight = config.worldHeight - topHeight - gapHeight;
   return { x: spawnX, topHeight, bottomHeight, cleared: false };
 }

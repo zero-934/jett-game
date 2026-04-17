@@ -7,7 +7,7 @@
  * @license Proprietary
  */
 
-import { getRandomSeedableRNG } from '../utils/RNG';
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
 
 // ─── Game Constants ─────────────────────────────────────────────────────────────────────────────
 export const REELS_COUNT = 5;
@@ -149,7 +149,8 @@ function shuffleArray<T>(array: T[], rng: () => number): T[] {
 
 // Generate 5 unique (shuffled) reel strips
 export const REEL_STRIPS: AlchemistSymbol[][] = Array.from({ length: REELS_COUNT }, (_) => {
-  const rng = getRandomSeedableRNG(); // Use a distinct seed for each strip initially
+  const _stripRng = new ProvablyFairRNG();
+  const rng = _stripRng.random.bind(_stripRng); // Use a distinct seed per strip for initialization
   return shuffleArray([...BASE_REEL_STRIP], rng);
 });
 
@@ -344,7 +345,8 @@ export function createAlchemistState(bet: number, linesBet: number): AlchemistSt
  * console.log(currentState.totalWin);
  */
 export function spinAlchemist(state: AlchemistState, config?: AlchemistConfig): AlchemistState {
-  const rng = config?.rng || getRandomSeedableRNG();
+  const _defaultRng = new ProvablyFairRNG();
+  const rng = config?.rng ?? _defaultRng.random.bind(_defaultRng);
 
   // Create a deep copy of the state to ensure immutability
   const newState: AlchemistState = {
@@ -467,7 +469,8 @@ export function spinAlchemist(state: AlchemistState, config?: AlchemistConfig): 
  * console.log(`Simulated RTP: ${rtp * 100}%`);
  */
 export function simulateAlchemistRTP(rounds: number, betPerLine: number, linesBet: number, config?: AlchemistConfig): number {
-  const rng = config?.rng || getRandomSeedableRNG();
+  const _simRng = new ProvablyFairRNG();
+  const rng = config?.rng ?? _simRng.random.bind(_simRng);
   const simConfig: AlchemistConfig = { ...config, rng, skipTransmuting: true }; // Force skipTransmuting for speed
 
   let totalBet = 0;

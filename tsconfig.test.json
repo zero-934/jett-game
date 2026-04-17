@@ -9,5 +9,5 @@
     "esModuleInterop": true,
     "types": ["jest", "node"]
   },
-  "include": ["src/tests/**/*.ts", "src/games/**/*.ts"]
+  "include": ["src/tests/**/*.ts", "src/games/**/*.ts", "src/shared/**/*.ts"]
 }

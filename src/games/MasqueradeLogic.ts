@@ -7,7 +7,7 @@
  * @license Proprietary – available for licensing
  */
 
-import { getRandomSeedableRNG } from '../utils/RNG';
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 export const REELS_COUNT              = 5;
@@ -313,7 +313,8 @@ export function createMasqueradeState(bet: number, linesBet: number): Masquerade
  * const next = spinMasquerade(state, { rng: myRng });
  */
 export function spinMasquerade(state: MasqueradeState, config: MasqueradeConfig = {}): MasqueradeState {
-  const rng = config.rng ?? getRandomSeedableRNG();
+  const _defaultRng = new ProvablyFairRNG();
+  const rng = config.rng ?? _defaultRng.random.bind(_defaultRng);
 
   const next: MasqueradeState = {
     ...state,
@@ -426,7 +427,8 @@ export function simulateMasqueradeRTP(
   linesBet:   number,
   config:     MasqueradeConfig = {}
 ): number {
-  const rng = getRandomSeedableRNG();
+  const _simRng = new ProvablyFairRNG();
+  const rng = _simRng.random.bind(_simRng);
   const cfg: MasqueradeConfig = { rng, skipUnmasking: true, ...config };
   let totalBet = 0;
   let totalWin = 0;
