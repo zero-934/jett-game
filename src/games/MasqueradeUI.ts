@@ -215,16 +215,27 @@ export class MasqueradeUI {
   /** Decorative frame around the reel grid */
   private buildReelFrame(): void {
     const { width } = this.scene.scale;
-    const gx = this.gridX - 8;
-    const gy = GRID_TOP   - 8;
-    const gw = this.gridW  + 16;
-    const gh = this.gridH  + 16;
+    const gx = this.gridX - 10;
+    const gy = GRID_TOP   - 10;
+    const gw = this.gridW  + 20;
+    const gh = this.gridH  + 20;
 
     const frame = this.scene.add.graphics();
+    // Dark fill
     frame.fillStyle(0x1a0033, 1);
-    frame.fillRoundedRect(gx, gy, gw, gh, 10);
-    frame.lineStyle(2, GOLD, 0.8);
-    frame.strokeRoundedRect(gx, gy, gw, gh, 10);
+    frame.fillRoundedRect(gx, gy, gw, gh, 12);
+    // Outer gold border
+    frame.lineStyle(3, GOLD, 1);
+    frame.strokeRoundedRect(gx, gy, gw, gh, 12);
+    // Inner accent line
+    frame.lineStyle(1, GOLD, 0.35);
+    frame.strokeRoundedRect(gx + 4, gy + 4, gw - 8, gh - 8, 9);
+    // Corner diamonds
+    const corners = [[gx, gy], [gx+gw, gy], [gx, gy+gh], [gx+gw, gy+gh]];
+    corners.forEach(([cx, cy]) => {
+      frame.fillStyle(GOLD, 1);
+      frame.fillRect(cx - 3, cy - 3, 6, 6);
+    });
 
     // Side bars that cover any off-screen symbol overflow (match background gradient start colour)
     const leftBar  = this.scene.add.graphics();

@@ -86,6 +86,7 @@ export class InfernoUI {
       this.drawSymbol.bind(this),
       this.drawBlur.bind(this)
     );
+    this.buildGridBorder();
     this.buildHeatMeter();
     this.buildHUD(onSpin);
     this.buildCrownFlipModal();
@@ -395,6 +396,28 @@ export class InfernoUI {
   /**
    * Builds the Heat Meter UI element.
    */
+  private buildGridBorder(): void {
+    const { symbolSize, reelsCount, rowsCount, reelGap, gridTop } = THREE_REEL_PRESET;
+    const gridW = reelsCount * symbolSize + (reelsCount - 1) * reelGap;
+    const gridH = rowsCount * symbolSize + (rowsCount - 1) * reelGap;
+    const canvasW = this.scene.game.config.width as number || 390;
+    const gx = (canvasW - gridW) / 2 - 10;
+    const gy = gridTop - 10;
+    const gw = gridW + 20;
+    const gh = gridH + 20;
+
+    const border = this.scene.add.graphics().setDepth(5);
+    border.lineStyle(3, GOLD, 1);
+    border.strokeRoundedRect(gx, gy, gw, gh, 12);
+    border.lineStyle(1, GOLD, 0.35);
+    border.strokeRoundedRect(gx + 4, gy + 4, gw - 8, gh - 8, 9);
+    const corners = [[gx, gy], [gx+gw, gy], [gx, gy+gh], [gx+gw, gy+gh]];
+    corners.forEach(([cx, cy]) => {
+      border.fillStyle(GOLD, 1);
+      border.fillRect(cx - 3, cy - 3, 6, 6);
+    });
+  }
+
   private buildHeatMeter(): void {
     const segmentWidth = HEAT_METER_WIDTH / HEAT_METER_SEGMENTS;
     const meterX = (CANVAS_WIDTH - HEAT_METER_WIDTH) / 2;

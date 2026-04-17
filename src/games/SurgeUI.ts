@@ -135,6 +135,21 @@ export class SurgeUI {
     void this.gridX; // suppress unused warning
     // SlotAnimator handles positioning internally
 
+    // Grid border
+    const _gridW = THREE_REEL_PRESET.reelsCount * THREE_REEL_PRESET.symbolSize + (THREE_REEL_PRESET.reelsCount - 1) * THREE_REEL_PRESET.reelGap;
+    const _gridH = THREE_REEL_PRESET.rowsCount * THREE_REEL_PRESET.symbolSize + (THREE_REEL_PRESET.rowsCount - 1) * THREE_REEL_PRESET.reelGap;
+    const _gx = (CANVAS_WIDTH - _gridW) / 2 - 10;
+    const _gy = THREE_REEL_PRESET.gridTop - 10;
+    const border = this.scene.add.graphics().setDepth(5);
+    border.lineStyle(3, GOLD, 1);
+    border.strokeRoundedRect(_gx, _gy, _gridW + 20, _gridH + 20, 12);
+    border.lineStyle(1, GOLD, 0.35);
+    border.strokeRoundedRect(_gx + 4, _gy + 4, _gridW + 12, _gridH + 12, 9);
+    [[_gx, _gy], [_gx+_gridW+20, _gy], [_gx, _gy+_gridH+20], [_gx+_gridW+20, _gy+_gridH+20]].forEach(([cx, cy]) => {
+      border.fillStyle(GOLD, 1);
+      border.fillRect(cx - 3, cy - 3, 6, 6);
+    });
+
     // Surge Meter
     this.surgeMeterGraphics = this.scene.add.graphics();
     this.surgeMeterText = this.scene.add.text(
