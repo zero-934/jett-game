@@ -35,7 +35,6 @@ export class InfernoScene extends Phaser.Scene {
   private currentBet: number = DEFAULT_BET;
   private isSpinning: boolean = false;
   private balanceText!: Phaser.GameObjects.Text;
-  private spinButton!: Phaser.GameObjects.Text;
   private betButtons: Phaser.GameObjects.Text[] = [];
 
   /**
@@ -93,7 +92,7 @@ export class InfernoScene extends Phaser.Scene {
       .setDepth(10);
 
     // Bet selector buttons
-    const betButtonY = this.scale.height * 0.85;
+    const betButtonY = 760;
     const betSpacing = 68;
     const betButtonStartX = this.scale.width / 2 - (BET_OPTIONS.length - 1) * betSpacing / 2;
     BET_OPTIONS.forEach((betAmount, index) => {
@@ -113,19 +112,7 @@ export class InfernoScene extends Phaser.Scene {
     });
     this.updateBetButtonHighlight();
 
-    // Spin button
-    this.spinButton = this.add
-      .text(this.scale.width / 2, this.scale.height * 0.95, 'SPIN', {
-        fontFamily: 'Arial Black',
-        fontSize: '40px',
-        color: GOLD_STR,
-        backgroundColor: '#555555',
-        padding: { x: 30, y: 15 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', this.handleSpin, this)
-      .setDepth(10);
+    // Spin button owned by InfernoUI (passed via onSpin callback in start())
 
     // Back button — left side of nav bar
     this.add
@@ -188,7 +175,7 @@ export class InfernoScene extends Phaser.Scene {
     }
 
     this.isSpinning = true;
-    this.spinButton.disableInteractive().setAlpha(0.5);
+    // spinButton managed by InfernoUI
     this.betButtons.forEach((btn) => btn.disableInteractive().setAlpha(0.5));
 
     this.balance -= this.currentBet;
@@ -340,7 +327,7 @@ export class InfernoScene extends Phaser.Scene {
     this.infernoUI.updateWin(0); // Reset win display for next spin
 
     this.isSpinning = false;
-    this.spinButton.setInteractive({ useHandCursor: true }).setAlpha(1);
+    // spinButton managed by InfernoUI
     this.betButtons.forEach((btn) => btn.setInteractive({ useHandCursor: true }).setAlpha(1));
 
     // If there are free spins remaining, the next spin should be a free spin
