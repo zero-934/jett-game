@@ -8,7 +8,7 @@
 
 import * as Phaser from 'phaser';
 import { SlotAnimator, THREE_REEL_PRESET } from '../shared/slot-engine/SlotAnimator';
-import type { InfernoState, InfernoCluster, InfernoSymbol } from './InfernoLogic'; // Assuming InfernoLogic defines these types
+import type { InfernoState, InfernoCluster, InfernoSymbol, InfernoCell } from './InfernoLogic'; // Assuming InfernoLogic defines these types
 
 // --- Constants ---
 const GOLD = 0xc9a84c;
@@ -116,8 +116,13 @@ export class InfernoUI {
    * @param finalGrid The final symbol grid after the spin.
    * @param onComplete Callback function to be executed after the spin animation finishes.
    */
-  public animateSpin(finalGrid: InfernoSymbol[][], onComplete: () => void): void {
-    this.animator.spinReels(finalGrid, onComplete);
+  public animateSpin(finalGrid: InfernoCell[][], onComplete: () => void): void {
+    // Transpose [row][col] → [reel=col][row] for SlotAnimator
+    const reelGrid: string[][] = [];
+    for (let col = 0; col < 3; col++) {
+      reelGrid.push(finalGrid.map(row => row[col].symbol as string));
+    }
+    this.animator.spinReels(reelGrid, onComplete);
   }
 
   /**

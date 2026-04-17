@@ -73,7 +73,7 @@ export class InfernoScene extends Phaser.Scene {
     // Initialize UI — must call start() first to build reel containers
     this.infernoUI = new InfernoUI(this);
     const initialGrid = this.infernoState.grid.map(row => row.map(cell => cell.symbol));
-    this.infernoUI.start(initialGrid, () => {});
+    this.infernoUI.start(initialGrid, () => this.handleSpin());
     this.infernoUI.renderGrid(this.infernoState);
     this.infernoUI.updateHeatMeter(this.infernoState.heatMeter);
     this.infernoUI.updateBet(this.currentBet);
@@ -195,18 +195,25 @@ export class InfernoScene extends Phaser.Scene {
     const willBeInfernoSpin = this.infernoState.heatMeter === 5;
 
     const startSpinProcess = () => {
-      // Store previous state for cascade animation
       const previousState = { ...this.infernoState };
 
+      // Run logic to get final state
       this.infernoState = spinInferno(this.infernoState, { rng: this.rng });
-      this.infernoUI.renderGrid(this.infernoState); // Initial grid render
+      const finalState   = this.infernoState;
 
-      // If it was an Inferno Spin, the heat meter was reset in logic, update UI
-      if (previousState.heatMeter === 5) {
-        this.infernoUI.updateHeatMeter(this.infernoState.heatMeter);
+      // Build final grid for animation [reel][row]
+      const finalGrid: string[][] = [];
+      for (let col = 0; col < 3; col++) {
+        finalGrid.push(finalState.grid.map(row => row[col].symbol));
       }
 
-      this.processSpinResult(previousState);
+      // Animate spin then evaluate (pass full grid — animateSpin handles transpose)
+      this.infernoUI.animateSpin(finalState.grid, () => {
+        if (previousState.heatMeter === 5) {
+          this.infernoUI.updateHeatMeter(finalState.heatMeter);
+        }
+        this.processSpinResult(previousState);
+      });
     };
 
     if (willBeInfernoSpin) {
