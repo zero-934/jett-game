@@ -1,427 +1,431 @@
 /**
  * @file src/shared/slot-engine/SlotAnimator.ts
- * @purpose A reusable Phaser animation helper for any slot game on the platform. Pure Phaser — no game logic.
+ * @purpose Reusable Phaser reel animation system for all slot games.
+ *          Architecture copied directly from the working MasqueradeUI:
+ *          symbol containers sit in world space (no parent reel container),
+ *          spin stacks them above the viewport then tweens them all downward,
+ *          each reel stops with a configurable stagger delay.
  * @author Agent 934
  * @date 2026-04-16
- * @license Proprietary
+ * @license Proprietary – available for licensing
  */
 
 import * as Phaser from 'phaser';
 
-// --- Constants ---
-const GOLD_STR = '#c9a84c';
-const WIN_PULSE_DURATION = 160; // ms
-const WIN_PULSE_SCALE = 1.15;
-const WIN_PULSE_REPEATS = 3;
-const CELL_FLASH_DURATION = 150; // ms for fade out, then fade in
-const FLASH_IN_DURATION = 180; // ms
-const FLASH_OUT_DURATION = 200; // ms
+// ─── Visual constants ────────────────────────────────────────────────────────
+const GOLD_STR           = '#c9a84c';
+const WIN_PULSE_SCALE    = 1.15;
+const WIN_PULSE_DURATION = 160;   // ms
+const WIN_PULSE_REPEATS  = 3;
+const CELL_FLASH_OUT     = 100;   // ms fade-out for cell flash
+const FLASH_IN_DURATION  = 180;   // ms for overlay fade in
+const FLASH_HOLD_DIM     = 0.65;  // flash overlay alpha
+const FLASH_OUT_DURATION = 200;   // ms for overlay fade out
 
-// --- Interfaces and Presets ---
+// ─── Interfaces & Presets ────────────────────────────────────────────────────
 
 export interface SlotAnimatorConfig {
-  reelsCount: number;       // 3 or 5
-  rowsCount: number;        // 3
-  symbolSize: number;       // px (66 for 5-reel, 100 for 3-reel)
-  reelGap: number;          // px between reels
-  spinRows: number;         // off-screen buffer rows (e.g., 8 for 5-reel, 6 for 3-reel)
-  reelDelay: number;        // ms stagger between reels stopping
-  baseDuration: number;     // ms for reel 0 spin duration
-  gridTop: number;          // y position of grid top
+  reelsCount:   number;  // 3 or 5
+  rowsCount:    number;  // always 3
+  symbolSize:   number;  // px — cell width & height
+  reelGap:      number;  // px gap between reels (also used as row gap)
+  spinRows:     number;  // extra off-screen symbol buffer above grid
+  reelDelay:    number;  // ms stagger before each successive reel starts
+  baseDuration: number;  // ms for reel 0 spin
+  gridTop:      number;  // y of the top-left cell in world space
 }
 
-/**
- * Preset configuration for a 5-reel, 3-row slot game (e.g., MasqueradeUI).
- */
+/** Matches MasqueradeUI timing exactly — use for all 5-reel games. */
 export const FIVE_REEL_PRESET: SlotAnimatorConfig = {
-  reelsCount: 5,
-  rowsCount: 3,
-  symbolSize: 66,
-  reelGap: 4,
-  spinRows: 8,
-  reelDelay: 120,
+  reelsCount:   5,
+  rowsCount:    3,
+  symbolSize:   66,
+  reelGap:      4,
+  spinRows:     8,
+  reelDelay:    120,
   baseDuration: 700,
-  gridTop: 190,
+  gridTop:      190,
 };
 
-/**
- * Preset configuration for a 3-reel, 3-row slot game (e.g., InfernoUI, SurgeUI).
- */
+/** For 3-reel games (Inferno, Surge). Slightly tighter timing. */
 export const THREE_REEL_PRESET: SlotAnimatorConfig = {
-  reelsCount: 3,
-  rowsCount: 3,
-  symbolSize: 100,
-  reelGap: 6,
-  spinRows: 6,
-  reelDelay: 100,
+  reelsCount:   3,
+  rowsCount:    3,
+  symbolSize:   100,
+  reelGap:      6,
+  spinRows:     6,
+  reelDelay:    100,
   baseDuration: 600,
-  gridTop: 277, // Centered on 390x844 canvas: (844 - (3*100 + 2*6)) / 2 = (844 - 312) / 2 = 532 / 2 = 266. Let's adjust slightly for header/footer.
-                // (844 - (3*100)) / 2 = (844 - 300) / 2 = 272. Let's use 277 for a bit more top padding.
+  gridTop:      220,
 };
 
+// ─── SlotAnimator ────────────────────────────────────────────────────────────
+
 /**
- * A reusable Phaser animation helper for any slot game on the platform.
- * Pure Phaser — no game logic.
+ * Handles all reel animation for a slot game.
+ * Each symbol cell is a Phaser Container placed directly in world space
+ * (no parent reel container) — the same pattern used in MasqueradeUI.
+ *
+ * Usage:
+ *   const animator = new SlotAnimator(scene, THREE_REEL_PRESET);
+ *   const gridX = animator.buildReels(drawSymbol, drawBlur);
+ *   animator.snapReels(grid);
+ *   // on spin button:
+ *   animator.spinReels(finalGrid, () => { ... });
  */
 export class SlotAnimator {
-  private scene: Phaser.Scene;
-  private config: SlotAnimatorConfig;
+  private readonly scene:  Phaser.Scene;
+  private readonly config: SlotAnimatorConfig;
 
-  private reelColumns: Phaser.GameObjects.Container[] = [];
-  private symbolContainers: Phaser.GameObjects.Container[][] = []; // [reel][symbolIndex]
+  /** reelCols[reel][symbolIndex] — world-space containers, (spinRows + rowsCount) per reel */
+  private reelCols: Phaser.GameObjects.Container[][] = [];
 
-  private drawSymbolCallback!: (container: Phaser.GameObjects.Container, symbolKey: string) => void;
-  private drawBlurCallback!: (container: Phaser.GameObjects.Container) => void;
+  /** Cached grid X so snapReels / spinReel can use it */
+  private gridX = 0;
 
-  private flashOverlayRect: Phaser.GameObjects.Rectangle;
-  private flashOverlayMessage: Phaser.GameObjects.Text;
-  private flashOverlaySub: Phaser.GameObjects.Text;
-  private flashOverlayContainer: Phaser.GameObjects.Container;
+  private drawSymbolFn!: (c: Phaser.GameObjects.Container, key: string) => void;
+  private drawBlurFn!:   (c: Phaser.GameObjects.Container) => void;
 
-  /**
-   * Creates an instance of SlotAnimator.
-   * @param scene The Phaser Scene this animator belongs to.
-   * @param config Configuration for the slot grid and animations.
-   */
+  // Flash overlay
+  private flashOverlay: Phaser.GameObjects.Container | null = null;
+  private flashMsg:     Phaser.GameObjects.Text | null = null;
+  private flashSub:     Phaser.GameObjects.Text | null = null;
+
   constructor(scene: Phaser.Scene, config: SlotAnimatorConfig) {
-    this.scene = scene;
+    this.scene  = scene;
     this.config = config;
-
-    // Initialize flash overlay, hidden by default
-    this.flashOverlayContainer = this.scene.add.container(0, 0).setDepth(1000).setVisible(false);
-    this.flashOverlayRect = this.scene.add.rectangle(
-      this.scene.scale.width / 2,
-      this.scene.scale.height / 2,
-      this.scene.scale.width,
-      this.scene.scale.height,
-      0x000000,
-      0.8
-    ).setAlpha(0);
-    this.flashOverlayMessage = this.scene.add.text(
-      this.scene.scale.width / 2,
-      this.scene.scale.height / 2 - 40,
-      '',
-      { font: 'bold 48px Arial', color: GOLD_STR, align: 'center' }
-    ).setOrigin(0.5).setAlpha(0);
-    this.flashOverlaySub = this.scene.add.text(
-      this.scene.scale.width / 2,
-      this.scene.scale.height / 2 + 20,
-      '',
-      { font: '24px Arial', color: '#ffffff', align: 'center' }
-    ).setOrigin(0.5).setAlpha(0);
-
-    this.flashOverlayContainer.add([this.flashOverlayRect, this.flashOverlayMessage, this.flashOverlaySub]);
   }
 
+  // ─── Derived layout helpers ────────────────────────────────────────────────
+
+  private get cellStep(): number {
+    return this.config.symbolSize + this.config.reelGap;
+  }
+
+  private get gridW(): number {
+    return this.config.reelsCount * this.config.symbolSize +
+           (this.config.reelsCount - 1) * this.config.reelGap;
+  }
+
+  private get gridH(): number {
+    return this.config.rowsCount * this.config.symbolSize +
+           (this.config.rowsCount - 1) * this.config.reelGap;
+  }
+
+  // ─── Public API ───────────────────────────────────────────────────────────
+
   /**
-   * Builds reel containers. Must be called once during scene create().
-   * This method creates all the necessary Phaser.GameObjects.Container objects
-   * for the reels and their individual symbol cells.
-   * It also sets up the initial state with blur symbols.
+   * Creates all symbol containers in world space and calls drawBlur on each.
+   * Must be called once during scene create().
    *
-   * @param drawSymbol A callback function to draw a specific symbol into a container.
-   *                   The container is cleared before drawing.
-   * @param drawBlur A callback function to draw a blur placeholder into a container.
-   *                 The container is cleared before drawing.
-   * @returns The calculated X position of the left edge of the grid, useful for positioning other UI elements.
+   * @param drawSymbol  Callback to render a named symbol into a container.
+   * @param drawBlur    Callback to render a blur placeholder into a container.
+   * @returns gridX — left edge of the grid (useful for positioning HUD elements).
+   *
+   * @example
+   * const gridX = animator.buildReels(
+   *   (c, key) => drawMySymbol(c, key),
+   *   (c)      => drawMyBlur(c)
+   * );
    */
   public buildReels(
-    drawSymbol: (container: Phaser.GameObjects.Container, symbolKey: string) => void,
-    drawBlur: (container: Phaser.GameObjects.Container) => void
+    drawSymbol: (c: Phaser.GameObjects.Container, key: string) => void,
+    drawBlur:   (c: Phaser.GameObjects.Container) => void
   ): number {
-    this.drawSymbolCallback = drawSymbol;
-    this.drawBlurCallback = drawBlur;
+    this.drawSymbolFn = drawSymbol;
+    this.drawBlurFn   = drawBlur;
 
-    const { reelsCount, rowsCount, symbolSize, reelGap, spinRows, gridTop } = this.config;
-    const totalGridWidth = reelsCount * symbolSize + (reelsCount - 1) * reelGap;
-    const gridX = (this.scene.scale.width - totalGridWidth) / 2;
+    const { reelsCount, rowsCount, spinRows, symbolSize } = this.config;
+    this.gridX = (this.scene.scale.width - this.gridW) / 2;
 
-    const totalSymbolsPerReel = spinRows + rowsCount;
+    const totalPerReel = spinRows + rowsCount;
 
     for (let r = 0; r < reelsCount; r++) {
-      const reelColumn = this.scene.add.container(
-        gridX + r * (symbolSize + reelGap),
-        gridTop
-      ).setDepth(10); // Reels should be above background, below HUD
+      this.reelCols[r] = [];
+      const reelX = this.gridX + r * this.cellStep;
 
-      this.reelColumns.push(reelColumn);
-      this.symbolContainers.push([]);
-
-      for (let s = 0; s < totalSymbolsPerReel; s++) {
-        const symbolContainer = this.scene.add.container(0, (s - spinRows) * symbolSize);
-        this.symbolContainers[r].push(symbolContainer);
-        reelColumn.add(symbolContainer);
-
-        // Initially draw blur symbols for all cells
-        this.drawBlurCallback(symbolContainer);
+      for (let i = 0; i < totalPerReel; i++) {
+        // All containers start invisible far above viewport (same as MasqueradeUI)
+        const c = this.scene.add.container(reelX, -9999);
+        c.setSize(symbolSize, symbolSize);
+        c.setAlpha(0);
+        this.reelCols[r].push(c);
       }
     }
 
-    return gridX;
+    this.buildFlashOverlay();
+    return this.gridX;
   }
 
   /**
-   * Instantly snaps all reels to the given symbol grid (no animation).
-   * This method clears existing symbols and draws the final symbols in their correct positions.
-   * Off-screen symbols are hidden.
+   * Instantly positions all reels to show grid[][].
+   * grid[reel][row] = symbol key string.
    *
-   * @param grid A 2D array representing the final symbol layout. `grid[reel][row]` = symbol key string.
+   * @param grid 2-D array: grid[reel][row] = symbol key.
+   *
+   * @example
+   * animator.snapReels([['BOLT','BOLT','WILD'], ['ARC','SCATTER','COIL'], ['BOLT','ARC','SPARK']]);
    */
   public snapReels(grid: string[][]): void {
-    const { reelsCount, rowsCount, spinRows } = this.config;
+    const { reelsCount, rowsCount, spinRows, gridTop } = this.config;
+    const totalPerReel = spinRows + rowsCount;
 
     for (let r = 0; r < reelsCount; r++) {
-      // Ensure reel column is at its base position
-      this.reelColumns[r].y = this.config.gridTop;
+      const reelX = this.gridX + r * this.cellStep;
 
-      const finalSymbolsForReel = grid[r];
-      if (!finalSymbolsForReel || finalSymbolsForReel.length !== rowsCount) {
-        console.warn(`SlotAnimator: Invalid final grid for reel ${r}. Expected ${rowsCount} symbols, got ${finalSymbolsForReel?.length || 0}.`);
-        continue;
-      }
+      for (let i = 0; i < totalPerReel; i++) {
+        const visRow  = i - spinRows; // negative = off-screen above
+        const c       = this.reelCols[r][i];
 
-      // Draw visible symbols
-      for (let row = 0; row < rowsCount; row++) {
-        const symbolContainer = this.symbolContainers[r][spinRows + row];
-        symbolContainer.setVisible(true);
-        this.clearContainer(symbolContainer);
-        this.drawSymbolCallback(symbolContainer, finalSymbolsForReel[row]);
-      }
-
-      // Hide and clear off-screen symbols
-      for (let s = 0; s < spinRows; s++) {
-        const symbolContainer = this.symbolContainers[r][s];
-        symbolContainer.setVisible(false);
-        this.clearContainer(symbolContainer);
-      }
-      for (let s = spinRows + rowsCount; s < this.symbolContainers[r].length; s++) {
-        const symbolContainer = this.symbolContainers[r][s];
-        symbolContainer.setVisible(false);
-        this.clearContainer(symbolContainer);
+        if (visRow >= 0 && visRow < rowsCount) {
+          c.setPosition(reelX, gridTop + visRow * this.cellStep);
+          c.setAlpha(1);
+          c.removeAll(true);
+          this.drawSymbolFn(c, grid[r][visRow]);
+        } else {
+          c.setPosition(reelX, -9999);
+          c.setAlpha(0);
+        }
       }
     }
   }
 
   /**
-   * Animates spinning all reels, then snaps to finalGrid.
-   * Calls onComplete when all reels have stopped.
-   * Uses staggered stop: reel 0 stops first, reel N last.
+   * Animates all reels spinning then snaps to finalGrid.
+   * Reel 0 stops first; each subsequent reel stops reelDelay ms later.
+   * Calls onComplete when the last reel has stopped.
    *
-   * @param finalGrid A 2D array representing the final symbol layout. `finalGrid[reel][row]` = symbol key string.
-   * @param onComplete Callback function to be executed when all reels have finished spinning.
+   * @param finalGrid  2-D array of final symbol keys (same shape as snapReels).
+   * @param onComplete Called once all reels have settled.
+   *
+   * @example
+   * animator.spinReels(newGrid, () => evaluateWins());
    */
   public spinReels(finalGrid: string[][], onComplete: () => void): void {
-    const { reelsCount, rowsCount, symbolSize, spinRows, reelDelay, baseDuration } = this.config;
-    const spinPromises: Promise<void>[] = [];
+    const { reelsCount, reelDelay, baseDuration } = this.config;
+    let resolved = 0;
 
     for (let r = 0; r < reelsCount; r++) {
-      const reelColumn = this.reelColumns[r];
-      const spinDuration = baseDuration + r * reelDelay; // Staggered duration
+      const duration = baseDuration + r * reelDelay;
 
-      // Prepare reel for spin: draw blur symbols in all cells
-      for (const symbolContainer of this.symbolContainers[r]) {
-        this.clearContainer(symbolContainer);
-        this.drawBlurCallback(symbolContainer);
-        symbolContainer.setVisible(true); // Make sure all blur symbols are visible during spin
-      }
-
-      // Reset reel column Y to 0 relative to its parent (gridTop)
-      reelColumn.y = this.config.gridTop;
-
-      const totalDist = (spinRows + rowsCount) * symbolSize;
-
-      const spinPromise = new Promise<void>(resolve => {
-        this.scene.time.delayedCall(r * reelDelay, () => {
-          this.scene.tweens.add({
-            targets: reelColumn,
-            y: `+=${totalDist}`, // Scroll down
-            duration: spinDuration,
-            ease: 'Cubic.easeOut',
-            onComplete: () => {
-              // Reset reel column Y to its original position
-              reelColumn.y = this.config.gridTop;
-              // Snap this specific reel to its final symbols
-              this.snapReel(r, finalGrid[r]);
-              resolve();
-            },
-          });
+      this.scene.time.delayedCall(r * reelDelay, () => {
+        this.spinReel(r, finalGrid[r], duration).then(() => {
+          resolved++;
+          if (resolved === reelsCount) onComplete();
         });
       });
-      spinPromises.push(spinPromise);
     }
-
-    Promise.all(spinPromises).then(() => {
-      onComplete();
-    });
   }
 
   /**
-   * Pulses winning cells (scaleX/Y bounce).
+   * Pulses winning cells with a scale bounce (same as MasqueradeUI.animateWin).
    *
-   * @param positions An array of {reel, row} objects indicating which cells to highlight.
+   * @param positions Array of {reel, row} to highlight.
+   *
+   * @example
+   * animator.animateWin([{ reel: 0, row: 1 }, { reel: 1, row: 1 }]);
    */
   public animateWin(positions: { reel: number; row: number }[]): void {
-    const { spinRows: _spinRows } = this.config;
-
     for (const pos of positions) {
-      const cellContainer = this.getCellContainer(pos.reel, pos.row);
-      if (cellContainer) {
-        this.scene.tweens.add({
-          targets: cellContainer,
-          scaleX: WIN_PULSE_SCALE,
-          scaleY: WIN_PULSE_SCALE,
-          duration: WIN_PULSE_DURATION,
-          yoyo: true,
-          repeat: WIN_PULSE_REPEATS,
-          ease: 'Sine.easeInOut',
-          onComplete: () => {
-            cellContainer.setScale(1); // Ensure it returns to normal scale
-          },
-        });
-      }
+      const c = this.getCellContainer(pos.reel, pos.row);
+      if (!c) continue;
+      this.scene.tweens.add({
+        targets:  c,
+        scaleX:   WIN_PULSE_SCALE,
+        scaleY:   WIN_PULSE_SCALE,
+        duration: WIN_PULSE_DURATION,
+        yoyo:     true,
+        repeat:   WIN_PULSE_REPEATS,
+        ease:     'Sine.easeInOut',
+        onComplete: () => c.setScale(1),
+      });
     }
   }
 
   /**
-   * Returns the Phaser Container for a given reel/row visible cell.
-   * Useful for adding overlays or badges on specific cells.
+   * Returns the world-space container for a specific visible cell.
    *
-   * @param reel The reel index (0-based).
-   * @param row The row index (0-based, visible rows only).
-   * @returns The Phaser.GameObjects.Container for the specified cell, or null if invalid.
+   * @param reel  Reel index (0-based).
+   * @param row   Row index within visible rows (0-based).
+   * @returns Container or null if out of bounds.
+   *
+   * @example
+   * const cell = animator.getCellContainer(2, 1);
    */
   public getCellContainer(reel: number, row: number): Phaser.GameObjects.Container | null {
     const { reelsCount, rowsCount, spinRows } = this.config;
-    if (reel < 0 || reel >= reelsCount || row < 0 || row >= rowsCount) {
-      console.warn(`SlotAnimator: Invalid reel (${reel}) or row (${row}) requested.`);
-      return null;
-    }
-    // Visible rows start after spinRows buffer
-    return this.symbolContainers[reel][spinRows + row];
+    if (reel < 0 || reel >= reelsCount || row < 0 || row >= rowsCount) return null;
+    return this.reelCols[reel][spinRows + row] ?? null;
   }
 
   /**
-   * Animates a cell fading out and back in (for cascade/transmute effects).
+   * Fades a cell out then back in — used for cascade / transmute reveals.
    *
-   * @param reel The reel index (0-based).
-   * @param row The row index (0-based, visible rows only).
-   * @param onComplete Callback function to be executed after the flash animation finishes.
+   * @param reel       Reel index.
+   * @param row        Row index.
+   * @param onComplete Called after the full flash cycle.
+   *
+   * @example
+   * animator.animateCellFlash(1, 0, () => redrawCell());
    */
   public animateCellFlash(reel: number, row: number, onComplete: () => void): void {
-    const cellContainer = this.getCellContainer(reel, row);
-    if (cellContainer) {
-      this.scene.tweens.add({
-        targets: cellContainer,
-        alpha: 0,
-        duration: CELL_FLASH_DURATION,
-        ease: 'Sine.easeOut',
-        onComplete: () => {
-          this.scene.tweens.add({
-            targets: cellContainer,
-            alpha: 1,
-            duration: CELL_FLASH_DURATION,
-            ease: 'Sine.easeIn',
-            onComplete: onComplete,
-          });
-        },
-      });
-    } else {
-      onComplete(); // Call onComplete immediately if cell is invalid
-    }
-  }
+    const c = this.getCellContainer(reel, row);
+    if (!c) { onComplete(); return; }
 
-  /**
-   * Shows a full-screen flash overlay with message + sub-text.
-   * Fade in 180ms → hold durationMs → fade out 200ms → onDone().
-   *
-   * @param message The main message to display.
-   * @param sub The sub-text message to display.
-   * @param durationMs The duration in milliseconds to hold the flash overlay visible.
-   * @param onDone Callback function to be executed after the flash animation completes.
-   */
-  public showFlash(message: string, sub: string, durationMs: number, onDone: () => void): void {
-    this.flashOverlayMessage.setText(message);
-    this.flashOverlaySub.setText(sub);
-    this.flashOverlayContainer.setVisible(true);
-
-    this.scene.tweens.chain({
-      tweens: [
-        {
-          targets: [this.flashOverlayRect, this.flashOverlayMessage, this.flashOverlaySub],
-          alpha: 1,
-          duration: FLASH_IN_DURATION,
-          ease: 'Sine.easeOut',
-        },
-        {
-          targets: [], // Placeholder for hold duration
-          duration: durationMs,
-        },
-        {
-          targets: [this.flashOverlayRect, this.flashOverlayMessage, this.flashOverlaySub],
-          alpha: 0,
-          duration: FLASH_OUT_DURATION,
-          ease: 'Sine.easeIn',
-          onComplete: () => {
-            this.flashOverlayContainer.setVisible(false);
-            onDone();
-          },
-        },
-      ],
+    this.scene.tweens.add({
+      targets:  c,
+      alpha:    0.2,
+      duration: CELL_FLASH_OUT,
+      yoyo:     true,
+      repeat:   3,
+      onComplete: () => {
+        c.setAlpha(1);
+        onComplete();
+      },
     });
   }
 
   /**
-   * Cleanup — destroy all Phaser objects created by this instance.
+   * Shows a full-screen flash overlay.
+   * Fade in → hold → fade out → onDone().
+   * Same visual pattern as MasqueradeUI.showFlash().
+   *
+   * @param message    Large headline text.
+   * @param sub        Smaller sub-text.
+   * @param durationMs How long to hold the overlay (excluding fade in/out).
+   * @param onDone     Called when the overlay has fully faded out.
+   *
+   * @example
+   * animator.showFlash('BIG WIN', '+500 credits', 1200, () => resumeGame());
+   */
+  public showFlash(message: string, sub: string, durationMs: number, onDone: () => void): void {
+    if (!this.flashOverlay || !this.flashMsg || !this.flashSub) { onDone(); return; }
+
+    this.flashMsg.setText(message);
+    this.flashSub.setText(sub);
+    this.flashOverlay.setVisible(true).setAlpha(0);
+
+    this.scene.tweens.add({
+      targets:  this.flashOverlay,
+      alpha:    1,
+      duration: FLASH_IN_DURATION,
+      onComplete: () => {
+        this.scene.time.delayedCall(durationMs, () => {
+          this.scene.tweens.add({
+            targets:  this.flashOverlay,
+            alpha:    0,
+            duration: FLASH_OUT_DURATION,
+            onComplete: () => {
+              this.flashOverlay?.setVisible(false);
+              onDone();
+            },
+          });
+        });
+      },
+    });
+  }
+
+  /**
+   * Destroys all Phaser objects owned by this animator.
+   * Call from the scene's shutdown() or destroy().
    */
   public destroy(): void {
-    this.reelColumns.forEach(col => col.destroy());
-    this.symbolContainers.forEach(reelSymbols => reelSymbols.forEach(sym => sym.destroy()));
-    this.flashOverlayContainer.destroy();
-
-    this.reelColumns = [];
-    this.symbolContainers = [];
+    this.reelCols.forEach(col => col.forEach(c => c.destroy()));
+    this.reelCols = [];
+    this.flashOverlay?.destroy();
+    this.flashOverlay = null;
+    this.flashMsg     = null;
+    this.flashSub     = null;
   }
 
+  // ─── Private helpers ──────────────────────────────────────────────────────
+
   /**
-   * Clears all children from a Phaser.GameObjects.Container.
-   * @param container The container to clear.
+   * Spins one reel and resolves when it stops.
+   * Copies MasqueradeUI.spinReel() exactly:
+   *   1. Stack all containers above the viewport with blur symbols.
+   *   2. Tween them all down by totalDist.
+   *   3. onUpdate: alpha-fade containers outside the grid area.
+   *   4. onComplete: snap final symbols, hide off-screen containers.
    */
-  private clearContainer(container: Phaser.GameObjects.Container): void {
-    container.removeAll(true); // true to destroy children
+  private spinReel(reelIndex: number, finalSymbols: string[], duration: number): Promise<void> {
+    return new Promise(resolve => {
+      const col        = this.reelCols[reelIndex];
+      const totalRows  = col.length;
+      const reelX      = this.gridX + reelIndex * this.cellStep;
+      const { gridTop, rowsCount } = this.config;
+
+      // Stack all containers above viewport, draw blur
+      col.forEach((c, i) => {
+        c.removeAll(true);
+        this.drawBlurFn(c);
+        c.setPosition(reelX, gridTop - (totalRows - i) * this.cellStep);
+        c.setAlpha(1);
+      });
+
+      const totalDist = totalRows * this.cellStep;
+
+      this.scene.tweens.add({
+        targets:    col,
+        y:          `+=${totalDist}`,
+        duration,
+        ease:       'Cubic.easeOut',
+        onUpdate:   () => {
+          // Fade containers that are outside the visible grid area
+          col.forEach(c => {
+            const relY    = c.y - gridTop;
+            const inGrid  = relY >= -this.config.symbolSize && relY <= this.gridH;
+            c.setAlpha(
+              inGrid ? 1
+                     : Math.max(0, 1 - Math.abs(relY - this.gridH / 2) / (this.gridH * 0.8))
+            );
+          });
+        },
+        onComplete: () => {
+          // Snap final visible rows
+          for (let row = 0; row < rowsCount; row++) {
+            const c = col[totalRows - rowsCount + row];
+            c.removeAll(true);
+            this.drawSymbolFn(c, finalSymbols[row]);
+            c.setPosition(reelX, gridTop + row * this.cellStep);
+            c.setAlpha(1);
+          }
+          // Hide off-screen containers
+          for (let i = 0; i < totalRows - rowsCount; i++) {
+            col[i].setAlpha(0);
+          }
+          resolve();
+        },
+      });
+    });
   }
 
-  /**
-   * Snaps a single reel to its final symbols.
-   * This is a helper for spinReels' onComplete.
-   * @param reelIndex The index of the reel to snap.
-   * @param finalSymbolsForReel An array of symbol keys for the visible rows of this reel.
-   */
-  private snapReel(reelIndex: number, finalSymbolsForReel: string[]): void {
-    const { rowsCount, spinRows } = this.config;
+  /** Builds the full-screen flash overlay (called once in buildReels). */
+  private buildFlashOverlay(): void {
+    const { width, height } = this.scene.scale;
 
-    if (!finalSymbolsForReel || finalSymbolsForReel.length !== rowsCount) {
-      console.warn(`SlotAnimator: Invalid final symbols for reel ${reelIndex}. Expected ${rowsCount} symbols, got ${finalSymbolsForReel?.length || 0}.`);
-      return;
-    }
+    const dim = this.scene.add.graphics();
+    dim.fillStyle(0x000000, FLASH_HOLD_DIM);
+    dim.fillRect(0, 0, width, height);
 
-    // Draw visible symbols
-    for (let row = 0; row < rowsCount; row++) {
-      const symbolContainer = this.symbolContainers[reelIndex][spinRows + row];
-      symbolContainer.setVisible(true);
-      this.clearContainer(symbolContainer);
-      this.drawSymbolCallback(symbolContainer, finalSymbolsForReel[row]);
-    }
+    this.flashMsg = this.scene.add.text(width / 2, height / 2, '', {
+      fontFamily: '"Georgia", serif',
+      fontSize:   '52px',
+      color:      GOLD_STR,
+      stroke:     '#000000',
+      strokeThickness: 8,
+      align:      'center',
+    }).setOrigin(0.5);
 
-    // Hide and clear off-screen symbols
-    for (let s = 0; s < spinRows; s++) {
-      const symbolContainer = this.symbolContainers[reelIndex][s];
-      symbolContainer.setVisible(false);
-      this.clearContainer(symbolContainer);
-    }
-    for (let s = spinRows + rowsCount; s < this.symbolContainers[reelIndex].length; s++) {
-      const symbolContainer = this.symbolContainers[reelIndex][s];
-      symbolContainer.setVisible(false);
-      this.clearContainer(symbolContainer);
-    }
+    this.flashSub = this.scene.add.text(width / 2, height / 2 + 68, '', {
+      fontFamily: 'Arial, sans-serif',
+      fontSize:   '24px',
+      color:      '#ffffff',
+      align:      'center',
+    }).setOrigin(0.5);
+
+    this.flashOverlay = this.scene.add.container(0, 0, [dim, this.flashMsg, this.flashSub]);
+    this.flashOverlay.setVisible(false);
+    this.flashOverlay.setDepth(100);
   }
 }
