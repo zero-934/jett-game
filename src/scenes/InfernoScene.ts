@@ -242,6 +242,7 @@ export class InfernoScene extends Phaser.Scene {
 
         // Update total win display
         this.infernoUI.updateWin(this.infernoState.totalWin);
+        this.infernoUI.triggerAudio(this.infernoState.totalWin, this.currentBet);
 
         // Perform cascade logic to get the next state
         const stateAfterCascadeLogic = cascadeInferno(this.infernoState, { rng: this.rng });
