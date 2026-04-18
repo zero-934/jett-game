@@ -160,13 +160,13 @@ export class FlapFortuneUI {
     const { worldWidth, worldHeight } = this.config;
 
     this.multiplierText = this.scene.add
-      .text(16, 16, 'x1.00', {
+      .text(16, 46, 'x1.00', {
         fontFamily: 'monospace', fontSize: '22px', color: GOLD_STR,
         stroke: '#000000', strokeThickness: 3,
       }).setDepth(10);
 
     this.gatesText = this.scene.add
-      .text(16, 46, 'GATES: 0', {
+      .text(16, 70, 'GATES: 0', {
         fontFamily: 'monospace', fontSize: '13px', color: '#ddccaa',
         stroke: '#000000', strokeThickness: 2,
       }).setDepth(10);

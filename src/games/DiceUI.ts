@@ -234,7 +234,7 @@ export class DiceUI {
   private buildHUD(): void {
     const { width, height } = this.scene.scale;
 
-    this.scene.add.text(16, 16, `BET: ${this.BET}`, {
+    this.scene.add.text(16, 46, `BET: ${this.BET}`, {
       fontFamily: '"Fredoka One", sans-serif', fontSize: '20px', color: GOLD_STR,
     }).setDepth(10);
 
