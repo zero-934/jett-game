@@ -59,6 +59,7 @@ export class FlapFortuneUI {
 
 
   private isFlapping = false;
+  private waitingToStart = true;  // freeze physics until first tap
   private tickTimer:  Phaser.Time.TimerEvent | null = null;
 
   constructor(scene: Phaser.Scene, config: FlapFortuneConfig) {
@@ -82,6 +83,7 @@ export class FlapFortuneUI {
   }
 
   public cleanup(): void {
+    this.waitingToStart = true;
     this.tickTimer?.remove();
     this.tickTimer = null;
     this.bgGraphics?.destroy();
@@ -200,7 +202,7 @@ export class FlapFortuneUI {
   }
 
   private registerInput(): void {
-    this.scene.input.on('pointerdown', () => { this.isFlapping = true; });
+    this.scene.input.on('pointerdown', () => { this.waitingToStart = false; this.isFlapping = true; });
     this.scene.input.on('pointerup',   () => { this.isFlapping = false; });
     this.scene.input.keyboard?.on('keydown-SPACE', () => { this.isFlapping = true; });
     this.scene.input.keyboard?.on('keyup-SPACE',   () => { this.isFlapping = false; });
@@ -211,6 +213,7 @@ export class FlapFortuneUI {
   private onTick(): void {
     if (!this.state) return;
 
+    if (this.waitingToStart) return;  // frozen until first tap
     if (this.state.isAlive && !this.state.cashedOut) {
       tickFlapFortune(this.state, this.isFlapping, this.config);
       this.isFlapping   = false;
