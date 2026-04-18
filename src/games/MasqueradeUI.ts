@@ -210,7 +210,7 @@ export class MasqueradeUI {
 
   private get gridW(): number { return REELS_COUNT * SYM + (REELS_COUNT - 1) * REEL_GAP; }
   private get gridH(): number { return ROWS_COUNT  * SYM + (ROWS_COUNT  - 1) * REEL_GAP; }
-  private get gridX(): number { return (this.scene.scale.width - this.gridW) / 2; }
+  private get gridX(): number { return ((this.scene.game.config.width as number || 390) - this.gridW) / 2; }
 
   /** Decorative frame around the reel grid */
   private buildReelFrame(): void {
