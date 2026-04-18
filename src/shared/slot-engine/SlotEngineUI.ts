@@ -6,7 +6,8 @@
  * @license Proprietary – available for licensing
  */
 
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
+import { CasinoAudioManager } from '../audio/CasinoAudioManager';
 import type { SlotConfig, SlotSpinState, SlotWinLine } from './SlotEngineLogic';
 // ProvablyFairRNG is not directly used for logic here, but might be useful for type hints or if UI needs to create its own RNG for visual effects.
 // For now, it's not strictly necessary as logic is delegated.
@@ -66,6 +67,7 @@ export interface SlotUIConfig extends SlotConfig {
  * It delegates all game logic and RNG calls to `SlotEngineLogic`.
  */
 export class SlotEngineUI {
+  private audioManager: CasinoAudioManager;
   private scene: Phaser.Scene;
   private x: number;
   private y: number;
@@ -99,6 +101,7 @@ export class SlotEngineUI {
     this.symbolEmoji = { ...DEFAULT_SYMBOL_EMOJI, ...config.symbolEmoji };
 
     this.createReels();
+    this.audioManager = new CasinoAudioManager();
   }
 
   /**
@@ -263,6 +266,8 @@ export class SlotEngineUI {
       onComplete: () => {
         // Ensure final state is rendered correctly after animation
         this.render(state);
+        // Trigger audio based on spin outcome (with LDW ethical check)
+        this.audioManager.onWin(state.totalWin, state.bet / state.linesBet * state.linesBet);
         onComplete();
       },
     });
@@ -309,6 +314,7 @@ export class SlotEngineUI {
    * this.slotUI.destroy();
    */
   public destroy(): void {
+    this.audioManager.destroy();
     this.reelContainers.forEach(container => container.destroy());
     this.highlightGraphics.forEach(graphics => graphics.destroy());
     this.symbolTexts.forEach(reel => reel.forEach(text => text.destroy()));
