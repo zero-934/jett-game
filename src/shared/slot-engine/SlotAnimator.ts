@@ -159,7 +159,22 @@ export class SlotAnimator {
 
     }
 
-    // No cover bars needed — alpha fade during spin handles overflow
+    // ── Clip mask: clips all reel containers to the exact 3-row window ──────
+    // Geometry mask = invisible white rect over the grid area.
+    // Any symbol scrolling above or below the grid is automatically hidden.
+    const maskGfx = this.scene.add.graphics();
+    maskGfx.fillStyle(0xffffff);
+    maskGfx.fillRect(
+      this.gridX,
+      this.config.gridTop,
+      this.gridW,
+      this.gridH
+    );
+    maskGfx.setVisible(false);
+    const clipMask = maskGfx.createGeometryMask();
+    this.reelCols.forEach(col =>
+      col.forEach(container => container.setMask(clipMask))
+    );
 
     this.buildFlashOverlay();
     return this.gridX;
