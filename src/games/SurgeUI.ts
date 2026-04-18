@@ -7,6 +7,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { CasinoAudioManager } from '../shared/audio/CasinoAudioManager';
 import { SlotAnimator, THREE_REEL_PRESET } from '../shared/slot-engine/SlotAnimator';
 import type { SurgeState, SurgeCluster, SurgeSymbol } from './SurgeLogic';
 
@@ -98,6 +99,7 @@ const DISPLAY_Y = 656;
 export class SurgeUI {
   private scene: Phaser.Scene;
   private slotAnimator: SlotAnimator;
+  private audioManager = new CasinoAudioManager();
 
   private gridX: number = 0;
   private surgeMeterGraphics: Phaser.GameObjects.Graphics;
@@ -523,6 +525,10 @@ export class SurgeUI {
    * Updates the displayed win amount.
    * @param win The new win amount.
    */
+  public triggerAudio(win: number, bet: number): void {
+    this.audioManager.onWin(win, bet);
+  }
+
   public updateWin(win: number): void {
     this.winText.setText(`WIN: ${win.toFixed(2)}`);
   }

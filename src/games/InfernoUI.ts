@@ -7,6 +7,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { CasinoAudioManager } from '../shared/audio/CasinoAudioManager';
 import { SlotAnimator, THREE_REEL_PRESET } from '../shared/slot-engine/SlotAnimator';
 import type { InfernoState, InfernoCluster, InfernoSymbol, InfernoCell } from './InfernoLogic'; // Assuming InfernoLogic defines these types
 
@@ -49,6 +50,7 @@ const CROWN_FLIP_COIN_RADIUS = 60;
 export class InfernoUI {
   private scene: Phaser.Scene;
   private animator: SlotAnimator;
+  private audioManager = new CasinoAudioManager();
 
   // HUD elements
   private betText!: Phaser.GameObjects.Text;
@@ -333,6 +335,10 @@ export class InfernoUI {
    * Updates the displayed win amount in the HUD.
    * @param win The new win amount.
    */
+  public triggerAudio(win: number, bet: number): void {
+    this.audioManager.onWin(win, bet);
+  }
+
   public updateWin(win: number): void {
     if (this.winText) {
       this.winText.setText(`WIN: ${win}`);

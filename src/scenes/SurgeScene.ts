@@ -215,6 +215,7 @@ export class SurgeScene extends Phaser.Scene {
         this.balance += this.surgeState.totalWin;
         this.updateBalanceDisplay();
         this.surgeUI.updateWin(this.surgeState.totalWin);
+          this.surgeUI.triggerAudio(this.surgeState.totalWin, this.currentBet);
         this.handlePostSpinLogic();
       });
     } else {
@@ -283,6 +284,7 @@ export class SurgeScene extends Phaser.Scene {
         this.balance += this.surgeState.totalWin; // Add final win (could be 0)
         this.updateBalanceDisplay();
         this.surgeUI.updateWin(this.surgeState.totalWin);
+          this.surgeUI.triggerAudio(this.surgeState.totalWin, this.currentBet);
         if (this.surgeState.totalWin > 0) {
           this.surgeUI.showWinBadge(this.surgeState.totalWin);
         }
@@ -295,6 +297,7 @@ export class SurgeScene extends Phaser.Scene {
       this.balance += this.surgeState.totalWin;
       this.updateBalanceDisplay();
       this.surgeUI.updateWin(this.surgeState.totalWin);
+          this.surgeUI.triggerAudio(this.surgeState.totalWin, this.currentBet);
       if (this.surgeState.totalWin > 0) {
         this.surgeUI.showWinBadge(this.surgeState.totalWin);
       }
