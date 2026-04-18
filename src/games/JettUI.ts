@@ -127,7 +127,7 @@ export class JettUI {
     const { worldWidth, screenHeight } = this.config;
 
     this.multiplierText = this.scene.add
-      .text(16, 16, 'x1.00', { fontFamily: 'monospace', fontSize: '24px', color: GOLD_STR })
+      .text(16, 46, 'x1.00', { fontFamily: 'monospace', fontSize: '24px', color: GOLD_STR })
       .setDepth(10);
 
     this.altitudeText = this.scene.add

@@ -254,7 +254,7 @@ export class ShatterStepUI {
 
   private buildHUD(): void {
     this.multiplierText = this.scene.add
-      .text(16, 16, 'x1.00', {
+      .text(16, 46, 'x1.00', {
         fontFamily: 'monospace',
         fontSize: '22px',
         color: GOLD_STR,
