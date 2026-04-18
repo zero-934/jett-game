@@ -136,9 +136,9 @@ export function tickFlapFortune(
       state.cashedOut = true;
       state.payout    = parseFloat((state.bet * state.multiplier).toFixed(2));
     } else {
-      // Too early to cash out — bounce player back up slightly
-      state.playerVelocityY = -4;
-      state.playerY = config.worldHeight - halfH - 2;
+      // Hit the floor before first pipe — instant death, no payout
+      state.isAlive = false;
+      state.payout  = 0;
     }
     return state;
   }
