@@ -58,3 +58,42 @@ Two separate 3x3 slot games, both sharing the Crown Flip mechanic.
 - [ ] Surge spec written
 - [ ] Surge Gemini build
 - [ ] Surge tests pass + PR
+
+---
+
+## Pre-Pitch Roadmap (updated 2026-04-18)
+
+### Week 1-2: Polish Sprint
+- [ ] Visual polish — all games (consistent UI, better symbols, spacing)
+- [ ] Technical polish — audio working on all games, no layout bugs
+- [ ] Homepage rebuild — brand header, game grid, locked placeholder cards
+- [ ] Analytics: PostHog (behavior) + Supabase (game data) wired in
+
+### Week 2-3: Audio + Beta
+- [ ] Buy casino audio pack (AudioJungle/Zapsplat, ~$50-80)
+- [ ] Wire real audio into CasinoAudioManager
+- [ ] Beta program setup — invite link, onboarding screen
+- [ ] Jet Coins promise system — loyalty currency for early testers
+- [ ] Supabase spin logging (bet, win, game, session)
+
+### Week 3-4: Investor Prep
+- [ ] Pitch deck (Claude drafts, C Lee reviews)
+- [ ] Beta metrics dashboard
+- [ ] Demo video walkthrough
+- [ ] Legal placeholder (terms, responsible gambling notice)
+
+### Then: Pitch
+
+---
+
+## Analytics Plan
+- **PostHog** (free tier) — behavior: game started, spin placed, cashout, session time
+- **Supabase** (free tier) — game data: every spin logged with bet/win/RTP/game type
+- Both wired in one session after visual polish complete
+
+## Missing Before Pitch
+- [ ] Wallet connect (Solana) — can be mocked for demo
+- [ ] Jet Coins concept explained on homepage
+- [ ] Responsible gambling notice (legal requirement for any pitch)
+- [ ] Privacy policy page
+- [ ] Demo mode (play without betting) for investor demos
