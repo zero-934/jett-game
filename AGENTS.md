@@ -176,12 +176,17 @@ jett-game/
 │   └── shared/
 │       ├── rng/
 │       │   └── ProvablyFairRNG.ts ← xoroshiro128+ PRNG, Solana VRF-ready
-│       └── slot-engine/
-│           ├── SlotEngineLogic.ts ← Pure TS slot engine (96% RTP, reel strips)
-│           ├── SlotEngineUI.ts    ← Phaser renderer for slots
-│           └── configs/
-│               ├── masquerade.config.ts
-│               └── alchemist.config.ts
+│       ├── slot-engine/
+│       │   ├── SlotEngineLogic.ts ← Pure TS slot engine (96% RTP, reel strips)
+│       │   ├── SlotEngineUI.ts    ← Phaser renderer for slots
+│       │   ├── SlotAnimator.ts    ← Shared reel animation (3-reel + 5-reel presets)
+│       │   └── configs/
+│       │       ├── masquerade.config.ts
+│       │       └── alchemist.config.ts
+│       └── audio/                 ← (Phase 2 — not yet implemented)
+│           ├── audioConfig.ts     ← C Major/G Major scales, 84 BPM base
+│           ├── ShepardToneGenerator.ts ← 8-oscillator procedural climb
+│           └── CasinoAudioManager.ts   ← onWin, onNearMiss, playSurgeRise
 ├── public/                        ← Static assets
 ├── AGENTS.md                      ← YOU ARE HERE (AI agent guide)
 ├── AGENT_RULES.md                 ← Legacy rules (defer to AGENTS.md)
@@ -256,10 +261,14 @@ You are now fully oriented. Go build something great.
 
 ## AI Agent Workflow (Multi-Agent Coding)
 
-This project uses a **two-agent system**:
+This project uses a **two-agent system** optimised for cost efficiency (~70–90% credit savings vs. Claude-only):
 
-- **Primary agent (AgentX / Claude Sonnet)** — architect, reviewer, QA, git. Talks to the user. Never writes boilerplate from scratch.
-- **Secondary agent (Gemini 2.5 Flash)** — writes boilerplate code from specs. Cheap and fast. Does NOT review its own output.
+| Agent | Role | Uses |
+|-------|------|------|
+| **Claude Sonnet (AgentX)** | Architect · Reviewer · QA · Git | Specs, code review, integration, user comms |
+| **Gemini 2.5 Flash** | Worker · Boilerplate Generator | High-volume tasks: 10k+ spin simulations, new file boilerplate, log analysis |
+
+**Cost rule:** If a task is repetitive, high-volume, or templated — delegate to Gemini. Claude handles decisions, reviews, and fixes only.
 
 ### The Workflow
 
@@ -320,7 +329,9 @@ git checkout main && git pull
 2. UI files import from Logic — never the other way.
 3. No `any` without a comment explaining why.
 4. Phaser 4: `Container` does NOT have `setOrigin()`. Never call it.
-5. Named constants for everything — no magic numbers inline.
-6. All existing exports must remain — never remove or rename.
-7. File header: `@file`, `@purpose`, `@author Agent 934`, `@date`, `@license Proprietary`
-8. New public functions need JSDoc: `@param`, `@returns`, `@example`.
+5. Phaser 4 audio: use `this.sound.add(key, config)` only — no legacy Phaser 3 sound APIs.
+6. Named constants for everything — no magic numbers inline.
+7. All existing exports must remain — never remove or rename.
+8. File header on **every** file — `@file`, `@purpose`, `@author Agent 934`, `@date`, `@license Proprietary`. No exceptions.
+9. New public functions need JSDoc: `@param`, `@returns`, `@example`.
+10. **Ethical audio constraint:** NEVER trigger celebratory audio on a net loss. Always check `if (winAmount > betAmount)` before playing win sounds. A spin that returns less than the bet is a loss — treat it as one.
