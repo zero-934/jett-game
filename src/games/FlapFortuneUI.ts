@@ -213,7 +213,12 @@ export class FlapFortuneUI {
   private onTick(): void {
     if (!this.state) return;
 
-    if (this.waitingToStart) return;  // frozen until first tap
+    if (this.waitingToStart) {
+      // Still render background and character while frozen
+      this.renderBackground();
+      this.renderWizard();
+      return;
+    }
     if (this.state.isAlive && !this.state.cashedOut) {
       tickFlapFortune(this.state, this.isFlapping, this.config);
       this.isFlapping   = false;
