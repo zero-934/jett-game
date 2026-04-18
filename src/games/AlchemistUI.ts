@@ -8,6 +8,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { CasinoAudioManager } from '../shared/audio/CasinoAudioManager';
 import type { AlchemistSymbol, WinLine, JackpotResult } from './AlchemistLogic';
 import {
   REELS_COUNT, ROWS_COUNT,
@@ -63,6 +64,7 @@ export class AlchemistUI {
   private config: Parameters<typeof spinAlchemist>[1];
   private state:  AlchemistState | null = null;
   private spinning = false;
+  private audioManager = new CasinoAudioManager();
 
   private philosopherPlaque: Phaser.GameObjects.Graphics | null = null;
   private reelCols: Phaser.GameObjects.Container[][] = [];
@@ -575,6 +577,7 @@ export class AlchemistUI {
     Promise.all(reelPromises).then(() => {
       this.balance += snap.totalWin - this.currentBet;
       this.winDisplay?.setText(`WIN  ${snap.totalWin > 0 ? snap.totalWin.toFixed(2) : '—'}`);
+      this.audioManager.onWin(snap.totalWin, this.currentBet);
       this.balanceText?.setText(`BAL  ${this.balance.toLocaleString()}`);
       if (snap.freeSpinsRemaining > 0) {
         this.fsDisplay?.setText(`FREE SPINS: ${snap.freeSpinsRemaining}`);

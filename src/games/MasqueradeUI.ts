@@ -8,6 +8,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { CasinoAudioManager } from '../shared/audio/CasinoAudioManager';
 import type { MasqueradeSymbol, WinLine, JackpotResult } from './MasqueradeLogic';
 import {
   REELS_COUNT, ROWS_COUNT,
@@ -66,6 +67,7 @@ export class MasqueradeUI {
   private config: Parameters<typeof spinMasquerade>[1];
   private state:  MasqueradeState | null = null;
   private spinning = false;
+  private audioManager = new CasinoAudioManager();
 
   // Jackpot panel
   private phantomPlaque: Phaser.GameObjects.Graphics | null = null;
@@ -652,6 +654,7 @@ export class MasqueradeUI {
     Promise.all(reelPromises).then(() => {
       this.balance += snap.totalWin - this.currentBet;
       this.winDisplay?.setText(`WIN  ${snap.totalWin > 0 ? snap.totalWin.toFixed(2) : '—'}`);
+      this.audioManager.onWin(snap.totalWin, this.currentBet);
       this.balanceText?.setText(`BAL  ${this.balance.toLocaleString()}`);
 
       if (snap.freeSpinsRemaining > 0) {
