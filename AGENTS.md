@@ -9,7 +9,7 @@
 
 **jett.game** is a mobile-first web casino game platform built with Phaser 3 + TypeScript + Vite.
 It is a collection of individual skill-based betting games, each with a cash-out mechanic.
-The live site deploys to Vercel from the `main` branch.
+The live site deploys to **GitHub Pages** from the `main` branch via GitHub Actions.
 
 - **Live URL:** https://zero-934.github.io/jett-game/
 - **Repo owner:** zero-934 (GitHub)
@@ -34,7 +34,7 @@ Never make breaking changes silently. Always summarise your work at the end.
 | Language | TypeScript (strict mode) |
 | Build tool | Vite |
 | Test runner | Jest + ts-jest |
-| Deploy | Vercel (auto-deploy on push to `main`) |
+| Deploy | GitHub Pages (auto-deploy on push to `main` via Actions) |
 
 **Install deps:** `npm install`
 **Dev server:** `npm run dev`
@@ -216,7 +216,7 @@ Characters are defined in `src/shared/`:
 
 ### To swap a character for real art
 1. Generate image (128×128 or 256×256 transparent PNG recommended)
-2. Host it (Vercel `/public`, CDN, or IPFS for NFTs)
+2. Host it (GitHub Pages `/public`, CDN, or IPFS for NFTs)
 3. Open `src/shared/characters.ts`
 4. Set `imageUrl` on the relevant character object
 5. That's it — the game uses it automatically via `renderCharacter()`
