@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Based on the provided screenshots of the Phaser 3 mobile casino slot game:\n\n**(1)"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 585,
+    "candidatesTokenCount": 19,
+    "totalTokenCount": 1093,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 69
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 516
+      }
+    ],
+    "thoughtsTokenCount": 489
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "M7LjaYjFEeuZ_uMP5b3RqQo"
+}

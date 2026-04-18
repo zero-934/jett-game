@@ -93,6 +93,7 @@ export class CasinoAudioManager {
    * audioManager.onWin(0, 25);   // plays loss sound
    */
   public onWin(winAmount: number, betAmount: number): void {
+    if (!this.audioCtx) this.init(); // self-init on first user gesture
     if (!this.audioCtx || !this._enabled) return;
 
     // ETHICAL CHECK: LDW (Loss Disguised as Win) prevention
@@ -150,6 +151,7 @@ export class CasinoAudioManager {
    * audioManager.playSurgeRise(3);
    */
   public playSurgeRise(step: number): void {
+    if (!this.audioCtx) this.init();
     if (!this.audioCtx || !this._enabled || !this.shepardGenerator) return;
 
     if (!this.shepardGenerator.playing) {
