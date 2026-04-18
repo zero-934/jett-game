@@ -492,7 +492,7 @@ export class InfernoUI {
     this.spinButton.add(spinText);
 
     this.spinButton.setInteractive(new Phaser.Geom.Rectangle(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
-    this.spinButton.on('pointerup', onSpin);
+    this.spinButton.on('pointerup', () => { this.audioManager.init(); onSpin(); });
   }
 
   /**

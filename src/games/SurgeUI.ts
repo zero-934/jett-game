@@ -229,7 +229,7 @@ export class SurgeUI {
    */
   public setOnSpin(onSpin: () => void): void {
     this.spinButton.removeAllListeners();
-    this.spinButton.setInteractive({ useHandCursor: true }).on('pointerdown', onSpin);
+    this.spinButton.setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.audioManager.init(); onSpin(); });
   }
 
   /**
