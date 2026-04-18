@@ -2,12 +2,12 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "commonjs",
-    "lib": ["ES2020"],
+    "lib": ["ES2020", "DOM"],
     "strict": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "types": ["jest", "node"]
   },
-  "include": ["src/tests/**/*.ts", "src/games/**/*.ts", "src/shared/**/*.ts"]
+  "include": ["src/tests/**/*.ts", "src/games/**/*.ts", "src/shared/**/*.ts", "src/shared/audio/__tests__/**/*.ts"]
 }
