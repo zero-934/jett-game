@@ -77,6 +77,7 @@ export class ShatterStepUI {
 
   // Shard pool for shatter FX
   private shards: Phaser.GameObjects.Rectangle[] = [];
+  private _rngSeed: number = Date.now();
 
   // Update loop
   private updateTimer: Phaser.Time.TimerEvent | null = null;
