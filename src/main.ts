@@ -34,4 +34,14 @@ const config: Phaser.Types.Core.GameConfig = {
   },
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+
+// Deep-link support: ?scene=JettScene launches that scene directly
+game.events.on('ready', () => {
+  const params = new URLSearchParams(window.location.search);
+  const targetScene = params.get('scene');
+  if (targetScene) {
+    game.scene.start(targetScene);
+    game.scene.stop('LockScene');
+  }
+});
