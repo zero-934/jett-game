@@ -30,7 +30,7 @@ export class LockScene extends Phaser.Scene {
     localStorage.removeItem(SESSION_KEY);
 
     if (sessionStorage.getItem(STORAGE_KEY) === 'ok') {
-      this.scene.start('HomeScene');
+      window.location.href='https://zero-934.github.io/jett-landing/';
       return;
     }
 
@@ -192,7 +192,7 @@ export class LockScene extends Phaser.Scene {
       sessionStorage.setItem(STORAGE_KEY, 'ok');
       // Flash gold then go
       this.cameras.main.flash(300, 201, 168, 76);
-      this.time.delayedCall(320, () => this.scene.start('HomeScene'));
+      this.time.delayedCall(320, () => window.location.href='https://zero-934.github.io/jett-landing/');
     } else {
       this.errorText?.setText('incorrect code');
       this.shakeDots();

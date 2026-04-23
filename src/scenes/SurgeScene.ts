@@ -14,7 +14,7 @@ import { createRNG } from '../shared/rng/ProvablyFairRNG';
 
 // --- Constants ---
 const SCENE_KEY = 'SurgeScene';
-const HOME_SCENE_KEY = 'HomeScene'; // Assuming a HomeScene exists
+const HOME_SCENE_KEY = 'https://zero-934.github.io/jett-landing/'; // Assuming a HomeScene exists
 
 const CANVAS_WIDTH = 390;
 const CANVAS_HEIGHT = 844;
@@ -113,7 +113,7 @@ export class SurgeScene extends Phaser.Scene {
       '< BACK',
       SMALL_TEXT_STYLE
     ).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
-    this.backButton.on('pointerdown', () => this.scene.start(HOME_SCENE_KEY));
+    this.backButton.on('pointerdown', () => window.location.href=HOME_SCENE_KEY);
 
     // Initial UI updates
     this.updateBalanceDisplay();
