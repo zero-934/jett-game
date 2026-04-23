@@ -50,7 +50,7 @@ export class ShatterStepScene extends Phaser.Scene {
     navBg.fillRect(0, 0, width, 36);
     this.add.text(18, 18, '‹', { fontFamily: 'Arial, sans-serif', fontSize: '22px', color: '#c9a84c' })
       .setOrigin(0.5).setDepth(50).setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => { this.shatterUI?.cleanup(); this.scene.start('HomeScene'); });
+      .on('pointerdown', () => { this.shatterUI?.cleanup(); window.location.href='https://zero-934.github.io/jett-landing/'; });
   }
 
   shutdown(): void {

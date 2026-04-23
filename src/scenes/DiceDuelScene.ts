@@ -38,7 +38,7 @@ export class DiceDuelScene extends Phaser.Scene {
       fontFamily: FONT_UI, fontSize: '16px', color: GOLD_STR,
     }).setOrigin(0, 0.5).setDepth(51)
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.scene.start('HomeScene'));
+      .on('pointerdown', () => window.location.href='https://zero-934.github.io/jett-landing/');
 
     // Bet selector — below title, above dice
     const betSpacing = Math.floor((CANVAS_W - 32) / BET_OPTIONS.length);

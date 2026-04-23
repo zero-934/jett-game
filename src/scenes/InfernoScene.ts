@@ -346,6 +346,6 @@ export class InfernoScene extends Phaser.Scene {
    * this.goHome(); // Called when the back button is pressed.
    */
   private goHome(): void {
-    this.scene.start('HomeScene'); // Assuming 'HomeScene' is the key for your home scene
+    window.location.href='https://zero-934.github.io/jett-landing/'; // Assuming 'HomeScene' is the key for your home scene
   }
 }
