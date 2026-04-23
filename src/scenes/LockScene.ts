@@ -25,11 +25,28 @@ export class LockScene extends Phaser.Scene {
 
   create(): void {
     // Use sessionStorage — resets every time the tab/browser is closed
+    // Deep-link: if ?scene=X param present AND authenticated, go directly
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetScene = urlParams.get('scene');
+    const isAuth = sessionStorage.getItem(STORAGE_KEY) === 'ok';
+
+    if (targetScene && isAuth) {
+      // Skip lock + lobby, go straight into the game scene
+      this.scene.start(targetScene);
+      return;
+    }
+
+    if (targetScene && !isAuth) {
+      // Not auth'd — send to lobby for PIN first, then game will redirect
+      window.location.href = 'https://zero-934.github.io/jett-landing/?next=' + targetScene;
+      return;
+    }
+
     // Also clear any old localStorage auth that may be lingering
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(SESSION_KEY);
 
-    if (sessionStorage.getItem(STORAGE_KEY) === 'ok') {
+    if (isAuth) {
       window.location.href='https://zero-934.github.io/jett-landing/';
       return;
     }
