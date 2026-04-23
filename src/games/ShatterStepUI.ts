@@ -96,6 +96,11 @@ export class ShatterStepUI {
    * @example
    * ui.start(10);
    */
+  private _rng(): number {
+    this._rngSeed = (this._rngSeed * 1664525 + 1013904223) & 0xffffffff;
+    return (this._rngSeed >>> 0) / 0xffffffff;
+  }
+
   public start(bet: number): void {
     this.cleanup();
     this.state = createShatterStepState(bet, this.config);
