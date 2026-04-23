@@ -10,6 +10,7 @@
 import * as Phaser from 'phaser';
 import type { ShatterStepState, ShatterStepConfig, TileSide } from './ShatterStepLogic';
 import { createShatterStepState, pickTile, cashOutShatterStep } from './ShatterStepLogic';
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
 
 const GOLD = 0xc9a84c;
 const GOLD_STR = '#c9a84c';
@@ -297,7 +298,7 @@ export class ShatterStepUI {
     const activeRowIndex = TOTAL_ROWS - 1 - this.state.currentRow;
     if (rowIndex !== activeRowIndex) return;
 
-    pickTile(this.state, side, this.config);
+    pickTile(this.state, side, { ...this.config, rng: this.rng.random.bind(this.rng) });
     const row = this.tileRows[rowIndex];
     const obj = this.tileObjects[rowIndex];
     const won = this.state.lastPickCorrect === true;
@@ -321,7 +322,20 @@ export class ShatterStepUI {
       this.rowText?.setText(`ROW: ${this.state.currentRow} / 10`);
 
       if (this.state.cashedOut) {
-        this.statusText?.setText(`✓ PAID OUT: ${this.state.payout.toFixed(2)}`).setColor(GOLD_STR);
+        const isMaxWin = this.state.currentRow >= 10;
+        if (isMaxWin) {
+          // Big win — cleared all 10 rows!
+          this.scene.cameras.main.flash(400, 201, 168, 76);
+          this.statusText?.setText(`🏆 PERFECT RUN!\n+${this.state.payout.toFixed(2)} CREDITS`).setColor(GOLD_STR);
+          // Pulse the status text
+          this.scene.tweens.add({
+            targets: this.statusText,
+            scaleX: 1.2, scaleY: 1.2,
+            duration: 200, yoyo: true, repeat: 3, ease: 'Sine.easeInOut',
+          });
+        } else {
+          this.statusText?.setText(`✓ PAID OUT: ${this.state.payout.toFixed(2)}`).setColor(GOLD_STR);
+        }
         this.lockAllTiles();
         this.revealAllTiles();
         this.scene.time.delayedCall(TOTAL_ROWS * 80 + 500, () => this.showPlayAgain());
