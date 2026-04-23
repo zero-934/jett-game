@@ -10,7 +10,6 @@
 import * as Phaser from 'phaser';
 import type { ShatterStepState, ShatterStepConfig, TileSide } from './ShatterStepLogic';
 import { createShatterStepState, pickTile, cashOutShatterStep } from './ShatterStepLogic';
-import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
 
 const GOLD = 0xc9a84c;
 const GOLD_STR = '#c9a84c';
@@ -298,7 +297,7 @@ export class ShatterStepUI {
     const activeRowIndex = TOTAL_ROWS - 1 - this.state.currentRow;
     if (rowIndex !== activeRowIndex) return;
 
-    pickTile(this.state, side, { ...this.config, rng: this.rng.random.bind(this.rng) });
+    pickTile(this.state, side, { ...this.config, rng: () => this._rng() });
     const row = this.tileRows[rowIndex];
     const obj = this.tileObjects[rowIndex];
     const won = this.state.lastPickCorrect === true;
