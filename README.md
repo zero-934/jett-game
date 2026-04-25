@@ -3,7 +3,7 @@
 [![Live Demo](https://img.shields.io/badge/▶_PLAY_NOW-jett.game-c9a84c?style=for-the-badge)](https://zero-934.github.io/jett-game/)
 
 ## "We invented new game categories. We are raising $500k pre-seed."
-Jett Casino is a crypto-native skill-based gaming platform built on Solana. First-mover in Interactive Risk Management Gaming — a legally defensible category combining genuine skill mechanics with provably fair RNG outcomes.
+Jett Casino is a crypto-native skill-based gaming platform built on Solana. First-mover in Interactive Risk Management Gaming — a new category of game — one where skill actually matters, outcomes are mathematically verified, and every bet is traceable on-chain. Not just another crypto casino.
 
 ## 🎮 The Games (11 Original Titles)
 *   Jett: Our flagship rocket-crash game, climb the multiplier before it explodes.
