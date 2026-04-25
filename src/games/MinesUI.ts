@@ -300,7 +300,7 @@ export class MinesUI {
 
   private showPlayAgain(): void {
     const { width, height } = this.scene.scale;
-    const { bg: btn, text: label } = drawButton(this.scene, width / 2, height - 44, 180, 50, 'PLAY AGAIN', 'primary', 20);
+    const { bg: btn, text: _label } = drawButton(this.scene, width / 2, height - 44, 180, 50, 'PLAY AGAIN', 'primary', 20);
     btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
   }
 }
