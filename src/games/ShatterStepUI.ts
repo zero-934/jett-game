@@ -3,7 +3,6 @@ import type { ShatterStepState, ShatterStepConfig, TileSide } from './ShatterSte
 import { createShatterStepState, pickTile, cashOutShatterStep } from './ShatterStepLogic';
 import {
   COLOR_GOLD,
-  COLOR_MUTED,
   STR_GOLD,
   STR_DANGER,
   FONT_PRIMARY,
@@ -271,9 +270,9 @@ export class ShatterStepUI {
     this.rowText = this.scene.add
       .text(16, 40, 'ROW: 0 / 10', TEXT_STYLE_LABEL);
 
-    const { bg, text } = drawButton(this.scene, CANVAS_W - 70, 28, 120, 40, 'CASH OUT', 'primary', 20);
+    const { bg, text: _text } = drawButton(this.scene, CANVAS_W - 70, 28, 120, 40, 'CASH OUT', 'primary', 20);
     this.cashOutButtonBg = bg;
-    this.cashOutLabel = text;
+    this.cashOutLabel = _text;
     bg.setInteractive({ useHandCursor: true });
     bg.on('pointerdown', () => this.handleCashOut());
 
@@ -427,7 +426,7 @@ export class ShatterStepUI {
   private showPlayAgain(): void {
     const cx = this.worldWidth / 2;
     const cy = this.worldHeight * 0.88;
-    const { bg, text } = drawButton(this.scene, cx, cy, 180, 50, 'PLAY AGAIN', 'primary', 20);
+    const { bg, text: _text } = drawButton(this.scene, cx, cy, 180, 50, 'PLAY AGAIN', 'primary', 20);
     bg.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
   }
 
