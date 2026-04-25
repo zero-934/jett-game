@@ -24,7 +24,8 @@ import {
   TEXT_STYLE_LABEL,
   TEXT_STYLE_BODY,
   TEXT_STYLE_SEMIBOLD,
-  drawButton
+  drawButton,
+  CANVAS_H
 } from '../shared/ui/UITheme';
 
 // ─── Palette (Game Specific) ──────────────────────────────────────────────────
@@ -259,11 +260,11 @@ export class BallDropUI {
       .setOrigin(0.5)
       .setDepth(12);
 
-    // Drop button
+    // Drop button — bottom center, above nav
     const { bg, text } = drawButton(
       this.scene,
-      bw / 2, BOARD_TOP_Y - 30,
-      140, 38,
+      bw / 2, CANVAS_H - 90,
+      160, 48,
       'DROP BALL',
       'primary',
       10

@@ -156,6 +156,12 @@ export function drawButton(
     bg.strokeRoundedRect(x - width / 2, y - height / 2, width, height, radius);
   }
 
+  // Graphics requires explicit hit area — without this, pointerdown won't fire on mobile
+  bg.setInteractive(
+    new Phaser.Geom.Rectangle(x - width / 2, y - height / 2, width, height),
+    Phaser.Geom.Rectangle.Contains
+  );
+
   const textStyle = variant === 'primary' ? TEXT_STYLE_BTN_PRIMARY : TEXT_STYLE_BTN_SECONDARY;
   const text = scene.add.text(x, y, label, textStyle)
     .setOrigin(0.5)
