@@ -31,15 +31,7 @@ export class ShatterStepScene extends Phaser.Scene {
       this.add.arc(sx, sy, Math.random() < 0.2 ? 1.5 : 0.7, 0, 360, false, 0xffffff, Math.random() * 0.5 + 0.1);
     }
 
-    // Title
-    this.add
-      .text(width / 2, height * 0.05, 'SHATTER STEP', {
-        fontFamily: 'monospace',
-        fontSize: '20px',
-        color: '#aaddff',
-        letterSpacing: 4,
-      })
-      .setOrigin(0.5);
+    // Title removed — HUD shows multiplier + row info
 
     this.shatterUI = new ShatterStepUI(this, width, height);
     this.shatterUI.start(DEFAULT_BET);

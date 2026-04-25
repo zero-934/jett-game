@@ -261,16 +261,17 @@ export class ShatterStepUI {
   }
 
   private buildHUD(): void {
+    // All HUD elements pushed below nav bar (y=36)
     this.multiplierText = this.scene.add
-      .text(16, 12, 'x1.00', {
+      .text(16, 44, 'x1.00', {
         ...TEXT_STYLE_GOLD_SEMIBOLD,
         fontSize: FONT_SIZE_LG,
       });
 
     this.rowText = this.scene.add
-      .text(16, 40, 'ROW: 0 / 10', TEXT_STYLE_LABEL);
+      .text(16, 68, 'ROW: 0 / 10', TEXT_STYLE_LABEL);
 
-    const { bg, text: _text } = drawButton(this.scene, CANVAS_W - 70, 28, 120, 40, 'CASH OUT', 'primary', 20);
+    const { bg, text: _text } = drawButton(this.scene, CANVAS_W - 70, 60, 120, 40, 'CASH OUT', 'primary', 20);
     this.cashOutButtonBg = bg;
     this.cashOutLabel = _text;
     bg.setInteractive({ useHandCursor: true });
