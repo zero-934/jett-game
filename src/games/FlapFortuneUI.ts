@@ -10,6 +10,7 @@
 import * as Phaser from 'phaser';
 import type { FlapFortuneConfig } from './FlapFortuneLogic';
 import { createFlapFortuneState, tickFlapFortune } from './FlapFortuneLogic';
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
 
 const GOLD     = 0xc9a84c;
 const GOLD_STR = '#c9a84c';
@@ -64,7 +65,9 @@ export class FlapFortuneUI {
 
   constructor(scene: Phaser.Scene, config: FlapFortuneConfig) {
     this.scene  = scene;
-    this.config = config;
+    // Inject a single shared RNG into config so pipe heights vary across spawns
+    const _rng = new ProvablyFairRNG();
+    this.config = { ...config, rng: _rng.random.bind(_rng) };
   }
 
   public start(bet: number): void {
