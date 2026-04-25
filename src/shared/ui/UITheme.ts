@@ -1,3 +1,5 @@
+import * as Phaser from 'phaser';
+
 /**
  * @file UITheme.ts
  * @purpose Shared UI theme constants for all Jett Casino games.
