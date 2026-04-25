@@ -12,8 +12,8 @@ export const MULTIPLIER_GROWTH_RATE = 0.03;
 export const MAX_THEORETICAL_MULTIPLIER = 100;
 export const HOUSE_EDGE = 0.04;
 export const RTP = 0.96;
-export const BASE_CRASH_PROBABILITY_PER_TICK = 0.01;
-export const CRASH_PROBABILITY_SCALE = 0.002;
+export const BASE_CRASH_PROBABILITY_PER_TICK = 0.04;
+export const CRASH_PROBABILITY_SCALE = 0.008;
 export const MIN_CRASH_MULTIPLIER = 1.01;
 export const ENEMY_SPAWN_INTERVAL_MS = 1200;
 export const ENEMY_HIT_WINDOW_MS = 800;
@@ -212,12 +212,15 @@ export function tick(state: DoomCrashState, rng: { nextFloat(): number }, nowMs:
     }
 
     // 4. Age out enemies
-    let newActiveEnemies = [];
+    const newActiveEnemies = [];
     let accumulatedThreat = newState.crashProbabilityAccumulator;
     for (const enemy of newState.activeEnemies) {
-        if (enemy.hitWindowEnd < nowMs && enemy.isAlive) {
-            // Enemy missed
-            accumulatedThreat += enemy.threatMultiplierOnMiss;
+        if (enemy.hitWindowEnd < nowMs) {
+            // Window expired — add threat only if enemy was never killed
+            if (enemy.isAlive) {
+                accumulatedThreat += enemy.threatMultiplierOnMiss;
+            }
+            // Either way, remove from active list
         } else {
             newActiveEnemies.push(enemy);
         }
@@ -313,11 +316,8 @@ export function getSessionResult(state: DoomCrashState): SessionResult {
 export function simulateDoomCrashRTP(rng: { nextFloat(): number }, rounds = SIMULATION_ROUNDS): RTPSimulationResult {
     let totalPayout = 0;
     let totalBet = 0;
-    let totalCrashCount = 0;
     let totalMultiplier = 0;
     let totalAccuracy = 0;
-    let totalShotsFired = 0;
-    let totalShotsHit = 0;
 
     const crashDistribution: Record<string, number> = {
         '1x': 0,
@@ -327,54 +327,39 @@ export function simulateDoomCrashRTP(rng: { nextFloat(): number }, rounds = SIMU
         '25x+': 0,
     };
 
-    for (let i = 0; i < rounds; i++) {
-        const betAmount = 100; // Standard bet for simulation
-        totalBet += betAmount;
+    const BET_AMOUNT = 100;
 
-        let state = createInitialState(betAmount);
+    for (let i = 0; i < rounds; i++) {
+        totalBet += BET_AMOUNT;
+
+        let state = createInitialState(BET_AMOUNT);
         let nowMs = 0;
         state = startSession(state, rng, nowMs);
 
-        // Simulate a random player accuracy for this session (0.3 to 0.8)
+        // Simulate a random player accuracy for this session (0.3–0.8)
         const sessionAccuracyTarget = 0.3 + rng.nextFloat() * 0.5;
-
-        // Simulate auto-cashout target (1.5x to 5x)
+        // Simulate auto-cashout target (1.5x–5x)
         const cashOutTarget = 1.5 + rng.nextFloat() * 3.5;
 
-        let enemySpawnCounter = 0;
-
         while (state.isRunning && state.currentMultiplier < MAX_THEORETICAL_MULTIPLIER) {
-            nowMs += MULTIPLIER_TICK_RATE_MS; // Advance time
+            nowMs += MULTIPLIER_TICK_RATE_MS;
 
-            // Simulate enemy spawning
-            if (nowMs - state.sessionStartTime >= enemySpawnCounter * ENEMY_SPAWN_INTERVAL_MS && state.activeEnemies.length < MAX_ACTIVE_ENEMIES) {
-                const newEnemy = spawnEnemy(rng, nowMs, state.currentMultiplier);
-                state.activeEnemies.push(newEnemy);
-                enemySpawnCounter++;
-            }
-
-            // Simulate player shooting based on accuracy target
-            const activeAliveEnemies = state.activeEnemies.filter(e => e.isAlive && nowMs <= e.hitWindowEnd);
-            if (activeAliveEnemies.length > 0) {
-                state.shotsFired++;
-                totalShotsFired++;
+            // Simulate shooting at active enemies via shoot() — no direct state mutation
+            const activeAliveEnemies = state.activeEnemies.filter(
+                e => e.isAlive && nowMs <= e.hitWindowEnd
+            );
+            for (const enemy of activeAliveEnemies) {
+                // shoot() handles shotsFired, shotsHit, accuracyBonus, and missed penalty internally
                 if (rng.nextFloat() < sessionAccuracyTarget) {
-                    // Simulate hitting the first available enemy
-                    const targetEnemy = activeAliveEnemies[0];
-                    state = shoot(state, targetEnemy.id, nowMs);
-                    totalShotsHit++;
+                    state = shoot(state, enemy.id, nowMs);
                 } else {
-                    // Simulate a miss impacting accuracy bonus and accumulator
-                    state.crashProbabilityAccumulator += MISSED_SHOT_PENALTY;
+                    // Fire at enemy but miss — use a non-existent ID to trigger miss path
+                    state = shoot(state, `miss-${enemy.id}`, nowMs);
                 }
             }
-            
-            // Re-calculate accuracy bonus based on current state after shooting sim
-            state.accuracyBonus = state.shotsFired > 0 ? (state.shotsHit / state.shotsFired) * ACCURACY_BONUS_PER_HIT : 0;
 
             state = tick(state, rng, nowMs);
 
-            // Simulate auto-cashout if not crashed
             if (state.isRunning && state.currentMultiplier >= cashOutTarget) {
                 state = cashOut(state);
             }
@@ -385,33 +370,18 @@ export function simulateDoomCrashRTP(rng: { nextFloat(): number }, rounds = SIMU
         totalMultiplier += result.multiplier;
         totalAccuracy += result.accuracy;
 
-        if (result.crashed) {
-            totalCrashCount++;
-            const m = result.multiplier;
-            if (m < 2) crashDistribution['1x']++;
-            else if (m < 5) crashDistribution['2x']++;
-            else if (m < 10) crashDistribution['5x']++;
-            else if (m < 25) crashDistribution['10x']++;
-            else crashDistribution['25x+']++;
-        } else {
-            // For cashed out rounds, treat the cashed out multiplier as the 'result' multiplier
-            const m = result.multiplier;
-            if (m < 2) crashDistribution['1x']++; // Even if cashed out above 1x, if it was less than 2x
-            else if (m < 5) crashDistribution['2x']++;
-            else if (m < 10) crashDistribution['5x']++;
-            else if (m < 25) crashDistribution['10x']++;
-            else crashDistribution['25x+']++;
-        }
+        const m = result.multiplier;
+        if (m < 2) crashDistribution['1x']++;
+        else if (m < 5) crashDistribution['2x']++;
+        else if (m < 10) crashDistribution['5x']++;
+        else if (m < 25) crashDistribution['10x']++;
+        else crashDistribution['25x+']++;
     }
 
-    const simulatedRTP = totalBet > 0 ? totalPayout / totalBet : 0;
-    const averageMultiplier = rounds > 0 ? totalMultiplier / rounds : 0;
-    const averageAccuracy = rounds > 0 ? totalAccuracy / rounds : 0; // This is the average of sessionAccuracy which includes missed shots impacting the accuracy bonus.
-
     return {
-        simulatedRTP: simulatedRTP,
-        averageMultiplier: averageMultiplier,
-        crashDistribution: crashDistribution,
-        averageAccuracy: averageAccuracy,
+        simulatedRTP: totalBet > 0 ? totalPayout / totalBet : 0,
+        averageMultiplier: rounds > 0 ? totalMultiplier / rounds : 0,
+        crashDistribution,
+        averageAccuracy: rounds > 0 ? totalAccuracy / rounds : 0,
     };
 }
