@@ -26,7 +26,7 @@ const DEFAULT_BALLS_PER_ROUND = 5;
 
 /** Board layout constants (matches UI) */
 export const BOARD_MARGIN_X  = 30;
-export const BOARD_TOP_Y     = 80;
+export const BOARD_TOP_Y     = 120;
 export const SLOT_COUNT      = 9;
 export const SLOT_HEIGHT     = 54;
 
