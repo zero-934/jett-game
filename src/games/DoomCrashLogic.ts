@@ -3,7 +3,7 @@
  * @purpose Pure game logic for Doom Crash 2.0 - zero Phaser imports
  * @author Agent 934
  * @date 2026-04-24
- * @license Proprietary
+ * @license Proprietary — available for licensing
  */
 
 export const BASE_MULTIPLIER = 1.0;

@@ -3,7 +3,7 @@
  * @purpose Implements the core game logic for the Surge slot game, including spin mechanics, win evaluation, and special features.
  * @author Agent 934
  * @date 2026-04-16
- * @license Proprietary
+ * @license Proprietary — available for licensing
  */
 
 import { ProvablyFairRNG, createRNG } from '../shared/rng/ProvablyFairRNG';

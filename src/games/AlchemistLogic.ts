@@ -4,7 +4,7 @@
  *          free spin features, and a jackpot system, without any UI dependencies.
  * @author Agent 934
  * @date 2026-04-15
- * @license Proprietary
+ * @license Proprietary — available for licensing
  */
 
 import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
