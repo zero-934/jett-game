@@ -1,19 +1,21 @@
-/**
- * @file JettUI.ts
- * @purpose Phaser rendering for Jett — space background, stick figure with jetpack,
- *          individual asteroid rendering with rotation, endless vertical scroll,
- *          combustion FX, HUD.
- * @author Agent 934
- * @date 2026-04-12
- * @license Proprietary – available for licensing
- */
-
 import * as Phaser from 'phaser';
 import type { JettConfig } from './JettLogic';
 import { createJettState, tickJett, cashOutJett } from './JettLogic';
-
-const GOLD     = 0xc9a84c;
-const GOLD_STR = '#c9a84c';
+import {
+  COLOR_BG,
+  COLOR_SURFACE,
+  COLOR_BORDER,
+  COLOR_GOLD,
+  STR_DANGER,
+  FONT_SIZE_XL,
+  FONT_SIZE_2XL,
+  TEXT_STYLE_LABEL,
+  TEXT_STYLE_SEMIBOLD,
+  TEXT_STYLE_GOLD_SEMIBOLD,
+  TEXT_STYLE_WIN,
+  SAFE_TOP,
+  drawButton
+} from '../shared/ui/UITheme';
 
 export class JettUI {
   private scene:  Phaser.Scene;
@@ -38,11 +40,13 @@ export class JettUI {
   private flameGraphics: Phaser.GameObjects.Graphics | null = null;
 
   // HUD
-  private multiplierText: Phaser.GameObjects.Text      | null = null;
-  private altitudeText:   Phaser.GameObjects.Text      | null = null;
-  private statusText:     Phaser.GameObjects.Text      | null = null;
-  private cashOutButton:  Phaser.GameObjects.Rectangle | null = null;
-  private cashOutLabel:   Phaser.GameObjects.Text      | null = null;
+  private multiplierText: Phaser.GameObjects.Text | null = null;
+  private altitudeText:   Phaser.GameObjects.Text | null = null;
+  private statusText:     Phaser.GameObjects.Text | null = null;
+  private cashOutButtonBg: Phaser.GameObjects.Graphics | null = null; // Use Graphics for themed button
+  private cashOutLabel:   Phaser.GameObjects.Text | null = null;
+  private playAgainButtonBg: Phaser.GameObjects.Graphics | null = null;
+  private playAgainLabel: Phaser.GameObjects.Text | null = null;
 
 
   private pointerX  = 0;
@@ -86,8 +90,10 @@ export class JettUI {
     this.multiplierText?.destroy();
     this.altitudeText?.destroy();
     this.statusText?.destroy();
-    this.cashOutButton?.destroy();
+    this.cashOutButtonBg?.destroy();
     this.cashOutLabel?.destroy();
+    this.playAgainButtonBg?.destroy();
+    this.playAgainLabel?.destroy();
     this.state = null;
   }
 
@@ -118,38 +124,34 @@ export class JettUI {
     const x = this.config.worldWidth / 2;
     const y = this.playerScreenY;
     this.playerPack = this.scene.add.rectangle(x + 8, y + 2, 10, 22, 0x4455aa).setDepth(5);
-    this.playerBody = this.scene.add.rectangle(x, y,      8, 22, GOLD).setDepth(5);
-    this.playerHead = this.scene.add.arc(x, y - 17, 7, 0, 360, false, GOLD).setDepth(5);
+    this.playerBody = this.scene.add.rectangle(x, y,      8, 22, COLOR_GOLD).setDepth(5);
+    this.playerHead = this.scene.add.arc(x, y - 17, 7, 0, 360, false, COLOR_GOLD).setDepth(5);
     this.flameGraphics = this.scene.add.graphics().setDepth(4);
   }
 
   private buildHUD(): void {
-    const { worldWidth, screenHeight } = this.config;
+    const { worldWidth } = this.config;
 
     this.multiplierText = this.scene.add
-      .text(16, 46, 'x1.00', { fontFamily: 'monospace', fontSize: '24px', color: GOLD_STR })
+      .text(16, SAFE_TOP + 10, 'x1.00', TEXT_STYLE_GOLD_SEMIBOLD)
+      .setFontSize(FONT_SIZE_2XL) // Adjust for prominence
       .setDepth(10);
 
     this.altitudeText = this.scene.add
-      .text(16, 48, 'ALT: 0m', { fontFamily: 'monospace', fontSize: '13px', color: '#888888' })
+      .text(16, SAFE_TOP + 45, 'ALT: 0m', TEXT_STYLE_LABEL)
       .setDepth(10);
 
     this.statusText = this.scene.add
-      .text(worldWidth / 2, screenHeight * 0.35, '', {
-        fontFamily: 'monospace', fontSize: '22px', color: '#ffffff', align: 'center',
-      })
-      .setOrigin(0.5).setDepth(10);
+      .text(worldWidth / 2, this.config.screenHeight * 0.35, '', TEXT_STYLE_SEMIBOLD)
+      .setOrigin(0.5).setDepth(10)
+      .setFontSize(FONT_SIZE_XL);
 
-    this.cashOutButton = this.scene.add
-      .rectangle(worldWidth - 70, 30, 124, 44, GOLD)
-      .setInteractive({ useHandCursor: true }).setDepth(10)
-      .on('pointerdown', () => this.handleCashOut());
-
-    this.cashOutLabel = this.scene.add
-      .text(worldWidth - 70, 30, 'CASH OUT', { fontFamily: 'monospace', fontSize: '11px', color: '#0d0d0d' })
-      .setOrigin(0.5).setDepth(10);
-
-    // Home navigation handled by scene nav bar
+    const btnWidth = 124;
+    const btnHeight = 44;
+    const { bg, text } = drawButton(this.scene, worldWidth - btnWidth/2 - 10, SAFE_TOP + btnHeight/2, btnWidth, btnHeight, 'CASH OUT', 'primary');
+    this.cashOutButtonBg = bg;
+    this.cashOutLabel = text;
+    this.cashOutButtonBg.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.handleCashOut());
   }
 
   private registerInput(): void {
@@ -190,7 +192,7 @@ export class JettUI {
     this.bgGraphics.clear();
 
     // Deep space gradient
-    this.bgGraphics.fillGradientStyle(0x00000a, 0x00000a, 0x050518, 0x050518, 1);
+    this.bgGraphics.fillGradientStyle(COLOR_BG, COLOR_BG, COLOR_SURFACE, COLOR_SURFACE, 1);
     this.bgGraphics.fillRect(0, 0, worldWidth, screenHeight);
 
     // Twinkling stars with parallax
@@ -202,7 +204,7 @@ export class JettUI {
     }
 
     // Subtle grid
-    this.bgGraphics.lineStyle(0.4, 0x1a1a3a, 0.35);
+    this.bgGraphics.lineStyle(0.4, COLOR_BORDER, 0.35); // Using theme border color
     const gridSize = 70;
     const gridOff  = (altitude * 0.25) % gridSize;
     for (let gy = -gridOff; gy < screenHeight + gridSize; gy += gridSize) {
@@ -358,26 +360,32 @@ export class JettUI {
     const payout = cashOutJett(this.state);
     this.tickTimer?.remove();
     this.tickTimer = null;
-    this.statusText?.setText(`PAID OUT\n${payout.toFixed(2)} credits`).setColor(GOLD_STR);
+    if (this.statusText) {
+      this.statusText.setText(`PAID OUT\n${payout.toFixed(2)} credits`);
+      this.statusText.setStyle(TEXT_STYLE_WIN); // Use win style for payout
+    }
+    this.cashOutButtonBg?.disableInteractive();
     this.scene.time.delayedCall(600, () => this.showPlayAgain());
   }
 
   private showPlayAgain(): void {
     const { worldWidth, screenHeight } = this.config;
-    const btn = this.scene.add
-      .rectangle(worldWidth / 2, screenHeight * 0.55, 180, 50, GOLD)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(20);
-    this.scene.add
-      .text(worldWidth / 2, screenHeight * 0.55, 'PLAY AGAIN', {
-        fontFamily: 'monospace', fontSize: '14px', color: '#0d0d0d',
-      })
-      .setOrigin(0.5).setDepth(21);
-    btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
+    const btnWidth = 180;
+    const btnHeight = 50;
+
+    const { bg, text } = drawButton(this.scene, worldWidth / 2, screenHeight * 0.55, btnWidth, btnHeight, 'PLAY AGAIN', 'primary', 20);
+    this.playAgainButtonBg = bg;
+    this.playAgainLabel = text;
+
+    this.playAgainButtonBg.setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
   }
 
   private showCrash(): void {
-    this.statusText?.setText('ASTEROID HIT!\nGAME OVER').setColor('#ff4444');
+    if (this.statusText) {
+      this.statusText.setText('ASTEROID HIT!\nGAME OVER');
+      this.statusText.setStyle({ ...TEXT_STYLE_SEMIBOLD, color: STR_DANGER }); // Use danger color
+    }
+    this.cashOutButtonBg?.disableInteractive();
     this.scene.time.delayedCall(600, () => this.showPlayAgain());
   }
 
@@ -417,7 +425,11 @@ export class JettUI {
     if (this.playerHead) this.playerHead.fillColor = 0xff4400;
 
     this.scene.time.delayedCall(300, () => {
-      this.statusText?.setText('COMBUSTION!\nJETPACK FAILED').setColor('#ff6600');
+      if (this.statusText) {
+        this.statusText.setText('COMBUSTION!\nJETPACK FAILED');
+        this.statusText.setStyle({ ...TEXT_STYLE_SEMIBOLD, color: STR_DANGER });
+      }
+      this.cashOutButtonBg?.disableInteractive();
       this.scene.time.delayedCall(600, () => this.showPlayAgain());
     });
   }

@@ -1,29 +1,32 @@
-/**
- * @file ShatterStepUI.ts
- * @purpose Phaser rendering for Shatter Step — glass tile ladder, 2D mini player
- *          that walks upward on correct picks and falls with shatter animation on wrong picks.
- * @author Agent 934
- * @date 2026-04-12
- * @license Proprietary – available for licensing
- */
-
 import * as Phaser from 'phaser';
 import type { ShatterStepState, ShatterStepConfig, TileSide } from './ShatterStepLogic';
 import { createShatterStepState, pickTile, cashOutShatterStep } from './ShatterStepLogic';
+import {
+  COLOR_GOLD,
+  COLOR_MUTED,
+  STR_GOLD,
+  STR_DANGER,
+  FONT_PRIMARY,
+  FONT_SIZE_SM,
+  FONT_SIZE_LG,
+  TEXT_STYLE_LABEL,
+  TEXT_STYLE_BODY,
+  TEXT_STYLE_GOLD_SEMIBOLD,
+  CANVAS_W,
+  drawButton,
+  STR_MUTED,
+} from '../shared/ui/UITheme';
 
-const GOLD = 0xc9a84c;
-const GOLD_STR = '#c9a84c';
-const TOTAL_ROWS = 10;
-
-// Glass tile colours
 const GLASS_FILL   = 0x88ccee;
 const GLASS_ALPHA  = 0.18;
 const GLASS_STROKE = 0xaaddff;
 const GLASS_SHINE  = 0xffffff;
 
 const CRACK_COLOR  = 0xffffff;
-const WIN_GLOW     = 0x44ffaa;
-const LOSE_GLOW    = 0xff4444;
+const WIN_GLOW     = 0x44ffaa; // Keep game-specific glow colors
+const LOSE_GLOW    = 0xff4444; // Keep game-specific glow colors
+
+const TOTAL_ROWS = 10;
 
 /**
  * Manages Phaser game objects for Shatter Step.
@@ -72,7 +75,7 @@ export class ShatterStepUI {
   private multiplierText: Phaser.GameObjects.Text | null = null;
   private rowText: Phaser.GameObjects.Text | null = null;
   private statusText: Phaser.GameObjects.Text | null = null;
-  private cashOutButton: Phaser.GameObjects.Rectangle | null = null;
+  private cashOutButtonBg: Phaser.GameObjects.Graphics | null = null; // Changed to Graphics
   private cashOutLabel: Phaser.GameObjects.Text | null = null;
 
   // Shard pool for shatter FX
@@ -138,7 +141,7 @@ export class ShatterStepUI {
     this.multiplierText?.destroy();
     this.rowText?.destroy();
     this.statusText?.destroy();
-    this.cashOutButton?.destroy();
+    this.cashOutButtonBg?.destroy();
     this.cashOutLabel?.destroy();
     this.state = null;
   }
@@ -171,9 +174,9 @@ export class ShatterStepUI {
 
       const rowLabel = TOTAL_ROWS - i;
       const labelStyle = {
-        fontFamily: 'monospace',
-        fontSize: '11px',
-        color: '#aaddff',
+        fontFamily: FONT_PRIMARY,
+        fontSize: FONT_SIZE_SM,
+        color: STR_MUTED,
       };
       const leftLabel  = this.scene.add.text(leftX,  y, `${rowLabel}`, labelStyle).setOrigin(0.5);
       const rightLabel = this.scene.add.text(rightX, y, `${rowLabel}`, labelStyle).setOrigin(0.5);
@@ -247,51 +250,35 @@ export class ShatterStepUI {
     this.playerHead = this.scene.add.arc(
       this.playerX,
       this.playerCurrentY - 18,
-      8, 0, 360, false, GOLD
+      8, 0, 360, false, COLOR_GOLD
     );
     this.playerBody = this.scene.add.rectangle(
       this.playerX,
       this.playerCurrentY,
       8, 20,
-      GOLD
+      COLOR_GOLD
     );
     this.playerAlive = true;
   }
 
   private buildHUD(): void {
     this.multiplierText = this.scene.add
-      .text(16, 46, 'x1.00', {
-        fontFamily: 'monospace',
-        fontSize: '22px',
-        color: GOLD_STR,
+      .text(16, 12, 'x1.00', {
+        ...TEXT_STYLE_GOLD_SEMIBOLD,
+        fontSize: FONT_SIZE_LG,
       });
 
     this.rowText = this.scene.add
-      .text(16, 44, 'ROW: 0 / 10', {
-        fontFamily: 'monospace',
-        fontSize: '13px',
-        color: '#888888',
-      });
+      .text(16, 40, 'ROW: 0 / 10', TEXT_STYLE_LABEL);
+
+    const { bg, text } = drawButton(this.scene, CANVAS_W - 70, 28, 120, 40, 'CASH OUT', 'primary', 20);
+    this.cashOutButtonBg = bg;
+    this.cashOutLabel = text;
+    bg.setInteractive({ useHandCursor: true });
+    bg.on('pointerdown', () => this.handleCashOut());
 
     this.statusText = this.scene.add
-      .text(this.worldWidth / 2, this.worldHeight * 0.90, '', {
-        fontFamily: 'monospace',
-        fontSize: '18px',
-        color: '#ffffff',
-      })
-      .setOrigin(0.5);
-
-    this.cashOutButton = this.scene.add
-      .rectangle(this.worldWidth - 70, 28, 120, 40, GOLD)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.handleCashOut());
-
-    this.cashOutLabel = this.scene.add
-      .text(this.worldWidth - 70, 28, 'CASH OUT', {
-        fontFamily: 'monospace',
-        fontSize: '11px',
-        color: '#0d0d0d',
-      })
+      .text(this.worldWidth / 2, this.worldHeight * 0.90, '', TEXT_STYLE_BODY)
       .setOrigin(0.5);
   }
 
@@ -331,7 +318,7 @@ export class ShatterStepUI {
         if (isMaxWin) {
           // Big win — cleared all 10 rows!
           this.scene.cameras.main.flash(400, 201, 168, 76);
-          this.statusText?.setText(`🏆 PERFECT RUN!\n+${this.state.payout.toFixed(2)} CREDITS`).setColor(GOLD_STR);
+          this.statusText?.setText(`🏆 PERFECT RUN!\n+${this.state.payout.toFixed(2)} CREDITS`).setColor(STR_GOLD);
           // Pulse the status text
           this.scene.tweens.add({
             targets: this.statusText,
@@ -339,7 +326,7 @@ export class ShatterStepUI {
             duration: 200, yoyo: true, repeat: 3, ease: 'Sine.easeInOut',
           });
         } else {
-          this.statusText?.setText(`✓ PAID OUT: ${this.state.payout.toFixed(2)}`).setColor(GOLD_STR);
+          this.statusText?.setText(`✓ PAID OUT: ${this.state.payout.toFixed(2)}`).setColor(STR_GOLD);
         }
         this.lockAllTiles();
         this.revealAllTiles();
@@ -361,7 +348,7 @@ export class ShatterStepUI {
 
       this.lockAllTiles();
       this.scene.time.delayedCall(900, () => {
-        this.statusText?.setText('✗ SHATTERED').setColor('#ff4444');
+        this.statusText?.setText('✗ SHATTERED').setColor(STR_DANGER);
         this.revealAllTiles();
         this.scene.time.delayedCall(TOTAL_ROWS * 80 + 500, () => this.showPlayAgain());
       });
@@ -373,7 +360,7 @@ export class ShatterStepUI {
     const payout = cashOutShatterStep(this.state);
     if (payout > 0) {
       this.lockAllTiles();
-      this.statusText?.setText(`✓ PAID OUT: ${payout.toFixed(2)}`).setColor(GOLD_STR);
+      this.statusText?.setText(`✓ PAID OUT: ${payout.toFixed(2)}`).setColor(STR_GOLD);
       this.revealAllTiles();
       this.scene.time.delayedCall(TOTAL_ROWS * 80 + 500, () => this.showPlayAgain());
     }
@@ -440,16 +427,8 @@ export class ShatterStepUI {
   private showPlayAgain(): void {
     const cx = this.worldWidth / 2;
     const cy = this.worldHeight * 0.88;
-    const btn = this.scene.add
-      .rectangle(cx, cy, 180, 50, GOLD)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(20);
-    this.scene.add
-      .text(cx, cy, 'PLAY AGAIN', {
-        fontFamily: 'monospace', fontSize: '14px', color: '#0d0d0d',
-      })
-      .setOrigin(0.5).setDepth(21);
-    btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
+    const { bg, text } = drawButton(this.scene, cx, cy, 180, 50, 'PLAY AGAIN', 'primary', 20);
+    bg.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
   }
 
   // ─── Visual FX ────────────────────────────────────────────────────────────
