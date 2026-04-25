@@ -20,13 +20,14 @@ import { AlchemistScene } from './scenes/AlchemistScene';
 import { InfernoScene } from './scenes/InfernoScene';
 import { SurgeScene } from './scenes/SurgeScene';
 import { DiceDuelScene } from './scenes/DiceDuelScene';
+import { DoomCrashScene } from './scenes/DoomCrashScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   width: 390,
   height: 844,
   backgroundColor: '#000000',
-  scene: [LockScene, HomeScene, JettScene, ShatterStepScene, FlapFortuneScene, DiceScene, MinesScene, BallDropScene, MasqueradeScene, AlchemistScene, InfernoScene, SurgeScene, DiceDuelScene],
+  scene: [LockScene, HomeScene, JettScene, ShatterStepScene, FlapFortuneScene, DiceScene, MinesScene, BallDropScene, MasqueradeScene, AlchemistScene, InfernoScene, SurgeScene, DiceDuelScene, DoomCrashScene],
   parent: 'app',
   scale: {
     mode: Phaser.Scale.FIT,
