@@ -52,7 +52,7 @@ export interface FlapFortuneConfig {
 const DEFAULT_GRAVITY          = 0.45;
 const DEFAULT_FLAP_STRENGTH    = -7.5;
 const DEFAULT_PIPE_SPACING     = 230;
-const DEFAULT_GAP_HEIGHT       = 170;
+const DEFAULT_GAP_HEIGHT       = 140;
 const DEFAULT_SCROLL_SPEED     = 3;
 const DEFAULT_HOUSE_EDGE       = 0.03;
 const DEFAULT_COMBUSTION_CHANCE = 0.0003;
@@ -150,7 +150,7 @@ export function tickFlapFortune(
   // Spawn new pipes
   const lastPipe = state.pipes[state.pipes.length - 1];
   if (!lastPipe || lastPipe.x < config.worldWidth - pipeSpacing) {
-    state.pipes.push(generateFlapPipe(config.worldWidth + 60, config));
+    state.pipes.push(generateFlapPipe(config.worldWidth + 60, config, rng));
   }
 
   // Track cleared pipes
@@ -193,12 +193,13 @@ export function tickFlapFortune(
  * @example
  * const pipe = generateFlapPipe(500, config);
  */
-export function generateFlapPipe(spawnX: number, config: FlapFortuneConfig): FlapPipe {
+export function generateFlapPipe(spawnX: number, config: FlapFortuneConfig, rng?: () => number): FlapPipe {
   const gapHeight  = config.pipeGapHeight ?? DEFAULT_GAP_HEIGHT;
   const margin     = 70;
   const maxTop     = config.worldHeight - gapHeight - margin;
-  const _pipeRng = new ProvablyFairRNG();
-  const topHeight  = margin + _pipeRng.random() * (maxTop - margin);
+  // Use provided rng (from game state) to avoid same-millisecond seed bug
+  const roll = rng ? rng() : new ProvablyFairRNG().random();
+  const topHeight  = margin + roll * (maxTop - margin);
   const bottomHeight = config.worldHeight - topHeight - gapHeight;
   return { x: spawnX, topHeight, bottomHeight, cleared: false };
 }

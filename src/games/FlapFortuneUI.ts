@@ -442,13 +442,17 @@ export class FlapFortuneUI {
     g.fillStyle(STONE_DARK, 1);
     g.fillRect(x, y, w, h);
 
-    // Stone texture blocks
-    g.fillStyle(STONE_MID, 0.6);
+    // Stone texture blocks — fully opaque, no gaps (fill row fully first)
     const blockH = 18;
     for (let by2 = y; by2 < y + h; by2 += blockH) {
+      // First fill the entire row solid to prevent background bleed
+      g.fillStyle(STONE_DARK, 1);
+      g.fillRect(x, by2, w, Math.min(blockH, y + h - by2));
+      // Then overlay brick pattern
+      g.fillStyle(STONE_MID, 1);
       const offset = ((by2 / blockH) % 2 === 0) ? 0 : w / 2;
-      g.fillRect(x + offset,       by2, w / 2 - 1, blockH - 1);
-      g.fillRect(x + offset + w / 2, by2, w / 2 - 1, blockH - 1);
+      g.fillRect(x + offset,         by2, w / 2 - 1, Math.min(blockH - 1, y + h - by2));
+      g.fillRect(x + offset + w / 2, by2, w / 2 - 1, Math.min(blockH - 1, y + h - by2));
     }
 
     // Iron gate bars (vertical)
