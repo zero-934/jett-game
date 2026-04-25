@@ -1,13 +1,3 @@
-/**
- * @file BallDropUI.ts
- * @purpose Phaser rendering + input for Ball Drop.
- *          Renders pegs, ball with trail, slot zones, particles, and HUD.
- *          Calls BallDropLogic exclusively — no logic lives here.
- * @author Agent 934
- * @date 2026-04-14
- * @license Proprietary – available for licensing
- */
-
 import * as Phaser from 'phaser';
 import type { BallDropConfig, BallDropState } from './BallDropLogic';
 import {
@@ -20,22 +10,36 @@ import {
   spawnBall,
   tickBallDrop,
 } from './BallDropLogic';
+import {
+  COLOR_BG,
+  COLOR_BORDER,
+  COLOR_GOLD,
+  STR_GOLD,
+  STR_TEXT,
+  STR_MUTED,
+  FONT_SIZE_XS,
+  FONT_SIZE_SM,
+  FONT_SIZE_LG,
+  FONT_SIZE_2XL,
+  TEXT_STYLE_LABEL,
+  TEXT_STYLE_BODY,
+  TEXT_STYLE_SEMIBOLD,
+  drawButton
+} from '../shared/ui/UITheme';
 
-// ─── Palette ──────────────────────────────────────────────────────────────────
+// ─── Palette (Game Specific) ──────────────────────────────────────────────────
 
-const GOLD      = 0xc9a84c;
-const GOLD_STR  = '#c9a84c';
-const PEG_BASE  = 0x6677aa;
-const PEG_LIT   = 0xffd200;
+const PEG_BASE = COLOR_BORDER; // Used for unlit pegs
+const PEG_LIT  = COLOR_GOLD;   // Used for lit pegs
 
 /** Slot accent colours — edge warm, centre cool. */
 const SLOT_COLORS_HEX: number[] = [
-  0xe74c3c, 0xe67e22, 0xf1c40f, 0x2ecc71, 0x9b59b6,
-  0x2ecc71, 0xf1c40f, 0xe67e22, 0xe74c3c,
+  0xef4444, 0xf97316, 0xeab308, 0x22c55e, 0x06b6d4, // Red, Orange, Yellow, Green, Cyan
+  0x22c55e, 0xeab308, 0xf97316, 0xef4444,           // Green, Yellow, Orange, Red
 ];
 const SLOT_COLORS_STR: string[] = [
-  '#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#9b59b6',
-  '#2ecc71', '#f1c40f', '#e67e22', '#e74c3c',
+  '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4',
+  '#22c55e', '#eab308', '#f97316', '#ef4444',
 ];
 
 // ─── Particle ────────────────────────────────────────────────────────────────
@@ -67,9 +71,10 @@ export class BallDropUI {
   private lastText:     Phaser.GameObjects.Text | null = null;
   private aimLine:      Phaser.GameObjects.Graphics | null = null;
   private statusText:   Phaser.GameObjects.Text | null = null;
-  private dropButton:   Phaser.GameObjects.Rectangle | null = null;
+  private dropButtonBg: Phaser.GameObjects.Graphics | null = null;
   private dropLabel:    Phaser.GameObjects.Text | null = null;
-
+  private gameOverButtonBg: Phaser.GameObjects.Graphics | null = null;
+  private gameOverButtonLabel: Phaser.GameObjects.Text | null = null;
 
   // Physics
   private state:       BallDropState | null = null;
@@ -140,13 +145,15 @@ export class BallDropUI {
     this.ballsText?.destroy();
     this.lastText?.destroy();
     this.statusText?.destroy();
-    this.dropButton?.destroy();
+    this.dropButtonBg?.destroy();
     this.dropLabel?.destroy();
+    this.gameOverButtonBg?.destroy();
+    this.gameOverButtonLabel?.destroy();
 
     this.bgGraphics = this.pegGraphics = this.slotGraphics =
     this.ballGraphics = this.fxGraphics = this.aimLine = null;
     this.scoreText = this.ballsText = this.lastText = this.statusText =
-    this.dropButton = this.dropLabel = null;
+    this.dropButtonBg = this.dropLabel = this.gameOverButtonBg = this.gameOverButtonLabel = null;
 
     this.state    = null;
     this.particles = [];
@@ -159,11 +166,11 @@ export class BallDropUI {
     const bw = this.config.boardWidth  ?? 390;
     const bh = this.config.boardHeight ?? 844;
 
-    g.fillGradientStyle(0x090910, 0x090910, 0x0f0f1e, 0x0f0f1e, 1);
+    g.fillStyle(COLOR_BG, 1);
     g.fillRect(0, 0, bw, bh);
 
     // Subtle vertical lane guides (behind pegs)
-    g.lineStyle(0.5, 0x14142a, 0.6);
+    g.lineStyle(0.5, COLOR_BORDER, 0.6);
     const slotW = (bw - BOARD_MARGIN_X * 2) / SLOT_COUNT;
     for (let i = 1; i < SLOT_COUNT; i++) {
       const lx = BOARD_MARGIN_X + i * slotW;
@@ -189,19 +196,19 @@ export class BallDropUI {
       const col = SLOT_COLORS_HEX[i];
 
       // Slot background tint
-      g.fillStyle(col, 0.12);
+      g.fillStyle(col, 0.08); // Reduced opacity
       g.fillRect(sx + 1, slotY, slotW - 2, SLOT_HEIGHT);
 
       // Top border accent
       g.fillStyle(col, 1);
-      g.fillRect(sx + 1, slotY, slotW - 2, 3);
+      g.fillRect(sx + 1, slotY, slotW - 2, 2); // Thinner accent line
 
       // Multiplier label
       this.scene.add
         .text(sx + slotW / 2, slotY + SLOT_HEIGHT / 2 + 4, `×${SLOT_MULTIPLIERS[i]}`, {
-          fontFamily: 'monospace',
-          fontSize:   '11px',
-          color:      '#ffffff',
+          ...TEXT_STYLE_LABEL, // Use theme label style
+          fontSize:   FONT_SIZE_XS,
+          color:      STR_TEXT, // Make multiplier text primary color
         })
         .setOrigin(0.5, 0.5)
         .setDepth(3);
@@ -214,23 +221,29 @@ export class BallDropUI {
 
     // Score
     this.scoreText = this.scene.add
-      .text(BOARD_MARGIN_X, 12, 'SCORE  0', {
-        fontFamily: 'monospace', fontSize: '15px', color: GOLD_STR,
+      .text(BOARD_MARGIN_X + 12, 18, 'SCORE  0', {
+        ...TEXT_STYLE_SEMIBOLD,
+        fontSize: FONT_SIZE_LG,
+        color: STR_GOLD,
       })
       .setDepth(10);
 
     // Balls remaining
     this.ballsText = this.scene.add
-      .text(bw - BOARD_MARGIN_X, 12, `BALLS  ${this.state?.ballsRemaining ?? 0}`, {
-        fontFamily: 'monospace', fontSize: '15px', color: '#888888',
+      .text(bw - BOARD_MARGIN_X - 12, 18, `BALLS  ${this.state?.ballsRemaining ?? 0}`, {
+        ...TEXT_STYLE_BODY,
+        fontSize: FONT_SIZE_LG,
+        color: STR_MUTED,
       })
       .setOrigin(1, 0)
       .setDepth(10);
 
     // Last result
     this.lastText = this.scene.add
-      .text(bw / 2, 12, '', {
-        fontFamily: 'monospace', fontSize: '13px', color: '#aaaaaa',
+      .text(bw / 2, 20, '', {
+        ...TEXT_STYLE_LABEL,
+        fontSize: FONT_SIZE_SM,
+        color: STR_MUTED,
       })
       .setOrigin(0.5, 0)
       .setDepth(10);
@@ -238,24 +251,27 @@ export class BallDropUI {
     // Status / big message
     this.statusText = this.scene.add
       .text(bw / 2, bh * 0.42, '', {
-        fontFamily: 'monospace', fontSize: '22px', color: '#ffffff', align: 'center',
+        ...TEXT_STYLE_SEMIBOLD,
+        fontSize: FONT_SIZE_2XL,
+        color: STR_GOLD,
+        align: 'center',
       })
       .setOrigin(0.5)
       .setDepth(12);
 
     // Drop button
-    this.dropButton = this.scene.add
-      .rectangle(bw / 2, BOARD_TOP_Y - 30, 140, 38, GOLD)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(10)
+    const { bg, text } = drawButton(
+      this.scene,
+      bw / 2, BOARD_TOP_Y - 30,
+      140, 38,
+      'DROP BALL',
+      'primary',
+      10
+    );
+    this.dropButtonBg = bg;
+    this.dropLabel    = text;
+    this.dropButtonBg.setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.handleDrop());
-
-    this.dropLabel = this.scene.add
-      .text(bw / 2, BOARD_TOP_Y - 30, 'DROP BALL', {
-        fontFamily: 'monospace', fontSize: '11px', color: '#0d0d0d',
-      })
-      .setOrigin(0.5)
-      .setDepth(11);
 
     // Home
     // Home navigation handled by scene nav bar
@@ -321,7 +337,7 @@ export class BallDropUI {
   private onBallLanded(): void {
     if (!this.state) return;
     const slot   = this.state.lastSlotIndex;
-    const col    = SLOT_COLORS_HEX[slot] ?? GOLD;
+    const col    = SLOT_COLORS_HEX[slot] ?? COLOR_GOLD;
 
     this.burst(
       BOARD_MARGIN_X + ((this.config.boardWidth ?? 390) - BOARD_MARGIN_X * 2) / SLOT_COUNT * slot +
@@ -365,7 +381,7 @@ export class BallDropUI {
         : PEG_BASE;
 
       g.fillStyle(fillColor, 1);
-      g.fillCircle(peg.x, peg.y, peg.radius + (lit > 0.05 ? 2 : 0));
+      g.fillCircle(peg.x, peg.y, peg.radius + (lit > 0.05 ? 1 : 0)); // Smaller lit effect
     }
   }
 
@@ -377,16 +393,16 @@ export class BallDropUI {
     const dropX = this.state.dropX;
     const br    = this.config.ballRadius ?? 8;
 
-    g.lineStyle(1, GOLD, 0.25);
+    g.lineStyle(1.5, COLOR_GOLD, 0.4); // Thicker, more opaque line
     g.beginPath();
     g.moveTo(dropX, BOARD_TOP_Y - br - 4);
     g.lineTo(dropX, BOARD_TOP_Y + 24);
     g.strokePath();
 
     // Ghost ball
-    g.fillStyle(GOLD, 0.18);
+    g.fillStyle(COLOR_GOLD, 0.15); // Lighter, more transparent
     g.fillCircle(dropX, BOARD_TOP_Y - br - 6, br);
-    g.lineStyle(1.5, GOLD, 0.45);
+    g.lineStyle(1, COLOR_GOLD, 0.35); // Thinner outline
     g.strokeCircle(dropX, BOARD_TOP_Y - br - 6, br);
   }
 
@@ -398,22 +414,22 @@ export class BallDropUI {
 
     // Trail
     for (let i = 0; i < ball.trailX.length; i++) {
-      const alpha = (i / ball.trailX.length) * 0.35;
-      const r     = (this.config.ballRadius ?? 8) * (i / ball.trailX.length) * 0.8;
-      g.fillStyle(0xffa500, alpha);
+      const alpha = (i / ball.trailX.length) * 0.2; // Softer trail
+      const r     = (this.config.ballRadius ?? 8) * (i / ball.trailX.length) * 0.7; // Smaller trail dots
+      g.fillStyle(COLOR_GOLD, alpha); // Gold trail
       g.fillCircle(ball.trailX[i], ball.trailY[i], r);
     }
 
     // Ball body (radial gradient faked with two filled circles)
     const br = this.config.ballRadius ?? 8;
-    g.fillStyle(0xc0392b, 1);
+    g.fillStyle(COLOR_GOLD, 1); // Solid gold base
     g.fillCircle(ball.x, ball.y, br);
-    g.fillStyle(0xf7971e, 1);
+    g.fillStyle(0xf8d773, 1); // Lighter gold highlight
     g.fillCircle(ball.x - 1, ball.y - 2, br * 0.72);
-    g.fillStyle(0xffe066, 1);
+    g.fillStyle(0xffe8a0, 1); // Even lighter highlight
     g.fillCircle(ball.x - 2, ball.y - 3, br * 0.38);
     // Shine
-    g.fillStyle(0xffffff, 0.38);
+    g.fillStyle(0xffffff, 0.45); // Brighter shine
     g.fillCircle(ball.x - br * 0.32, ball.y - br * 0.36, br * 0.28);
   }
 
@@ -504,17 +520,17 @@ export class BallDropUI {
       ?.setText(`GAME OVER\n${Math.floor(this.state?.score ?? 0)} credits`)
       .setAlpha(1);
 
-    const btn = this.scene.add
-      .rectangle(bw / 2, bh * 0.55, 180, 50, GOLD)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(20);
-    this.scene.add
-      .text(bw / 2, bh * 0.55, 'PLAY AGAIN', {
-        fontFamily: 'monospace', fontSize: '14px', color: '#0d0d0d',
-      })
-      .setOrigin(0.5)
-      .setDepth(21);
+    const { bg, text } = drawButton(
+      this.scene,
+      bw / 2, bh * 0.55,
+      180, 50,
+      'PLAY AGAIN',
+      'primary',
+      20
+    );
+    this.gameOverButtonBg = bg;
+    this.gameOverButtonLabel = text;
 
-    btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
+    this.gameOverButtonBg.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
   }
 }

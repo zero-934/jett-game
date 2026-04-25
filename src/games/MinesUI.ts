@@ -1,21 +1,27 @@
-/**
- * @file MinesUI.ts
- * @purpose Phaser rendering for Mines — 5×5 grid, bomb selector, reveal FX, cash-out.
- * @author Agent 934
- * @date 2026-04-13
- * @license Proprietary – available for licensing
- */
-
 import * as Phaser from 'phaser';
 import type { MinesConfig, BombCount } from './MinesLogic';
 import { createMinesState, revealTile, cashOutMines } from './MinesLogic';
-
-const GOLD     = 0xc9a84c;
-const GOLD_STR = '#c9a84c';
-const DARK     = 0x080812;
-const TILE_HIDDEN = 0x0e0e1c;
-const TILE_SAFE   = 0x0a2a0a;
-const TILE_BOMB   = 0x2a0a0a;
+import {
+  COLOR_SURFACE,
+  COLOR_BORDER,
+  COLOR_GOLD,
+  COLOR_DANGER,
+  STR_GOLD,
+  STR_DANGER,
+  STR_TEXT,
+  STR_MUTED,
+  FONT_SIZE_SM,
+  FONT_SIZE_BASE,
+  FONT_SIZE_LG,
+  FONT_SIZE_XL,
+  FONT_SIZE_3XL,
+  TEXT_STYLE_LABEL,
+  TEXT_STYLE_BODY,
+  TEXT_STYLE_SEMIBOLD,
+  TEXT_STYLE_GOLD_SEMIBOLD,
+  SAFE_TOP,
+  drawButton
+} from '../shared/ui/UITheme';
 
 export class MinesUI {
   private scene:  Phaser.Scene;
@@ -25,7 +31,7 @@ export class MinesUI {
   private tileObjects: { bg: Phaser.GameObjects.Graphics; icon: Phaser.GameObjects.Text }[] = [];
   private multiplierText: Phaser.GameObjects.Text | null = null;
   private statusText:     Phaser.GameObjects.Text | null = null;
-  private cashOutBtn:     Phaser.GameObjects.Rectangle | null = null;
+  private cashOutBtnBg:   Phaser.GameObjects.Graphics | null = null;
   private cashOutLabel:   Phaser.GameObjects.Text | null = null;
 
   private bombSelectorObjs: Phaser.GameObjects.GameObject[] = [];
@@ -41,7 +47,6 @@ export class MinesUI {
 
   public start(): void {
     this.cleanup();
-
     this.buildBombSelector();
   }
 
@@ -52,7 +57,7 @@ export class MinesUI {
     this.bombSelectorObjs = [];
     this.multiplierText?.destroy();
     this.statusText?.destroy();
-    this.cashOutBtn?.destroy();
+    this.cashOutBtnBg?.destroy();
     this.cashOutLabel?.destroy();
     this.state = null;
   }
@@ -62,7 +67,10 @@ export class MinesUI {
     const cy = height / 2 - 30;
 
     const title = this.scene.add.text(width / 2, cy - 60, 'HOW MANY MINES?', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '18px', color: '#444455', letterSpacing: 2,
+      ...TEXT_STYLE_LABEL,
+      fontSize: FONT_SIZE_LG,
+      color: STR_MUTED,
+      letterSpacing: 0.5,
     }).setOrigin(0.5);
     this.bombSelectorObjs.push(title);
 
@@ -79,7 +87,8 @@ export class MinesUI {
       this.paintSelectorBtn(bg, cx, cy, btnW, btnH, count === this.selectedBombs);
 
       const label = this.scene.add.text(cx, cy, `${count} 💣`, {
-        fontFamily: '"Fredoka One", sans-serif', fontSize: '20px', color: GOLD_STR,
+        ...TEXT_STYLE_GOLD_SEMIBOLD,
+        fontSize: FONT_SIZE_XL,
       }).setOrigin(0.5).setDepth(2);
 
       const hit = this.scene.add.rectangle(cx, cy, btnW, btnH, 0, 0)
@@ -98,23 +107,25 @@ export class MinesUI {
 
     // START button
     const startCy = cy + 60;
-    const startBg = this.scene.add.rectangle(width / 2, startCy, 160, 52, GOLD)
-      .setInteractive({ useHandCursor: true })
+    const { bg: startBg, text: startLabel } = drawButton(this.scene, width / 2, startCy, 160, 52, 'START', 'primary', 2);
+    startBg.setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.startGame());
-    const startLabel = this.scene.add.text(width / 2, startCy, 'START', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '22px', color: '#000000',
-    }).setOrigin(0.5).setDepth(2);
     this.bombSelectorObjs.push(startBg, startLabel);
-
-    // Home navigation handled by scene nav bar
   }
 
   private paintSelectorBtn(g: Phaser.GameObjects.Graphics, cx: number, cy: number, w: number, h: number, selected: boolean): void {
     g.clear();
-    g.fillStyle(selected ? 0x1a0a0a : DARK, 1);
-    g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 10);
-    g.lineStyle(selected ? 2 : 1, GOLD, selected ? 0.9 : 0.2);
-    g.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, 10);
+    if (selected) {
+      g.fillStyle(COLOR_DANGER, 0.2); // Soft red background for selected bombs
+      g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
+      g.lineStyle(1.5, COLOR_DANGER, 0.8); // Red border
+      g.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
+    } else {
+      g.fillStyle(COLOR_SURFACE, 1);
+      g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
+      g.lineStyle(1, COLOR_BORDER, 0.8);
+      g.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
+    }
   }
 
   private startGame(): void {
@@ -130,9 +141,10 @@ export class MinesUI {
 
   private buildInstructions(): void {
     const { width } = this.scene.scale;
-    this.scene.add.text(width / 2, 56, 'Reveal tiles · Hit a bomb and lose everything', {
-      fontFamily: '"Fredoka", sans-serif',
-      fontSize: '11px', color: '#444455', align: 'center',
+    this.scene.add.text(width / 2, SAFE_TOP + 12, 'Reveal tiles · Hit a bomb and lose everything', {
+      ...TEXT_STYLE_LABEL,
+      fontSize: FONT_SIZE_SM,
+      align: 'center',
     }).setOrigin(0.5);
   }
 
@@ -143,7 +155,7 @@ export class MinesUI {
     const totalW = cols * tileW + (cols - 1) * gap;
     const totalH = rows * tileH + (rows - 1) * gap;
     const startX = (width - totalW) / 2;
-    const startY = 70 + (height - 70 - totalH - 100) / 2; // centred in space between header and bottom HUD
+    const startY = SAFE_TOP + 40 + (height - SAFE_TOP - 40 - totalH - 120) / 2; // centred in space between header and bottom HUD
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
@@ -155,7 +167,8 @@ export class MinesUI {
         this.paintTile(bg, cx, cy, tileW, tileH, 'hidden');
 
         const icon = this.scene.add.text(cx, cy, '', {
-          fontFamily: '"Fredoka One", sans-serif', fontSize: '26px', color: GOLD_STR,
+          ...TEXT_STYLE_SEMIBOLD,
+          fontSize: FONT_SIZE_XL,
         }).setOrigin(0.5).setDepth(2);
 
         this.scene.add.rectangle(cx, cy, tileW, tileH, 0, 0)
@@ -171,11 +184,26 @@ export class MinesUI {
 
   private paintTile(g: Phaser.GameObjects.Graphics, cx: number, cy: number, w: number, h: number, state: 'hidden' | 'safe' | 'bomb'): void {
     g.clear();
-    const color = state === 'safe' ? TILE_SAFE : state === 'bomb' ? TILE_BOMB : TILE_HIDDEN;
-    g.fillStyle(color, 1);
+    let fillColor: number;
+    let borderColor: number;
+    let borderAlpha: number;
+
+    if (state === 'safe') {
+      fillColor = 0x142e14; // Darker green for safe
+      borderColor = 0x22c55e; // UITheme green
+      borderAlpha = 0.8;
+    } else if (state === 'bomb') {
+      fillColor = 0x2e1414; // Darker red for bomb
+      borderColor = 0xef4444; // UITheme red
+      borderAlpha = 0.8;
+    } else { // hidden
+      fillColor = COLOR_SURFACE;
+      borderColor = COLOR_BORDER;
+      borderAlpha = 0.8;
+    }
+
+    g.fillStyle(fillColor, 1);
     g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
-    const borderColor = state === 'safe' ? 0x44ff88 : state === 'bomb' ? 0xff4444 : GOLD;
-    const borderAlpha = state === 'hidden' ? 0.18 : 0.8;
     g.lineStyle(1.5, borderColor, borderAlpha);
     g.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
   }
@@ -183,34 +211,38 @@ export class MinesUI {
   private buildCashOut(): void {
     const { width, height } = this.scene.scale;
 
-    const { width: w2, height: h2 } = this.scene.scale;
-
     // Multiplier shown prominently below the grid
-    // Place multiplier just below the grid (mirrors startY calculation)
-    const gridBottom = (70 + (h2 - 70 - (5 * 64 + 4 * 6) - 100) / 2) + (5 * 64 + 4 * 6);
-    this.scene.add.text(w2 / 2, gridBottom + 18, 'MULTIPLIER', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '12px', color: '#444455', letterSpacing: 2,
+    const gridBottom = (SAFE_TOP + 40 + (height - SAFE_TOP - 40 - (5 * 64 + 4 * 6) - 120) / 2) + (5 * 64 + 4 * 6);
+    this.scene.add.text(width / 2, gridBottom + 18, 'MULTIPLIER', {
+      ...TEXT_STYLE_LABEL,
+      fontSize: FONT_SIZE_SM,
+      letterSpacing: 0.5,
     }).setOrigin(0.5).setDepth(10);
 
-    this.multiplierText = this.scene.add.text(w2 / 2, gridBottom + 48, 'x1.00', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '32px', color: GOLD_STR,
+    this.multiplierText = this.scene.add.text(width / 2, gridBottom + 48, 'x1.00', {
+      ...TEXT_STYLE_GOLD_SEMIBOLD,
+      fontSize: FONT_SIZE_3XL,
     }).setOrigin(0.5).setDepth(10);
 
-    this.scene.add.text(16, 16, `BET: ${this.BET}`, {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '15px', color: GOLD_STR,
+    this.scene.add.text(16, SAFE_TOP + 12, `BET: ${this.BET}`, {
+      ...TEXT_STYLE_BODY,
+      fontSize: FONT_SIZE_BASE,
+      color: STR_GOLD,
     }).setDepth(10);
 
     this.statusText = this.scene.add.text(width / 2, height - 80, '', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '22px', color: '#ffffff', align: 'center',
+      ...TEXT_STYLE_SEMIBOLD,
+      fontSize: FONT_SIZE_XL,
+      color: STR_TEXT,
+      align: 'center',
     }).setOrigin(0.5).setDepth(10);
 
-    this.cashOutBtn = this.scene.add.rectangle(width - 70, 30, 124, 44, GOLD)
-      .setInteractive({ useHandCursor: true }).setDepth(10)
+    const { bg, text } = drawButton(this.scene, width - 70, SAFE_TOP + 28, 124, 44, 'CASH OUT', 'primary', 10);
+    this.cashOutBtnBg = bg;
+    this.cashOutLabel = text;
+    this.cashOutBtnBg
+      .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.handleCashOut());
-
-    this.cashOutLabel = this.scene.add.text(width - 70, 30, 'CASH OUT', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '11px', color: '#000000',
-    }).setOrigin(0.5).setDepth(11);
   }
 
   private handleReveal(
@@ -234,12 +266,22 @@ export class MinesUI {
       // Reveal all bombs
       for (let i = 0; i < this.tileObjects.length; i++) {
         if (this.state.grid[i].hasBomb && this.state.grid[i].state !== 'bomb') {
-          this.paintTile(this.tileObjects[i].bg, 0, 0, w, h, 'bomb');
+          // Temporarily set to current tile's position for painting, then reset
+          const originalTile = this.tileObjects[i].bg;
+          const originalX = originalTile.x;
+          const originalY = originalTile.y;
+          originalTile.x = cx;
+          originalTile.y = cy;
+          this.paintTile(originalTile, cx, cy, w, h, 'bomb');
+          originalTile.x = originalX;
+          originalTile.y = originalY;
           this.tileObjects[i].icon.setText('💣');
         }
       }
-      this.cashOutBtn?.disableInteractive();
-      this.statusText?.setText('BOOM! GAME OVER').setColor('#ff4444');
+      this.cashOutBtnBg?.disableInteractive();
+      this.cashOutLabel?.setText('GAME OVER');
+      this.cashOutBtnBg?.clear().fillStyle(COLOR_DANGER, 0.4).fillRoundedRect(this.cashOutBtnBg.x, this.cashOutBtnBg.y, 124, 44, 10); // Indicate disabled
+      this.statusText?.setText('BOOM! GAME OVER').setColor(STR_DANGER);
       this.scene.time.delayedCall(600, () => this.showPlayAgain());
     }
   }
@@ -248,19 +290,17 @@ export class MinesUI {
     if (!this.state) return;
     const payout = cashOutMines(this.state);
     if (payout > 0) {
-      this.cashOutBtn?.disableInteractive();
-      this.statusText?.setText(`PAID OUT\n${payout.toFixed(2)} credits`).setColor(GOLD_STR);
+      this.cashOutBtnBg?.disableInteractive();
+      this.cashOutLabel?.setText('CASHED OUT');
+      this.cashOutBtnBg?.clear().fillStyle(COLOR_SURFACE, 0.8).lineStyle(1.5, COLOR_GOLD, 0.4).strokeRoundedRect(this.cashOutBtnBg.x, this.cashOutBtnBg.y, 124, 44, 10).fillRoundedRect(this.cashOutBtnBg.x, this.cashOutBtnBg.y, 124, 44, 10); // Secondary style for cashed out
+      this.statusText?.setText(`PAID OUT\n${payout.toFixed(2)} credits`).setColor(STR_GOLD);
       this.scene.time.delayedCall(600, () => this.showPlayAgain());
     }
   }
 
   private showPlayAgain(): void {
     const { width, height } = this.scene.scale;
-    const btn = this.scene.add.rectangle(width / 2, height - 44, 180, 50, GOLD)
-      .setInteractive({ useHandCursor: true }).setDepth(20);
-    this.scene.add.text(width / 2, height - 44, 'PLAY AGAIN', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '14px', color: '#000000',
-    }).setOrigin(0.5).setDepth(21);
+    const { bg: btn, text: label } = drawButton(this.scene, width / 2, height - 44, 180, 50, 'PLAY AGAIN', 'primary', 20);
     btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
   }
 }

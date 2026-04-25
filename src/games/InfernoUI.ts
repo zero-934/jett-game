@@ -1,27 +1,34 @@
-/**
- * @file src/games/InfernoUI.ts
- * @purpose UI implementation for the Inferno slot game, utilizing SlotAnimator for core animations.
- * @author Agent 934
- * @date 2026-04-16
- * @license Proprietary
- */
-
 import * as Phaser from 'phaser';
 import { CasinoAudioManager } from '../shared/audio/CasinoAudioManager';
 import { SlotAnimator, THREE_REEL_PRESET } from '../shared/slot-engine/SlotAnimator';
-import type { InfernoState, InfernoCluster, InfernoSymbol, InfernoCell } from './InfernoLogic'; // Assuming InfernoLogic defines these types
+import type { InfernoState, InfernoCluster, InfernoSymbol, InfernoCell } from './InfernoLogic';
+import {
+  COLOR_BG,
+  COLOR_SURFACE,
+  COLOR_GOLD,
+  COLOR_MUTED,
+  STR_GOLD,
+  STR_TEXT,
+  FONT_PRIMARY,
+  FONT_DISPLAY,
+  FONT_SIZE_XL,
+  FONT_SIZE_2XL,
+  FONT_SIZE_3XL,
+  FONT_SIZE_DISPLAY,
+  BTN_PRIMARY_RADIUS,
+  CANVAS_W,
+  CANVAS_H,
+  SAFE_TOP,
+  drawButton
+} from '../shared/ui/UITheme';
 
 // --- Constants ---
-const GOLD = 0xc9a84c;
-const GOLD_STR = '#c9a84c';
-const CANVAS_WIDTH = 390;
-const CANVAS_HEIGHT = 844;
-const HEADER_HEIGHT = 36; // Nav bar height
-const HUD_TEXT_COLOR = '#ffffff';
-const HUD_FONT_SIZE = '24px';
-const BUTTON_FONT_SIZE = '28px';
-const WIN_BADGE_FONT_SIZE = '36px';
-const INFERNO_BANNER_FONT_SIZE = '60px';
+const CANVAS_WIDTH = CANVAS_W; // Using theme constant
+const CANVAS_HEIGHT = CANVAS_H; // Using theme constant
+const HUD_TEXT_COLOR = STR_TEXT; // Using theme constant
+const HUD_FONT_SIZE = FONT_SIZE_XL; // Using theme constant
+const WIN_BADGE_FONT_SIZE = FONT_SIZE_3XL; // Using theme constant
+const INFERNO_BANNER_FONT_SIZE = FONT_SIZE_DISPLAY; // Using theme constant
 
 const SYMBOL_EMOJI: Record<string, string> = {
   EMBER: '🔥', FLAME: '🌋', COAL: '⚫', ASH: '💨', SMOKE: '🌫️', WILD: '⭐', SCATTER: '💠'
@@ -29,16 +36,16 @@ const SYMBOL_EMOJI: Record<string, string> = {
 
 const SYMBOL_BG: Record<string, number> = {
   EMBER: 0xff4500, FLAME: 0xff6600, COAL: 0x333333, ASH: 0x888888, SMOKE: 0xaaaaaa,
-  WILD: 0xc9a84c, SCATTER: 0x0055ff
+  WILD: COLOR_GOLD, SCATTER: 0x0055ff // Changed WILD to theme gold
 };
 
 const HEAT_METER_SEGMENTS = 5;
 const HEAT_METER_WIDTH = THREE_REEL_PRESET.reelsCount * THREE_REEL_PRESET.symbolSize + (THREE_REEL_PRESET.reelsCount - 1) * THREE_REEL_PRESET.reelGap;
 const HEAT_METER_HEIGHT = 20;
-const HEAT_METER_Y = HEADER_HEIGHT + 20; // Below header
-const HEAT_METER_INACTIVE_COLOR = 0x333333;
-const HEAT_METER_ACTIVE_COLOR_START = 0xff8c00; // Dark Orange
-const HEAT_METER_ACTIVE_COLOR_END = GOLD; // Gold
+const HEAT_METER_Y = SAFE_TOP + 20; // Below header, using safe area
+const HEAT_METER_INACTIVE_COLOR = COLOR_SURFACE; // Using theme constant
+const HEAT_METER_ACTIVE_COLOR_START = 0xff8c00; // Dark Orange (specific to Inferno, not theme)
+const HEAT_METER_ACTIVE_COLOR_END = COLOR_GOLD; // Gold (Using theme constant)
 
 const CROWN_FLIP_MODAL_Z_INDEX = 2000;
 const CROWN_FLIP_COIN_RADIUS = 60;
@@ -210,7 +217,7 @@ export class InfernoUI {
       CANVAS_WIDTH / 2,
       CANVAS_HEIGHT / 2,
       `+${amount}`,
-      { font: `bold ${WIN_BADGE_FONT_SIZE} Arial`, color: GOLD_STR, align: 'center' }
+      { fontFamily: FONT_PRIMARY, fontSize: WIN_BADGE_FONT_SIZE, color: STR_GOLD, fontStyle: 'bold' } // Themed
     ).setOrigin(0.5).setDepth(100);
 
     this.scene.tweens.add({
@@ -235,15 +242,17 @@ export class InfernoUI {
       CANVAS_HEIGHT / 2,
       'INFERNO SPIN!',
       {
-        font: `bold ${INFERNO_BANNER_FONT_SIZE} Arial`,
-        color: GOLD_STR, // Start with gold, can add gradient later if needed
+        fontFamily: FONT_DISPLAY, // Using display font for large titles
+        fontSize: INFERNO_BANNER_FONT_SIZE,
+        color: STR_GOLD,
         align: 'center',
-        stroke: '#ff0000',
+        fontStyle: 'bold',
+        stroke: '#ff0000', // Inferno specific
         strokeThickness: 8,
         shadow: {
           offsetX: 0,
           offsetY: 0,
-          color: '#ff8c00',
+          color: '#ff8c00', // Inferno specific
           blur: 16,
           stroke: true,
           fill: true
@@ -257,14 +266,14 @@ export class InfernoUI {
           targets: bannerText,
           scale: 1.2,
           duration: 300,
-          ease: 'Back.easeOut',
-        },
+          ease: 'Back.easeOut'
+},
         {
           targets: bannerText,
           scale: 1.0,
           duration: 150,
-          ease: 'Sine.easeIn',
-        },
+          ease: 'Sine.easeIn'
+},
         {
           targets: bannerText,
           duration: 1200, // Hold duration
@@ -278,10 +287,10 @@ export class InfernoUI {
           onComplete: () => {
             bannerText.destroy();
             onComplete();
-          },
-        },
-      ],
-    });
+          }
+},
+      ]
+});
   }
 
   /**
@@ -370,17 +379,19 @@ export class InfernoUI {
     const inset = 3;
 
     const bg = this.scene.add.graphics();
-    bg.fillStyle(SYMBOL_BG[symbolKey] || 0x222222, 1);
+    bg.fillStyle(SYMBOL_BG[symbolKey] || COLOR_SURFACE, 1); // Using theme surface for fallback
     bg.fillRoundedRect(inset, inset, symbolSize - inset * 2, symbolSize - inset * 2, 8);
-    bg.lineStyle(2, GOLD, 0.8);
+    bg.lineStyle(2, COLOR_GOLD, 0.8); // Using theme gold
     bg.strokeRoundedRect(inset, inset, symbolSize - inset * 2, symbolSize - inset * 2, 8);
     container.add(bg);
 
     const emoji = SYMBOL_EMOJI[symbolKey] || '?';
     const text = this.scene.add.text(symbolSize / 2, symbolSize / 2, emoji, {
-      font: `bold ${Math.floor(symbolSize * 0.5)}px Arial`,
-      color: '#ffffff',
+      fontFamily: FONT_PRIMARY,
+      fontSize: `${Math.floor(symbolSize * 0.5)}px`,
+      color: STR_TEXT, // Using theme text color
       align: 'center',
+      fontStyle: 'bold'
     }).setOrigin(0.5);
     container.add(text);
   }
@@ -394,7 +405,7 @@ export class InfernoUI {
     container.removeAll(true);
     const { symbolSize } = THREE_REEL_PRESET;
     const bg = this.scene.add.graphics();
-    bg.fillStyle(0x2a2a3a, 0.75);
+    bg.fillStyle(COLOR_SURFACE, 0.75); // Using theme surface
     bg.fillRoundedRect(3, 3, symbolSize - 6, symbolSize - 6, 7);
     container.add(bg);
   }
@@ -406,20 +417,20 @@ export class InfernoUI {
     const { symbolSize, reelsCount, rowsCount, reelGap, gridTop } = THREE_REEL_PRESET;
     const gridW = reelsCount * symbolSize + (reelsCount - 1) * reelGap;
     const gridH = rowsCount * symbolSize + (rowsCount - 1) * reelGap;
-    const canvasW = this.scene.game.config.width as number || 390;
+    const canvasW = this.scene.game.config.width as number || CANVAS_W;
     const gx = (canvasW - gridW) / 2 - 10;
     const gy = gridTop - 10;
     const gw = gridW + 20;
     const gh = gridH + 20;
 
     const border = this.scene.add.graphics().setDepth(5);
-    border.lineStyle(3, GOLD, 1);
+    border.lineStyle(3, COLOR_GOLD, 1); // Using theme gold
     border.strokeRoundedRect(gx, gy, gw, gh, 12);
-    border.lineStyle(1, GOLD, 0.35);
+    border.lineStyle(1, COLOR_GOLD, 0.35); // Using theme gold
     border.strokeRoundedRect(gx + 4, gy + 4, gw - 8, gh - 8, 9);
     const corners = [[gx, gy], [gx+gw, gy], [gx, gy+gh], [gx+gw, gy+gh]];
     corners.forEach(([cx, cy]) => {
-      border.fillStyle(GOLD, 1);
+      border.fillStyle(COLOR_GOLD, 1); // Using theme gold
       border.fillRect(cx - 3, cy - 3, 6, 6);
     });
   }
@@ -432,8 +443,7 @@ export class InfernoUI {
       const segment = this.scene.add.graphics();
       segment.x = meterX + i * segmentWidth;
       segment.y = HEAT_METER_Y;
-      // segment dimensions stored in constants
-      segment.fillStyle(HEAT_METER_INACTIVE_COLOR, 1);
+      segment.fillStyle(HEAT_METER_INACTIVE_COLOR, 1); // Using theme constant
       segment.fillRoundedRect(0, 0, segmentWidth - 2, HEAT_METER_HEIGHT, 4); // -2 for small gap
       this.heatMeterSegments.push(segment);
     }
@@ -449,12 +459,22 @@ export class InfernoUI {
     const betSpacing = 68;
     const betStartX = CANVAS_WIDTH / 2 - (BET_OPTIONS.length - 1) * betSpacing / 2;
     BET_OPTIONS.forEach((bet, i) => {
-      const btn = this.scene.add.text(betStartX + i * betSpacing, 536, `$${bet}`, {
-        font: 'bold 18px Arial', color: GOLD_STR,
-        backgroundColor: '#333333', padding: { x: 8, y: 5 }
-      }).setOrigin(0.5).setDepth(100).setInteractive({ useHandCursor: true });
-      btn.on('pointerdown', () => {
-        // Signal bet change — scene handles balance logic
+      const button = drawButton(
+        this.scene,
+        betStartX + i * betSpacing,
+        536,
+        60,
+        40,
+        `$${bet}`,
+        'secondary',
+        100
+      );
+      button.bg.setInteractive(new Phaser.Geom.Rectangle(-30, -20, 60, 40), Phaser.Geom.Rectangle.Contains);
+      button.text.setInteractive(new Phaser.Geom.Rectangle(-30, -20, 60, 40), Phaser.Geom.Rectangle.Contains);
+      button.bg.on('pointerdown', () => {
+        this.scene.events.emit('betChange', bet);
+      });
+      button.text.on('pointerdown', () => {
         this.scene.events.emit('betChange', bet);
       });
     });
@@ -464,7 +484,7 @@ export class InfernoUI {
       CANVAS_WIDTH * 0.1,
       656,
       'BET: 100',
-      { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
+      { fontFamily: FONT_PRIMARY, fontSize: HUD_FONT_SIZE, color: HUD_TEXT_COLOR } // Themed
     ).setOrigin(0, 0.5).setDepth(100);
 
     // Win Text
@@ -472,26 +492,24 @@ export class InfernoUI {
       CANVAS_WIDTH * 0.9,
       656,
       'WIN: 0',
-      { font: `${HUD_FONT_SIZE} Arial`, color: HUD_TEXT_COLOR }
+      { fontFamily: FONT_PRIMARY, fontSize: HUD_FONT_SIZE, color: HUD_TEXT_COLOR } // Themed
     ).setOrigin(1, 0.5).setDepth(100);
 
     // Spin Button
     const buttonWidth = 120;
     const buttonHeight = 60;
-    this.spinButton = this.scene.add.container(CANVAS_WIDTH / 2, 606).setDepth(100);
-
-    const spinBg = this.scene.add.graphics();
-    spinBg.fillStyle(GOLD, 1);
-    spinBg.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
-    this.spinButton.add(spinBg);
-
-    const spinText = this.scene.add.text(0, 0, 'SPIN', {
-      font: `bold ${BUTTON_FONT_SIZE} Arial`,
-      color: '#000000'
-    }).setOrigin(0.5);
-    this.spinButton.add(spinText);
-
-    this.spinButton.setInteractive(new Phaser.Geom.Rectangle(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
+    const { bg: spinBg, text: spinText } = drawButton(
+      this.scene,
+      CANVAS_WIDTH / 2,
+      606,
+      buttonWidth,
+      buttonHeight,
+      'SPIN',
+      'primary',
+      100
+    );
+    this.spinButton = this.scene.add.container(0, 0, [spinBg, spinText]); // Combine into a container
+    this.spinButton.setInteractive(new Phaser.Geom.Rectangle(CANVAS_WIDTH / 2 - buttonWidth / 2, 606 - buttonHeight / 2, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
     this.spinButton.on('pointerup', () => { this.audioManager.init(); onSpin(); });
   }
 
@@ -503,60 +521,64 @@ export class InfernoUI {
 
     // Dark overlay
     this.crownFlipOverlay = this.scene.add.rectangle(
-      CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, CANVAS_WIDTH, CANVAS_HEIGHT, 0x000000, 0.8
+      CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, CANVAS_WIDTH, CANVAS_HEIGHT, COLOR_BG, 0.8 // Using theme bg color
     ).setDepth(CROWN_FLIP_MODAL_Z_INDEX - 1).setAlpha(0).setVisible(false);
 
     // Modal background
     const modalBg = this.scene.add.graphics();
-    modalBg.fillStyle(0x333333, 1);
-    modalBg.fillRoundedRect(-150, -200, 300, 400, 15);
+    modalBg.fillStyle(COLOR_SURFACE, 1); // Using theme surface
+    modalBg.fillRoundedRect(-150, -200, 300, 400, BTN_PRIMARY_RADIUS); // Using theme radius
     this.crownFlipContainer.add(modalBg);
 
     // Coin
     this.crownFlipCoin = this.scene.add.graphics();
-    this.crownFlipCoin.fillStyle(GOLD, 1);
+    this.crownFlipCoin.fillStyle(COLOR_GOLD, 1); // Using theme gold
     this.crownFlipCoin.fillCircle(0, -100, CROWN_FLIP_COIN_RADIUS);
-    this.crownFlipCoin.lineStyle(4, 0xaaaaaa, 1);
+    this.crownFlipCoin.lineStyle(4, COLOR_MUTED, 1); // Using theme muted color
     this.crownFlipCoin.strokeCircle(0, -100, CROWN_FLIP_COIN_RADIUS);
     this.crownFlipContainer.add(this.crownFlipCoin);
 
     // Win text
     this.crownFlipWinText = this.scene.add.text(0, 0, 'Gamble 0', {
-      font: 'bold 32px Arial',
-      color: GOLD_STR
+      fontFamily: FONT_PRIMARY,
+      fontSize: FONT_SIZE_2XL,
+      color: STR_GOLD,
+      fontStyle: 'bold'
     }).setOrigin(0.5);
     this.crownFlipContainer.add(this.crownFlipWinText);
 
     // Flip button
     const flipButtonWidth = 180;
     const flipButtonHeight = 60;
-    this.crownFlipButton = this.scene.add.container(0, 80);
-    const flipBg = this.scene.add.graphics();
-    flipBg.fillStyle(GOLD, 1);
-    flipBg.fillRoundedRect(-flipButtonWidth / 2, -flipButtonHeight / 2, flipButtonWidth, flipButtonHeight, 10);
-    this.crownFlipButton.add(flipBg);
-    const flipText = this.scene.add.text(0, 0, 'FLIP', {
-      font: `bold ${BUTTON_FONT_SIZE} Arial`,
-      color: '#000000'
-    }).setOrigin(0.5);
-    this.crownFlipButton.add(flipText);
-    this.crownFlipButton.setInteractive(new Phaser.Geom.Rectangle(-flipButtonWidth / 2, -flipButtonHeight / 2, flipButtonWidth, flipButtonHeight), Phaser.Geom.Rectangle.Contains);
+    const { bg: flipBg, text: flipText } = drawButton(
+      this.scene,
+      0,
+      80,
+      flipButtonWidth,
+      flipButtonHeight,
+      'FLIP',
+      'primary',
+      0 // Depth handled by container
+    );
+    this.crownFlipButton = this.scene.add.container(0, 0, [flipBg, flipText]);
+    this.crownFlipButton.setInteractive(new Phaser.Geom.Rectangle(-flipButtonWidth / 2, 80 - flipButtonHeight / 2, flipButtonWidth, flipButtonHeight), Phaser.Geom.Rectangle.Contains);
     this.crownFlipContainer.add(this.crownFlipButton);
 
     // Walk button
     const walkButtonWidth = 180;
     const walkButtonHeight = 60;
-    this.crownWalkButton = this.scene.add.container(0, 160);
-    const walkBg = this.scene.add.graphics();
-    walkBg.fillStyle(0x666666, 1);
-    walkBg.fillRoundedRect(-walkButtonWidth / 2, -walkButtonHeight / 2, walkButtonWidth, walkButtonHeight, 10);
-    this.crownWalkButton.add(walkBg);
-    const walkText = this.scene.add.text(0, 0, 'WALK', {
-      font: `bold ${BUTTON_FONT_SIZE} Arial`,
-      color: '#ffffff'
-    }).setOrigin(0.5);
-    this.crownWalkButton.add(walkText);
-    this.crownWalkButton.setInteractive(new Phaser.Geom.Rectangle(-walkButtonWidth / 2, -walkButtonHeight / 2, walkButtonWidth, walkButtonHeight), Phaser.Geom.Rectangle.Contains);
+    const { bg: walkBg, text: walkText } = drawButton(
+      this.scene,
+      0,
+      160,
+      walkButtonWidth,
+      walkButtonHeight,
+      'WALK',
+      'secondary', // Changed to secondary
+      0 // Depth handled by container
+    );
+    this.crownWalkButton = this.scene.add.container(0, 0, [walkBg, walkText]);
+    this.crownWalkButton.setInteractive(new Phaser.Geom.Rectangle(-walkButtonWidth / 2, 160 - walkButtonHeight / 2, walkButtonWidth, walkButtonHeight), Phaser.Geom.Rectangle.Contains);
     this.crownFlipContainer.add(this.crownWalkButton);
   }
 }

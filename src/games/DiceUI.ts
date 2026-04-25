@@ -1,46 +1,64 @@
-/**
- * @file DiceUI.ts
- * @purpose Phaser rendering for Dice — tier selector, animated dot dice, result display, HUD.
- * @author Agent 934
- * @date 2026-04-13
- * @license Proprietary – available for licensing
- */
-
 import * as Phaser from 'phaser';
 import type { DiceConfig, DiceTier } from './DiceLogic';
 import { createDiceState, rollDice, selectTier } from './DiceLogic';
-
-const GOLD     = 0xc9a84c;
-const FONT_UI  = 'Arial, sans-serif';
-const GOLD_STR = '#c9a84c';
-const DARK     = 0x080812;
-const DARK_STR = '#080812'; // Added for consistent string colors
+import {
+  COLOR_SURFACE,
+  COLOR_BORDER,
+  COLOR_GOLD,
+  COLOR_TEXT,
+  STR_GOLD,
+  STR_DANGER,
+  STR_SUCCESS,
+  STR_TEXT,
+  STR_MUTED,
+  FONT_SIZE_XS,
+  FONT_SIZE_SM,
+  FONT_SIZE_LG,
+  FONT_SIZE_XL,
+  FONT_SIZE_2XL,
+  TEXT_STYLE_LABEL,
+  TEXT_STYLE_BODY,
+  TEXT_STYLE_SEMIBOLD,
+  TEXT_STYLE_GOLD_SEMIBOLD,
+  TEXT_STYLE_WIN,
+  BTN_PRIMARY_BG,
+  BTN_PRIMARY_TEXT,
+  BTN_PRIMARY_RADIUS,
+  BTN_SECONDARY_BG,
+  BTN_SECONDARY_BORDER,
+  BTN_SECONDARY_RADIUS,
+  TEXT_STYLE_BTN_PRIMARY,
+  CANVAS_H,
+  SAFE_TOP,
+  drawButton
+} from '../shared/ui/UITheme';
 
 export class DiceUI {
-  private scene:  Phaser.Scene;
+  private scene: Phaser.Scene;
   private config: DiceConfig;
-  private state:  ReturnType<typeof createDiceState> | null = null;
+  private state: ReturnType<typeof createDiceState> | null = null;
 
-  private tierBgs:    Map<DiceTier, Phaser.GameObjects.Graphics> = new Map();
-  private tierLabels: Map<DiceTier, Phaser.GameObjects.Text>    = new Map();
+  private tierBgs: Map<DiceTier, Phaser.GameObjects.Graphics> = new Map();
+  private tierLabels: Map<DiceTier, Phaser.GameObjects.Text> = new Map();
   private tierCenters: Map<DiceTier, { cx: number; cy: number }> = new Map();
 
   private diceGraphics: Phaser.GameObjects.Graphics[] = [];
   private diceQuestionMarks: Map<Phaser.GameObjects.Graphics, Phaser.GameObjects.Text> = new Map();
-  private rollBtn:      Phaser.GameObjects.Rectangle  | null = null;
-  private rollLabel:    Phaser.GameObjects.Text       | null = null;
-  private resultText:   Phaser.GameObjects.Text       | null = null;
-  private winChanceText: Phaser.GameObjects.Text      | null = null;
+  private rollBtnBg: Phaser.GameObjects.Graphics | null = null;
+  private rollBtnInteractive: Phaser.GameObjects.Rectangle | null = null;
+  private rollLabel: Phaser.GameObjects.Text | null = null;
+  private resultText: Phaser.GameObjects.Text | null = null;
+  private winChanceText: Phaser.GameObjects.Text | null = null;
 
-  private spinTimer:    Phaser.Time.TimerEvent        | null = null;
+  private spinTimer: Phaser.Time.TimerEvent | null = null;
 
   private readonly BET = 10;
-  private readonly BTN_W = 92;
-  private readonly BTN_H = 62;
-  private readonly GAP   = 12;
+  private readonly BTN_W = 96; // Slightly adjusted for Jett Casino aesthetic
+  private readonly BTN_H = 64; // Slightly adjusted for Jett Casino aesthetic
+  private readonly GAP = 12;
 
   constructor(scene: Phaser.Scene, config: DiceConfig = {}) {
-    this.scene  = scene;
+    this.scene = scene;
     this.config = config;
   }
 
@@ -56,18 +74,19 @@ export class DiceUI {
 
   public cleanup(): void {
     this.spinTimer?.remove();
-    for (const g of this.tierBgs.values())    g.destroy();
-    for (const t of this.tierLabels.values())  t.destroy();
+    for (const g of this.tierBgs.values()) g.destroy();
+    for (const t of this.tierLabels.values()) t.destroy();
     this.tierBgs.clear();
     this.tierLabels.clear();
     this.tierCenters.clear();
     for (const g of this.diceGraphics) {
-        this.diceQuestionMarks.get(g)?.destroy();
-        g.destroy();
+      this.diceQuestionMarks.get(g)?.destroy();
+      g.destroy();
     }
     this.diceGraphics = [];
     this.diceQuestionMarks.clear();
-    this.rollBtn?.destroy();
+    this.rollBtnBg?.destroy();
+    this.rollBtnInteractive?.destroy();
     this.rollLabel?.destroy();
     this.resultText?.destroy();
     this.winChanceText?.destroy();
@@ -77,23 +96,22 @@ export class DiceUI {
   // ─── Build ────────────────────────────────────────────────────────────────
 
   private buildInstructions(): void {
-    const { width, height } = this.scene.scale;
+    const { width } = this.scene.scale;
 
-    this.scene.add.text(width / 2, height * 0.235, 'PICK A MULTIPLIER → ROLL → WIN IF LUCKY!', {
-      fontFamily: '"Fredoka One", sans-serif',
-      fontSize: '20px', color: GOLD_STR, letterSpacing: 2,
+    this.scene.add.text(width / 2, CANVAS_H * 0.235, 'PICK A MULTIPLIER → ROLL → WIN IF LUCKY!', {
+      ...TEXT_STYLE_SEMIBOLD,
+      fontSize: FONT_SIZE_LG,
+      color: STR_GOLD,
     }).setOrigin(0.5);
   }
 
   private buildTierSelector(): void {
-    const { width, height } = this.scene.scale;
-    const tiers: DiceTier[]  = [2, 5, 10];
-    const tierLabels          = ['2×', '5×', '10×'];
-    const total               = tiers.length * this.BTN_W + (tiers.length - 1) * this.GAP;
-    const startX              = (width - total) / 2;
-    const y                   = height * 0.315;
-
-    // Removed 'PICK YOUR MULTIPLIER' title
+    const { width } = this.scene.scale;
+    const tiers: DiceTier[] = [2, 5, 10];
+    const tierLabels = ['2×', '5×', '10×'];
+    const total = tiers.length * this.BTN_W + (tiers.length - 1) * this.GAP;
+    const startX = (width - total) / 2;
+    const y = CANVAS_H * 0.315;
 
     tiers.forEach((tier, i) => {
       const cx = startX + i * (this.BTN_W + this.GAP) + this.BTN_W / 2;
@@ -104,20 +122,23 @@ export class DiceUI {
       this.tierCenters.set(tier, { cx, cy: y });
 
       this.scene.add.text(cx, y - 32, '🎲', {
-        fontFamily: FONT_UI, fontSize: '20px',
+        ...TEXT_STYLE_BODY, // Use body style, then adjust size
+        fontSize: FONT_SIZE_XL,
       }).setOrigin(0.5).setDepth(2);
+
       const label = this.scene.add.text(cx, y - 10, tierLabels[i], {
-        fontFamily: '"Fredoka One", sans-serif',
-        fontSize: '32px', color: tier === this.state!.selectedTier ? DARK_STR : GOLD_STR,
+        ...TEXT_STYLE_GOLD_SEMIBOLD,
+        fontSize: FONT_SIZE_2XL,
+        color: tier === this.state!.selectedTier ? BTN_PRIMARY_TEXT : STR_GOLD,
       }).setOrigin(0.5).setDepth(2);
       this.tierLabels.set(tier, label);
 
       // Win % sub-label
-      const pct = Math.round((1 / tier) * 96); // Updated RTP to 96%
+      const pct = Math.round((1 / tier) * 96);
       this.scene.add.text(cx, y + 15, `${pct}% WIN`, {
-        fontFamily: '"Fredoka", sans-serif',
-        fontSize: '12px', color: tier === this.state!.selectedTier ? DARK_STR : '#aaaaaa',
-        letterSpacing: 1,
+        ...TEXT_STYLE_LABEL,
+        color: tier === this.state!.selectedTier ? BTN_PRIMARY_TEXT : STR_MUTED,
+        fontSize: FONT_SIZE_XS,
       }).setOrigin(0.5).setDepth(2);
 
       // Hit area
@@ -127,8 +148,8 @@ export class DiceUI {
     });
 
     this.winChanceText = this.scene.add.text(width / 2, y + 46, '', {
-      fontFamily: '"Fredoka", sans-serif', fontSize: '13px', color: '#aaaaaa',
-      letterSpacing: 1,
+      ...TEXT_STYLE_LABEL,
+      fontSize: FONT_SIZE_SM,
     }).setOrigin(0.5);
     this.updateWinChanceText();
   }
@@ -139,26 +160,31 @@ export class DiceUI {
     selected: boolean
   ): void {
     g.clear();
-    const cornerRadius = 12;
-    const strokeAlpha  = 0.6;
+    const cornerRadius = BTN_SECONDARY_RADIUS; // Use shared button radius
+    const strokeAlpha = 1;
 
-    g.fillStyle(selected ? GOLD : DARK, 1);
-    g.fillRoundedRect(cx - this.BTN_W / 2, cy - this.BTN_H / 2, this.BTN_W, this.BTN_H, cornerRadius);
-    g.lineStyle(2, GOLD, selected ? 0 : strokeAlpha);
-    g.strokeRoundedRect(cx - this.BTN_W / 2, cy - this.BTN_H / 2, this.BTN_W, this.BTN_H, cornerRadius);
+    if (selected) {
+      g.fillStyle(BTN_PRIMARY_BG, 1);
+      g.fillRoundedRect(cx - this.BTN_W / 2, cy - this.BTN_H / 2, this.BTN_W, this.BTN_H, cornerRadius);
+    } else {
+      g.fillStyle(BTN_SECONDARY_BG, 1);
+      g.fillRoundedRect(cx - this.BTN_W / 2, cy - this.BTN_H / 2, this.BTN_W, this.BTN_H, cornerRadius);
+      g.lineStyle(1.5, BTN_SECONDARY_BORDER, strokeAlpha); // Consistent border
+      g.strokeRoundedRect(cx - this.BTN_W / 2, cy - this.BTN_H / 2, this.BTN_W, this.BTN_H, cornerRadius);
+    }
   }
 
   private buildDice(): void {
-    const { width, height } = this.scene.scale;
+    const { width } = this.scene.scale;
     const diceSize = 96;
     const gap = 18;
     const total = 3 * diceSize + 2 * gap;
     const startX = (width - total) / 2;
-    const y = height * 0.545;
+    const y = CANVAS_H * 0.545;
 
     for (let i = 0; i < 3; i++) {
       const cx = startX + i * (diceSize + gap) + diceSize / 2;
-      const g  = this.scene.add.graphics().setDepth(2);
+      const g = this.scene.add.graphics().setDepth(2);
       this.drawDiceFace(g, cx, y, diceSize, 0); // 0 = blank/question
       this.diceGraphics.push(g);
     }
@@ -173,78 +199,86 @@ export class DiceUI {
   ): void {
     g.clear();
     const half = size / 2;
-    const r    = size * 0.12; // corner radius
-    const dot  = size * 0.09; // dot radius
+    const r = size * 0.12; // corner radius
+    const dot = size * 0.09; // dot radius
 
     // Die body
-    g.fillStyle(0xeeeeee, 1); // Lighter face color
+    g.fillStyle(COLOR_SURFACE, 1); // Use surface color for dice face
     g.fillRoundedRect(cx - half, cy - half, size, size, r * 2);
 
     // Border
-    g.lineStyle(3, GOLD, 1);
+    g.lineStyle(2, COLOR_BORDER, 1); // Subtle border
     g.strokeRoundedRect(cx - half, cy - half, size, size, r * 2);
 
     if (val === 0) {
       // Blank/spinning — show a slightly larger, more stylized '?'
       const questionMarkText = this.scene.add.text(cx, cy, '?', {
-        fontFamily: '"Fredoka One", sans-serif', fontSize: `${size * 0.6}px`, color: '#666677'
+        ...TEXT_STYLE_SEMIBOLD, // Use a themed font
+        fontSize: `${size * 0.6}px`,
+        color: STR_MUTED, // Muted color for the question mark
       }).setOrigin(0.5).setDepth(3);
-      this.diceQuestionMarks.set(g, questionMarkText); // Store reference in typed map
+      this.diceQuestionMarks.set(g, questionMarkText);
       return;
     }
 
     // Dot positions per face value
     const o = size * 0.27; // offset from center
     const dotPositions: [number, number][][] = [
-      [],                                                         // 0 (unused)
-      [[0, 0]],                                                   // 1
-      [[-o, -o], [o, o]],                                        // 2
-      [[-o, -o], [0, 0], [o, o]],                                // 3
-      [[-o, -o], [o, -o], [-o, o], [o, o]],                     // 4
-      [[-o, -o], [o, -o], [0, 0], [-o, o], [o, o]],             // 5
-      [[-o, -o], [o, -o], [-o, 0], [o, 0], [-o, o], [o, o]],   // 6
+      [],
+      [[0, 0]],
+      [[-o, -o], [o, o]],
+      [[-o, -o], [0, 0], [o, o]],
+      [[-o, -o], [o, -o], [-o, o], [o, o]],
+      [[-o, -o], [o, -o], [0, 0], [-o, o], [o, o]],
+      [[-o, -o], [o, -o], [-o, 0], [o, 0], [-o, o], [o, o]],
     ];
 
-    g.fillStyle(0x080812, 1);
+    g.fillStyle(COLOR_TEXT, 1); // White dots
     for (const [dx, dy] of dotPositions[val]) {
       g.fillCircle(cx + dx, cy + dy, dot);
     }
   }
 
   private buildRollButton(): void {
-    const { width, height } = this.scene.scale;
-    const cx = width / 2, cy = height * 0.70;
+    const { width } = this.scene.scale;
+    const cx = width / 2, cy = CANVAS_H * 0.70;
 
-    const rollBg = this.scene.add.graphics();
-    rollBg.fillStyle(GOLD, 1);
-    rollBg.fillRoundedRect(cx - 110, cy - 33, 220, 66, 14);
-    rollBg.lineStyle(2, 0xfff4cc, 0.5);
-    rollBg.strokeRoundedRect(cx - 110, cy - 33, 220, 66, 14);
-    this.rollBtn = this.scene.add.rectangle(cx, cy, 220, 66, 0, 0)
+    const btnWidth = 220;
+    const btnHeight = 66;
+
+    const { bg, text } = drawButton(this.scene, cx, cy, btnWidth, btnHeight, 'ROLL', 'primary');
+    this.rollBtnBg = bg;
+    this.rollLabel = text;
+
+    this.rollBtnInteractive = this.scene.add.rectangle(cx, cy, btnWidth, btnHeight, 0, 0)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.handleRoll())
-      .on('pointerover', () => { rollBg.clear(); rollBg.fillStyle(0xddb83a,1); rollBg.fillRoundedRect(cx-110,cy-33,220,66,14); })
-      .on('pointerout',  () => { rollBg.clear(); rollBg.fillStyle(GOLD,1);    rollBg.fillRoundedRect(cx-110,cy-33,220,66,14); });
-
-    this.rollLabel = this.scene.add.text(cx, cy, 'ROLL', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '30px', color: DARK_STR,
-    }).setOrigin(0.5).setDepth(2);
+      .on('pointerover', () => {
+        bg.clear();
+        bg.fillStyle(COLOR_GOLD * 1.1, 1); // Slightly brighter gold on hover
+        bg.fillRoundedRect(cx - btnWidth / 2, cy - btnHeight / 2, btnWidth, btnHeight, BTN_PRIMARY_RADIUS);
+      })
+      .on('pointerout', () => {
+        bg.clear();
+        bg.fillStyle(BTN_PRIMARY_BG, 1);
+        bg.fillRoundedRect(cx - btnWidth / 2, cy - btnHeight / 2, btnWidth, btnHeight, BTN_PRIMARY_RADIUS);
+      });
   }
 
   private buildHUD(): void {
-    const { width, height } = this.scene.scale;
+    const { width } = this.scene.scale;
 
-    this.scene.add.text(16, 46, `BET: ${this.BET}`, {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '20px', color: GOLD_STR,
-    }).setDepth(10);
+    this.scene.add.text(16, SAFE_TOP, `BET: ${this.BET}`, {
+      ...TEXT_STYLE_SEMIBOLD,
+      fontSize: FONT_SIZE_LG,
+      color: STR_GOLD,
+    }).setOrigin(0, 0.5).setDepth(10);
 
-    this.resultText = this.scene.add.text(width / 2, height * 0.82, '', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '36px', // Larger result text
-      color: '#ffffff', align: 'center',
-      lineSpacing: 8,
+    this.resultText = this.scene.add.text(width / 2, CANVAS_H * 0.82, '', {
+      ...TEXT_STYLE_WIN,
+      color: STR_TEXT, // Default to text color, change on win/lose
+      align: 'center',
     }).setOrigin(0.5).setDepth(10);
-
-    // Home navigation handled by scene nav bar
   }
 
   // ─── Interaction ──────────────────────────────────────────────────────────
@@ -253,13 +287,12 @@ export class DiceUI {
     if (!this.state || this.state.won !== null) return;
     selectTier(this.state, tier);
 
-    // Repaint all tier buttons
     for (const [t, bg] of this.tierBgs) {
-      const pos    = this.tierCenters.get(t)!;
-      const sel    = t === tier;
+      const pos = this.tierCenters.get(t)!;
+      const sel = t === tier;
       this.paintTierBtn(bg, pos.cx, pos.cy, sel);
       const lbl = this.tierLabels.get(t);
-      if (lbl) lbl.setColor(sel ? DARK_STR : GOLD_STR);
+      if (lbl) lbl.setColor(sel ? BTN_PRIMARY_TEXT : STR_GOLD);
     }
     this.updateWinChanceText();
   }
@@ -267,18 +300,18 @@ export class DiceUI {
   private handleRoll(): void {
     if (!this.state || this.state.isComplete) return;
 
-    // Clear previous question marks if any before redraw
     for (const g of this.diceGraphics) {
-        this.diceQuestionMarks.get(g)?.destroy();
-        this.diceQuestionMarks.delete(g);
+      this.diceQuestionMarks.get(g)?.destroy();
+      this.diceQuestionMarks.delete(g);
     }
 
-    this.rollBtn?.disableInteractive();
+    this.rollBtnInteractive?.disableInteractive();
     this.rollLabel?.setText('ROLLING...');
+    this.rollLabel?.setStyle({ ...TEXT_STYLE_BTN_PRIMARY, color: BTN_PRIMARY_TEXT });
 
-    // Spin animation — cycle random faces
+
     let ticks = 0;
-    const totalTicks = 24; // Longer spin for better effect
+    const totalTicks = 24;
     this.spinTimer = this.scene.time.addEvent({
       delay: 55,
       repeat: totalTicks - 1,
@@ -287,17 +320,16 @@ export class DiceUI {
         for (let i = 0; i < 3; i++) {
           const { width } = this.scene.scale;
           const diceSize = 96;
-          const gap      = 18;
-          const total    = 3 * diceSize + 2 * gap;
-          const startX   = (width - total) / 2;
-          const cx       = startX + i * (diceSize + gap) + diceSize / 2;
-          const cy       = this.scene.scale.height * 0.545;
-          const randVal  = Math.floor(Math.random() * 6) + 1;
+          const gap = 18;
+          const total = 3 * diceSize + 2 * gap;
+          const startX = (width - total) / 2;
+          const cx = startX + i * (diceSize + gap) + diceSize / 2;
+          const cy = this.scene.scale.height * 0.545;
+          const randVal = Math.floor(Math.random() * 6) + 1;
           this.drawDiceFace(this.diceGraphics[i], cx, cy, diceSize, randVal);
         }
 
         if (ticks >= totalTicks) {
-          // Final roll
           this.scene.time.delayedCall(100, () => {
             rollDice(this.state!, this.config);
             const vals = this.state!.diceValues;
@@ -310,9 +342,11 @@ export class DiceUI {
               const cy2 = this.scene.scale.height * 0.545;
               this.drawDiceFace(this.diceGraphics[i], cx2, cy2, diceSize, vals[i]);
             }
-            this.rollLabel?.setText('ROLL'); // Reset label after showing results
+            this.rollLabel?.setText('ROLL');
+            this.rollLabel?.setStyle({ ...TEXT_STYLE_BTN_PRIMARY, color: BTN_PRIMARY_TEXT });
+
             this.showResult();
-            this.scene.time.delayedCall(1500, () => this.showPlayAgain()); // Delay before showing Play Again
+            this.scene.time.delayedCall(1500, () => this.showPlayAgain());
           });
         }
       },
@@ -322,28 +356,45 @@ export class DiceUI {
   private showResult(): void {
     if (!this.state) return;
     if (this.state.won) {
-      this.resultText?.setText(`🎉 WIN!\n+${this.state.payout} CREDITS`).setColor('#44ff88');
+      this.resultText?.setText(`🎉 WIN!\n+${this.state.payout} CREDITS`).setColor(STR_SUCCESS);
     } else {
-      this.resultText?.setText('BETTER LUCK\nNEXT TIME').setColor('#ff6666'); // Slightly brighter red
+      this.resultText?.setText('BETTER LUCK\nNEXT TIME').setColor(STR_DANGER);
     }
-    // No delayed call here, now handled in handleRoll for better sequencing
   }
 
   private showPlayAgain(): void {
-    const { width, height } = this.scene.scale;
-    const btn = this.scene.add
-      .rectangle(width / 2, height * 0.92, 200, 56, GOLD) // Consistent button size
-      .setInteractive({ useHandCursor: true }).setDepth(20);
-    this.scene.add.text(width / 2, height * 0.92, 'PLAY AGAIN', {
-      fontFamily: '"Fredoka One", sans-serif', fontSize: '18px', color: DARK_STR,
-    }).setOrigin(0.5).setDepth(21);
-    btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
+    const { width } = this.scene.scale;
+    const btnWidth = 200;
+    const btnHeight = 56;
+    const cx = width / 2;
+    const cy = CANVAS_H * 0.92;
+
+    const { bg, text } = drawButton(this.scene, cx, cy, btnWidth, btnHeight, 'PLAY AGAIN', 'primary');
+    bg.setDepth(20);
+    text.setDepth(21);
+
+    const interactiveRect = this.scene.add
+      .rectangle(cx, cy, btnWidth, btnHeight, 0, 0)
+      .setInteractive({ useHandCursor: true }).setDepth(22); // Interactive above graphics and text
+    interactiveRect.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
+
+    // Hover effect for play again button
+    interactiveRect.on('pointerover', () => {
+      bg.clear();
+      bg.fillStyle(COLOR_GOLD * 1.1, 1);
+      bg.fillRoundedRect(cx - btnWidth / 2, cy - btnHeight / 2, btnWidth, btnHeight, BTN_PRIMARY_RADIUS);
+    });
+    interactiveRect.on('pointerout', () => {
+      bg.clear();
+      bg.fillStyle(BTN_PRIMARY_BG, 1);
+      bg.fillRoundedRect(cx - btnWidth / 2, cy - btnHeight / 2, btnWidth, btnHeight, BTN_PRIMARY_RADIUS);
+    });
   }
 
   private updateWinChanceText(): void {
     if (!this.state || !this.winChanceText) return;
     const tier = this.state.selectedTier;
-    const pct  = Math.round((1 / tier) * 96); // Updated RTP
+    const pct = Math.round((1 / tier) * 96);
     this.winChanceText.setText(`Win ${pct}% of the time  ·  Pays ${tier}× your bet`);
   }
 }

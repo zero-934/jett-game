@@ -1,23 +1,41 @@
-/**
- * @file MasqueradeUI.ts
- * @purpose Phaser rendering for Midnight Masquerade slot — symbol grid, spinning reel animation,
- *          big win flash overlay, masked-symbol reveal, and HUD.
- * @author Agent 934
- * @date 2026-04-15
- * @license Proprietary – available for licensing
- */
-
 import * as Phaser from 'phaser';
 import { CasinoAudioManager } from '../shared/audio/CasinoAudioManager';
 import type { MasqueradeSymbol, WinLine, JackpotResult } from './MasqueradeLogic';
 import {
   REELS_COUNT, ROWS_COUNT,
-  GOLD, GOLD_STR, DARK, DARK_STR,
   BET_PER_LINE, LINES_COUNT,
   JACKPOT_MULTIPLIERS,
   createMasqueradeState, spinMasquerade,
 } from './MasqueradeLogic';
 import type { MasqueradeState } from './MasqueradeLogic';
+
+import {
+  COLOR_BG,
+  COLOR_SURFACE,
+  COLOR_BORDER,
+  COLOR_GOLD,
+  STR_GOLD,
+  STR_TEXT,
+  STR_MUTED,
+  FONT_PRIMARY,
+  FONT_SIZE_XS,
+  FONT_SIZE_SM,
+  FONT_SIZE_BASE,
+  FONT_SIZE_XL,
+  FONT_SIZE_2XL,
+  TEXT_STYLE_LABEL,
+  TEXT_STYLE_BODY,
+  TEXT_STYLE_SEMIBOLD,
+  TEXT_STYLE_GOLD_SEMIBOLD,
+  TEXT_STYLE_DISPLAY,
+  BTN_PRIMARY_BG,
+  BTN_PRIMARY_RADIUS,
+  BTN_SECONDARY_BG,
+  BTN_SECONDARY_TEXT,
+  BTN_SECONDARY_RADIUS,
+  TEXT_STYLE_BTN_SECONDARY,
+  drawButton
+} from '../shared/ui/UITheme';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 const SYM         = 66;   // symbol cell size — 5 reels fit comfortably on 390px
@@ -27,11 +45,14 @@ const SPIN_ROWS   = 8;    // off-screen rows for scroll animation (hidden on ini
 const REEL_DELAY  = 120;  // ms stagger between each reel stopping
 
 // ─── Visual constants ─────────────────────────────────────────────────────────
-const FONT_TITLE  = '"Georgia", serif';
-const FONT_UI     = 'Arial, sans-serif';
+
+// Masquerade-specific atmospheric colors
+const MASQUERADE_PURPLE_DARK    = 0x3a0068;
+const MASQUERADE_PURPLE_MEDIUM  = 0x2a0050;
+const MASQUERADE_ACCENT_BLUE    = 0x0a0a1a; // Used for Wild symbol and Phantom plaque background
 
 const SYMBOL_COLORS: Record<MasqueradeSymbol, number> = {
-  GOLDEN_MASK: GOLD,
+  GOLDEN_MASK: COLOR_GOLD,
   CHAMPAGNE:   0x90c8e0,
   PEACOCK:     0x008080,
   GLOVES:      0x7b2fbe,
@@ -39,9 +60,9 @@ const SYMBOL_COLORS: Record<MasqueradeSymbol, number> = {
   SLIPPER:     0xe87c8a,
   INVITATION:  0xe8c44a,
   MUSIC:       0x6ab0d8,
-  WILD:        0x0a0a1a,
-  SCATTER:     GOLD,
-  MASKED:      0x3a0068,
+  WILD:        MASQUERADE_ACCENT_BLUE,
+  SCATTER:     COLOR_GOLD,
+  MASKED:      MASQUERADE_PURPLE_DARK,
 };
 
 const SYMBOL_LABEL: Record<MasqueradeSymbol, string> = {
@@ -77,11 +98,11 @@ export class MasqueradeUI {
   private reelMasks: Phaser.GameObjects.Graphics[]   = []; // clipping masks
 
   // HUD
-  private spinBtn:      Phaser.GameObjects.Container | null = null;
+  private spinBtn:      { bg: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text } | null = null;
   private balance:      number = 10000;
   private currentBet:   number = 25;
   private balanceText:  Phaser.GameObjects.Text | null = null;
-  private betBtns:      Phaser.GameObjects.Text[] = [];
+  private betBtnObjects: { bg: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text }[] = [];
 
   private spinBtnLabel: Phaser.GameObjects.Text      | null = null;
   private winDisplay:   Phaser.GameObjects.Text      | null = null;
@@ -115,7 +136,8 @@ export class MasqueradeUI {
     this.reelMasks.forEach(m => m.destroy());
     this.reelCols  = [];
     this.reelMasks = [];
-    this.spinBtn?.destroy();
+    this.spinBtn?.bg.destroy();
+    this.spinBtn?.text.destroy();
     this.winDisplay?.destroy();
     this.betDisplay?.destroy();
     this.fsDisplay?.destroy();
@@ -123,8 +145,8 @@ export class MasqueradeUI {
     this.spinBtn      = null;
     this.balanceText?.destroy();
     this.balanceText  = null;
-    this.betBtns.forEach(b => b.destroy());
-    this.betBtns      = [];
+    this.betBtnObjects.forEach(b => { b.bg.destroy(); b.text.destroy(); });
+    this.betBtnObjects      = [];
 
     this.spinBtnLabel = null;
     this.winDisplay   = null;
@@ -155,48 +177,57 @@ export class MasqueradeUI {
 
     // ── VEIL (left) ──
     const veil = this.scene.add.graphics();
-    veil.fillStyle(0x3a0068, 1);
-    veil.lineStyle(border, GOLD, 0.7);
+    veil.fillStyle(MASQUERADE_PURPLE_DARK, 1);
+    veil.lineStyle(border, COLOR_GOLD, 0.7);
     veil.fillRoundedRect(veilX, panelY, sideW, panelH, corner);
     veil.strokeRoundedRect(veilX, panelY, sideW, panelH, corner);
 
     this.scene.add.text(veilX + sideW / 2, panelY + 13, 'VEIL', {
-      fontFamily: FONT_UI, fontSize: '11px', color: '#8877aa', align: 'center',
+      ...TEXT_STYLE_LABEL,
+      fontSize: FONT_SIZE_XS,
+      color: STR_MUTED, // Specific to this text, slightly brighter muted
     }).setOrigin(0.5, 0.5);
 
     this.scene.add.text(veilX + sideW / 2, panelY + 33, `${JACKPOT_MULTIPLIERS.VEIL}×`, {
-      fontFamily: FONT_UI, fontSize: '15px', color: GOLD_STR, fontStyle: 'bold', align: 'center',
+      ...TEXT_STYLE_GOLD_SEMIBOLD,
+      fontSize: FONT_SIZE_BASE,
     }).setOrigin(0.5, 0.5);
 
     // ── PHANTOM (centre, tallest) ──
     const phantom = this.scene.add.graphics();
-    phantom.fillStyle(0x0a0a1a, 1);
-    phantom.lineStyle(border + 0.5, GOLD, 1);
+    phantom.fillStyle(MASQUERADE_ACCENT_BLUE, 1);
+    phantom.lineStyle(border + 0.5, COLOR_GOLD, 1);
     phantom.fillRoundedRect(phantomX, panelY - 5, centreW, phantomH, corner + 2);
     phantom.strokeRoundedRect(phantomX, panelY - 5, centreW, phantomH, corner + 2);
     this.phantomPlaque = phantom;
 
     this.scene.add.text(phantomX + centreW / 2, panelY + 8, 'PHANTOM', {
-      fontFamily: FONT_UI, fontSize: '13px', color: '#aaaacc', align: 'center',
+      ...TEXT_STYLE_SEMIBOLD,
+      fontSize: FONT_SIZE_SM,
+      color: STR_TEXT, // Specific to this text
     }).setOrigin(0.5, 0.5);
 
     this.scene.add.text(phantomX + centreW / 2, panelY + 33, `${JACKPOT_MULTIPLIERS.PHANTOM}×`, {
-      fontFamily: FONT_UI, fontSize: '20px', color: GOLD_STR, fontStyle: 'bold', align: 'center',
+      ...TEXT_STYLE_GOLD_SEMIBOLD,
+      fontSize: FONT_SIZE_XL,
     }).setOrigin(0.5, 0.5);
 
     // ── MARQUIS (right) ──
     const marquis = this.scene.add.graphics();
-    marquis.fillStyle(0x2a0050, 1);
-    marquis.lineStyle(border, GOLD, 0.7);
+    marquis.fillStyle(MASQUERADE_PURPLE_MEDIUM, 1);
+    marquis.lineStyle(border, COLOR_GOLD, 0.7);
     marquis.fillRoundedRect(marquisX, panelY, sideW, panelH, corner);
     marquis.strokeRoundedRect(marquisX, panelY, sideW, panelH, corner);
 
     this.scene.add.text(marquisX + sideW / 2, panelY + 13, 'MARQUIS', {
-      fontFamily: FONT_UI, fontSize: '11px', color: '#8877aa', align: 'center',
+      ...TEXT_STYLE_LABEL,
+      fontSize: FONT_SIZE_XS,
+      color: STR_MUTED, // Specific to this text, slightly brighter muted
     }).setOrigin(0.5, 0.5);
 
     this.scene.add.text(marquisX + sideW / 2, panelY + 33, `${JACKPOT_MULTIPLIERS.MARQUIS}×`, {
-      fontFamily: FONT_UI, fontSize: '15px', color: GOLD_STR, fontStyle: 'bold', align: 'center',
+      ...TEXT_STYLE_GOLD_SEMIBOLD,
+      fontSize: FONT_SIZE_BASE,
     }).setOrigin(0.5, 0.5);
 
     // Pulse the PHANTOM plaque subtly
@@ -224,27 +255,27 @@ export class MasqueradeUI {
 
     const frame = this.scene.add.graphics();
     // Dark fill
-    frame.fillStyle(0x1a0033, 1);
+    frame.fillStyle(MASQUERADE_PURPLE_DARK, 1); // Specific atmospheric dark purple
     frame.fillRoundedRect(gx, gy, gw, gh, 12);
     // Outer gold border
-    frame.lineStyle(3, GOLD, 1);
+    frame.lineStyle(3, COLOR_GOLD, 1);
     frame.strokeRoundedRect(gx, gy, gw, gh, 12);
     // Inner accent line
-    frame.lineStyle(1, GOLD, 0.35);
+    frame.lineStyle(1, COLOR_GOLD, 0.35);
     frame.strokeRoundedRect(gx + 4, gy + 4, gw - 8, gh - 8, 9);
     // Corner diamonds
     const corners = [[gx, gy], [gx+gw, gy], [gx, gy+gh], [gx+gw, gy+gh]];
     corners.forEach(([cx, cy]) => {
-      frame.fillStyle(GOLD, 1);
+      frame.fillStyle(COLOR_GOLD, 1);
       frame.fillRect(cx - 3, cy - 3, 6, 6);
     });
 
     // Side bars that cover any off-screen symbol overflow (match background gradient start colour)
     const leftBar  = this.scene.add.graphics();
     const rightBar = this.scene.add.graphics();
-    leftBar.fillStyle(0x100020, 1);
+    leftBar.fillStyle(COLOR_BG, 1); // Use theme background color
     leftBar.fillRect(0, GRID_TOP - 2, gx, this.gridH + 4);
-    rightBar.fillStyle(0x100020, 1);
+    rightBar.fillStyle(COLOR_BG, 1); // Use theme background color
     rightBar.fillRect(gx + gw, GRID_TOP - 2, width - (gx + gw), this.gridH + 4);
   }
 
@@ -271,96 +302,145 @@ export class MasqueradeUI {
 
     // Balance display (top right of HUD row)
     this.balanceText = this.scene.add.text(width - 16, hudY - 30, `BAL  ${this.balance.toLocaleString()}`, {
-      fontFamily: FONT_UI, fontSize: '13px', color: GOLD_STR,
+      ...TEXT_STYLE_GOLD_SEMIBOLD,
+      fontSize: FONT_SIZE_SM,
     }).setOrigin(1, 0.5);
 
     // Bet selector buttons
     const BET_OPTIONS = [1, 10, 50, 250, 1000];
-    const betSpacing = Math.floor((width - 32) / BET_OPTIONS.length);
+    const betBtnW = 60;
+    const betBtnH = 30;
+    const betSpacing = (width - 32 - BET_OPTIONS.length * betBtnW) / (BET_OPTIONS.length - 1 || 1);
+    
     BET_OPTIONS.forEach((bet: number, i: number) => {
-      const bx = 16 + betSpacing * i + betSpacing / 2;
-      const btn = this.scene.add.text(bx, hudY + 30, `$${bet.toLocaleString()}`, {
-        fontFamily: FONT_UI, fontSize: '13px', color: GOLD_STR,
-        backgroundColor: this.currentBet === bet ? GOLD_STR : '#333333',
-        padding: { x: 8, y: 4 },
-      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-      if (this.currentBet === bet) btn.setStyle({ color: DARK_STR });
-      btn.on('pointerdown', () => {
+      const bx = 16 + i * (betBtnW + betSpacing) + betBtnW / 2;
+      const variant = this.currentBet === bet ? 'secondary' : 'secondary'; // All bet buttons are secondary style
+      const btn = drawButton(this.scene, bx, hudY + 30, betBtnW, betBtnH, `$${bet.toLocaleString()}`, variant);
+      
+      btn.text.setStyle({
+        ...TEXT_STYLE_BTN_SECONDARY,
+        fontSize: FONT_SIZE_SM,
+        color: this.currentBet === bet ? BTN_SECONDARY_TEXT : STR_MUTED, // Active button gold text, others muted
+      });
+
+      // Update appearance for active bet
+      if (this.currentBet === bet) {
+        btn.bg.destroy(); // Destroy previous graphic
+        btn.bg = this.scene.add.graphics();
+        btn.bg.fillStyle(BTN_SECONDARY_BG, 1);
+        btn.bg.fillRoundedRect(bx - betBtnW / 2, hudY + 30 - betBtnH / 2, betBtnW, betBtnH, BTN_SECONDARY_RADIUS);
+        btn.bg.lineStyle(1.5, COLOR_GOLD, 1); // Active button has gold border
+        btn.bg.strokeRoundedRect(bx - betBtnW / 2, hudY + 30 - betBtnH / 2, betBtnW, betBtnH, BTN_SECONDARY_RADIUS);
+        btn.text.setColor(STR_GOLD);
+      } else {
+        btn.bg.destroy(); // Destroy previous graphic
+        btn.bg = this.scene.add.graphics();
+        btn.bg.fillStyle(BTN_SECONDARY_BG, 1);
+        btn.bg.fillRoundedRect(bx - betBtnW / 2, hudY + 30 - betBtnH / 2, betBtnW, betBtnH, BTN_SECONDARY_RADIUS);
+        btn.bg.lineStyle(1.5, COLOR_BORDER, 1); // Inactive buttons have a subtle border
+        btn.bg.strokeRoundedRect(bx - betBtnW / 2, hudY + 30 - betBtnH / 2, betBtnW, betBtnH, BTN_SECONDARY_RADIUS);
+        btn.text.setColor(STR_MUTED);
+      }
+
+      btn.text.setInteractive({ useHandCursor: true });
+      btn.text.on('pointerdown', () => {
+        if (this.spinning) return;
         this.currentBet = bet;
-        this.betBtns.forEach((b, j) => {
-          b.setStyle({ backgroundColor: j === i ? GOLD_STR : '#333333', color: j === i ? DARK_STR : GOLD_STR });
+        this.betBtnObjects.forEach((bObj, j) => {
+          bObj.bg.clear();
+          if (j === i) {
+            bObj.bg.fillStyle(BTN_SECONDARY_BG, 1);
+            bObj.bg.fillRoundedRect(bObj.text.x - betBtnW / 2, hudY + 30 - betBtnH / 2, betBtnW, betBtnH, BTN_SECONDARY_RADIUS);
+            bObj.bg.lineStyle(1.5, COLOR_GOLD, 1);
+            bObj.bg.strokeRoundedRect(bObj.text.x - betBtnW / 2, hudY + 30 - betBtnH / 2, betBtnW, betBtnH, BTN_SECONDARY_RADIUS);
+            bObj.text.setColor(STR_GOLD);
+          } else {
+            bObj.bg.fillStyle(BTN_SECONDARY_BG, 1);
+            bObj.bg.fillRoundedRect(bObj.text.x - betBtnW / 2, hudY + 30 - betBtnH / 2, betBtnW, betBtnH, BTN_SECONDARY_RADIUS);
+            bObj.bg.lineStyle(1.5, COLOR_BORDER, 1);
+            bObj.bg.strokeRoundedRect(bObj.text.x - betBtnW / 2, hudY + 30 - betBtnH / 2, betBtnW, betBtnH, BTN_SECONDARY_RADIUS);
+            bObj.text.setColor(STR_MUTED);
+          }
         });
         this.betDisplay?.setText(`BET  ${bet.toLocaleString()}`);
         this.state = createMasqueradeState ? createMasqueradeState(bet, LINES_COUNT) : this.state;
       });
-      this.betBtns.push(btn);
+      this.betBtnObjects.push(btn);
     });
 
     // BET label
     this.betDisplay = this.scene.add.text(16, hudY, `BET  ${this.currentBet.toLocaleString()}`, {
-      fontFamily: FONT_UI, fontSize: '14px', color: GOLD_STR,
+      ...TEXT_STYLE_BODY,
+      fontSize: FONT_SIZE_BASE,
     });
 
     // WIN label
     this.winDisplay = this.scene.add.text(width - 16, hudY, 'WIN  —', {
-      fontFamily: FONT_UI, fontSize: '14px', color: GOLD_STR,
+      ...TEXT_STYLE_BODY,
+      fontSize: FONT_SIZE_BASE,
     }).setOrigin(1, 0);
 
     // Free spins counter (centred)
     this.fsDisplay = this.scene.add.text(width / 2, hudY, '', {
-      fontFamily: FONT_UI, fontSize: '14px', color: '#cc88ff',
+      ...TEXT_STYLE_SEMIBOLD,
+      fontSize: FONT_SIZE_BASE,
+      color: '#cc88ff', // Specific atmospheric color for free spins
     }).setOrigin(0.5, 0);
 
     // SPIN button
     const btnY = hudY + 110;
-    const bg   = this.scene.add.graphics();
-    this.drawBtnBg(bg, false);
+    this.spinBtn = drawButton(this.scene, width / 2, btnY, 160, 50, 'SPIN', 'primary');
 
-    const label = this.scene.add.text(0, 0, 'SPIN', {
-      fontFamily: FONT_UI, fontSize: '28px', color: DARK_STR, fontStyle: 'bold',
-    }).setOrigin(0.5);
-
-    this.spinBtn = this.scene.add.container(width / 2, btnY, [bg, label])
-      .setSize(160, 50)
+    this.spinBtn.bg
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.handleSpin())
-      .on('pointerover',  () => this.drawBtnBg(bg, true))
-      .on('pointerout',   () => this.drawBtnBg(bg, false));
+      .on('pointerdown', () => this.handleSpin());
+    // Attach hover effects directly to the graphics object to leverage UITheme drawButton's internal state
+    this.spinBtn.bg
+      .on('pointerover', () => {
+        this.spinBtn?.bg.clear();
+        this.spinBtn?.bg.fillStyle(COLOR_GOLD, 0.8); // Slightly darker gold on hover
+        this.spinBtn?.bg.fillRoundedRect(width/2 - 80, btnY - 25, 160, 50, BTN_PRIMARY_RADIUS);
+      })
+      .on('pointerout', () => {
+        this.spinBtn?.bg.clear();
+        this.spinBtn?.bg.fillStyle(BTN_PRIMARY_BG, 1);
+        this.spinBtn?.bg.fillRoundedRect(width/2 - 80, btnY - 25, 160, 50, BTN_PRIMARY_RADIUS);
+      });
 
-
-    this.spinBtnLabel = label;
+    this.spinBtnLabel = this.spinBtn.text;
 
     // HOME
     // Home navigation handled by MasqueradeScene nav bar
   }
 
-  private drawBtnBg(g: Phaser.GameObjects.Graphics, hover: boolean): void {
-    g.clear();
-    g.fillStyle(hover ? 0xddb83a : GOLD, 1);
-    g.fillRoundedRect(-80, -25, 160, 50, 12);
-  }
+  // private drawBtnBg(g: Phaser.GameObjects.Graphics, hover: boolean): void {
+  //   // This method is replaced by `drawButton` and its internal hover logic
+  //   // Kept for reference if custom hover logic is needed outside `drawButton`
+  //   g.clear();
+  //   g.fillStyle(hover ? 0xddb83a : GOLD, 1);
+  //   g.fillRoundedRect(-80, -25, 160, 50, 12);
+  // }
 
   /** Full-screen flash overlay for win / free-spins announcements */
   private buildFlashOverlay(): void {
     const { width, height } = this.scene.scale;
 
     const dim = this.scene.add.graphics();
-    dim.fillStyle(0x000000, 0.65);
+    dim.fillStyle(COLOR_BG, 0.65); // Use theme background color
     dim.fillRect(0, 0, width, height);
 
     const msg = this.scene.add.text(width / 2, height / 2, '', {
-      fontFamily: FONT_TITLE,
-      fontSize:   '52px',
-      color:      GOLD_STR,
-      stroke:     '#000000',
+      ...TEXT_STYLE_DISPLAY,
+      color:      STR_GOLD,
+      stroke:     COLOR_BG.toString(16),
       strokeThickness: 8,
       align:      'center',
     }).setOrigin(0.5);
 
     const sub = this.scene.add.text(width / 2, height / 2 + 68, '', {
-      fontFamily: FONT_UI,
-      fontSize:   '24px',
-      color:      '#ffffff',
+      ...TEXT_STYLE_BODY,
+      fontSize:   FONT_SIZE_2XL,
+      color:      STR_TEXT,
       align:      'center',
     }).setOrigin(0.5);
 
@@ -382,7 +462,7 @@ export class MasqueradeUI {
   private drawBlurSym(container: Phaser.GameObjects.Container): void {
     container.removeAll(true);
     const g = this.scene.add.graphics();
-    g.fillStyle(0x2a2a3a, 0.75);
+    g.fillStyle(COLOR_SURFACE, 0.75); // Use theme surface color
     g.fillRoundedRect(3, 3, SYM - 6, SYM - 6, 7);
     container.add(g);
   }
@@ -397,16 +477,16 @@ export class MasqueradeUI {
     if (symbol === 'MASKED') {
       g.fillStyle(col, 1);
       g.fillCircle(half, half, half - 3);
-      g.lineStyle(2, GOLD, 0.8);
+      g.lineStyle(2, COLOR_GOLD, 0.8);
       g.strokeCircle(half, half, half - 3);
     } else if (symbol === 'WILD') {
       g.fillStyle(col, 1);
       g.fillRoundedRect(3, 3, SYM - 6, SYM - 6, 6);
-      g.lineStyle(2, GOLD, 1);
+      g.lineStyle(2, COLOR_GOLD, 1);
       g.strokeRoundedRect(3, 3, SYM - 6, SYM - 6, 6);
     } else if (symbol === 'SCATTER') {
       g.fillStyle(col, 1);
-      g.lineStyle(2, DARK, 1);
+      g.lineStyle(2, COLOR_BG, 1); // Dark background for scatter lines
       g.beginPath();
       for (let i = 0; i < 6; i++) {
         const a = (Math.PI / 3) * i - Math.PI / 6;
@@ -424,15 +504,15 @@ export class MasqueradeUI {
     } else {
       g.fillStyle(col, 1);
       g.fillRoundedRect(3, 3, SYM - 6, SYM - 6, 7);
-      g.lineStyle(1, 0x000000, 0.25);
+      g.lineStyle(1, COLOR_BG, 0.25); // Subtle border
       g.strokeRoundedRect(3, 3, SYM - 6, SYM - 6, 7);
     }
 
     const isLight = symbol !== 'WILD' && symbol !== 'MASKED';
     const lbl = this.scene.add.text(half, half, SYMBOL_LABEL[symbol], {
-      fontFamily: FONT_UI,
-      fontSize:   symbol === 'MASKED' ? '30px' : '13px',
-      color:      isLight ? '#111111' : GOLD_STR,
+      fontFamily: FONT_PRIMARY,
+      fontSize:   symbol === 'MASKED' ? FONT_SIZE_2XL : FONT_SIZE_SM,
+      color:      isLight ? COLOR_BG.toString(16) : STR_GOLD, // Text color depends on symbol background
       fontStyle:  'bold',
       align:      'center',
     }).setOrigin(0.5);
@@ -625,7 +705,7 @@ export class MasqueradeUI {
 
     this.spinning = true;
     this.state.isComplete = false;
-    this.spinBtn?.disableInteractive();
+    this.spinBtn?.bg.disableInteractive(); // Disable button interactive state
     this.spinBtnLabel?.setText('...');
     this.winDisplay?.setText('WIN  —');
     this.fsDisplay?.setText('');
@@ -670,7 +750,7 @@ export class MasqueradeUI {
           this.scene.time.delayedCall(900, () => {
             if (this.state) this.state.isComplete = true;
             this.spinning = false;
-            this.spinBtn?.setInteractive({ useHandCursor: true });
+            this.spinBtn?.bg.setInteractive({ useHandCursor: true }); // Re-enable button
             this.spinBtnLabel?.setText(snap.freeSpinsRemaining > 0 ? 'FREE' : 'SPIN');
           });
         };

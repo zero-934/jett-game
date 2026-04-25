@@ -1,26 +1,40 @@
-/**
- * @file SurgeUI.ts
- * @purpose Manages the Phaser 3 UI elements and animations for the Surge slot game.
- * @author Agent 934
- * @date 2026-04-16
- * @license Proprietary
- */
-
 import * as Phaser from 'phaser';
 import { CasinoAudioManager } from '../shared/audio/CasinoAudioManager';
 import { SlotAnimator, THREE_REEL_PRESET } from '../shared/slot-engine/SlotAnimator';
 import type { SurgeState, SurgeCluster, SurgeSymbol } from './SurgeLogic';
+import {
+  COLOR_SURFACE,
+  COLOR_GOLD,
+  STR_GOLD,
+  STR_TEXT,
+  FONT_PRIMARY,
+  FONT_DISPLAY,
+  FONT_SIZE_LG,
+  FONT_SIZE_2XL,
+  FONT_SIZE_3XL,
+  TEXT_STYLE_LABEL,
+  TEXT_STYLE_SEMIBOLD,
+  TEXT_STYLE_GOLD_SEMIBOLD,
+  TEXT_STYLE_WIN,
+  BTN_PRIMARY_BG,
+  BTN_PRIMARY_RADIUS,
+  BTN_SECONDARY_BG,
+  BTN_SECONDARY_BORDER,
+  BTN_SECONDARY_RADIUS,
+  BTN_DANGER_BG,
+  BTN_DANGER_BORDER,
+  TEXT_STYLE_BTN_PRIMARY,
+  TEXT_STYLE_BTN_SECONDARY,
+  CANVAS_W,
+  CANVAS_H
+} from '../shared/ui/UITheme';
 
 // --- Constants ---
-const CANVAS_WIDTH = 390;
 const GRID_COLS = 3;
-const CANVAS_HEIGHT = 844;
 
-const GOLD = 0xc9a84c;
-const GOLD_STR = '#c9a84c';
-const DARK_GREY = 0x222222;
-const ELECTRIC_BLUE_STR = '#00aaff';
-const LIGHT_BLUE_STR = '#66ccff';
+const DARK_GREY = 0x222222; // Keep for surge meter inactive color
+const ELECTRIC_BLUE_STR = '#00aaff'; // Keep for surge sub-banner
+const LIGHT_BLUE_STR = '#66ccff'; // Keep for crown flip flip button
 
 const SYMBOL_EMOJIS: Record<SurgeSymbol, string> = {
   BOLT: '⚡',
@@ -38,45 +52,29 @@ const SYMBOL_BG_COLORS: Record<SurgeSymbol, number> = {
   COIL: 0x004499,
   SPARK: 0x66ccff,
   STATIC: 0x334466,
-  WILD: GOLD,
+  WILD: COLOR_GOLD,
   SCATTER: 0x0000aa,
 };
 
-const UI_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
-  fontFamily: 'Arial Black',
-  fontSize: '24px',
-  color: GOLD_STR,
-  stroke: '#000000',
-  strokeThickness: 4,
-};
-
-const SMALL_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
-  fontFamily: 'Arial',
-  fontSize: '16px',
-  color: GOLD_STR,
-  stroke: '#000000',
-  strokeThickness: 2,
-};
-
-const SURGE_METER_X = CANVAS_WIDTH / 2 - 100;
+const SURGE_METER_X = CANVAS_W / 2 - 100;
 const SURGE_METER_Y = 50;
 const SURGE_METER_WIDTH = 200;
 const SURGE_METER_HEIGHT = 20;
 const SURGE_METER_SEGMENTS = 5;
-const SURGE_METER_ACTIVE_COLOR = GOLD;
-const SURGE_METER_INACTIVE_COLOR = DARK_GREY;
+const SURGE_METER_ACTIVE_COLOR = COLOR_GOLD;
+const SURGE_METER_INACTIVE_COLOR = DARK_GREY; // Keep dark grey for surge meter inactive
 
 const SURGE_BANNER_DURATION = 1200;
 const SURGE_BANNER_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
-  fontFamily: 'Arial Black',
-  fontSize: '48px',
-  color: GOLD_STR,
+  fontFamily: FONT_DISPLAY,
+  fontSize: FONT_SIZE_3XL,
+  color: STR_GOLD,
   stroke: '#000000',
   strokeThickness: 8,
 };
 const SURGE_BANNER_SUB_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
-  fontFamily: 'Arial Black',
-  fontSize: '32px',
+  fontFamily: FONT_DISPLAY,
+  fontSize: FONT_SIZE_2XL,
   color: ELECTRIC_BLUE_STR,
   stroke: '#000000',
   strokeThickness: 6,
@@ -93,8 +91,43 @@ const WIN_BADGE_OFFSET_Y = 50;
 const SPIN_BUTTON_Y = 606;
 
 const BET_DISPLAY_X = 80;
-const WIN_DISPLAY_X = CANVAS_WIDTH - 80;
+const WIN_DISPLAY_X = CANVAS_W - 80;
 const DISPLAY_Y = 656;
+
+// Helper to draw a themed button
+function drawThemedButton(
+  scene: Phaser.Scene,
+  x: number, y: number,
+  width: number, height: number,
+  label: string,
+  variant: 'primary' | 'secondary' | 'danger' = 'primary',
+  depth = 10
+): { bg: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text } {
+  const bg = scene.add.graphics().setDepth(depth);
+  const radius = variant === 'primary' ? BTN_PRIMARY_RADIUS : BTN_SECONDARY_RADIUS;
+
+  if (variant === 'primary') {
+    bg.fillStyle(BTN_PRIMARY_BG, 1);
+    bg.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
+  } else if (variant === 'secondary') {
+    bg.fillStyle(BTN_SECONDARY_BG, 1);
+    bg.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
+    bg.lineStyle(1.5, BTN_SECONDARY_BORDER, 1);
+    bg.strokeRoundedRect(x - width / 2, y - height / 2, width, height, radius);
+  } else { // danger
+    bg.fillStyle(BTN_DANGER_BG, 1);
+    bg.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
+    bg.lineStyle(1.5, BTN_DANGER_BORDER, 1);
+    bg.strokeRoundedRect(x - width / 2, y - height / 2, width, height, radius);
+  }
+
+  const textStyle = variant === 'primary' ? TEXT_STYLE_BTN_PRIMARY : TEXT_STYLE_BTN_SECONDARY;
+  const text = scene.add.text(x, y, label, textStyle)
+    .setOrigin(0.5)
+    .setDepth(depth + 1);
+
+  return { bg, text };
+}
 
 export class SurgeUI {
   private scene: Phaser.Scene;
@@ -116,7 +149,8 @@ export class SurgeUI {
   private winBadgeText: Phaser.GameObjects.Text;
   private betText: Phaser.GameObjects.Text;
   private winText: Phaser.GameObjects.Text;
-  private spinButton: Phaser.GameObjects.Text;
+  private spinButtonBg: Phaser.GameObjects.Graphics;
+  private spinButtonText: Phaser.GameObjects.Text;
 
   /**
    * Creates an instance of SurgeUI.
@@ -140,15 +174,15 @@ export class SurgeUI {
     // Grid border
     const _gridW = THREE_REEL_PRESET.reelsCount * THREE_REEL_PRESET.symbolSize + (THREE_REEL_PRESET.reelsCount - 1) * THREE_REEL_PRESET.reelGap;
     const _gridH = THREE_REEL_PRESET.rowsCount * THREE_REEL_PRESET.symbolSize + (THREE_REEL_PRESET.rowsCount - 1) * THREE_REEL_PRESET.reelGap;
-    const _gx = (CANVAS_WIDTH - _gridW) / 2 - 10;
+    const _gx = (CANVAS_W - _gridW) / 2 - 10;
     const _gy = THREE_REEL_PRESET.gridTop - 10;
     const border = this.scene.add.graphics().setDepth(5);
-    border.lineStyle(3, GOLD, 1);
+    border.lineStyle(3, COLOR_GOLD, 1);
     border.strokeRoundedRect(_gx, _gy, _gridW + 20, _gridH + 20, 12);
-    border.lineStyle(1, GOLD, 0.35);
+    border.lineStyle(1, COLOR_GOLD, 0.35);
     border.strokeRoundedRect(_gx + 4, _gy + 4, _gridW + 12, _gridH + 12, 9);
-    [[_gx, _gy], [_gx+_gridW+20, _gy], [_gx, _gy+_gridH+20], [_gx+_gridW+20, _gy+_gridH+20]].forEach(([cx, cy]) => {
-      border.fillStyle(GOLD, 1);
+    [[_gx, _gy], [_gx + _gridW + 20, _gy], [_gx, _gy + _gridH + 20], [_gx + _gridW + 20, _gy + _gridH + 20]].forEach(([cx, cy]) => {
+      border.fillStyle(COLOR_GOLD, 1);
       border.fillRect(cx - 3, cy - 3, 6, 6);
     });
 
@@ -158,69 +192,103 @@ export class SurgeUI {
       SURGE_METER_X + SURGE_METER_WIDTH / 2,
       SURGE_METER_Y + SURGE_METER_HEIGHT + 6,
       'SURGE METER',
-      SMALL_TEXT_STYLE
+      TEXT_STYLE_LABEL
     ).setOrigin(0.5);
     this.surgeSpinsCounterText = this.scene.add.text(
       SURGE_METER_X + SURGE_METER_WIDTH + 10,
       SURGE_METER_Y + SURGE_METER_HEIGHT / 2,
       '',
-      SMALL_TEXT_STYLE
+      TEXT_STYLE_GOLD_SEMIBOLD
     ).setOrigin(0, 0.5);
 
     // Crown Flip UI
     this.crownFlipOverlay = this.scene.add.graphics({ fillStyle: { color: 0x000000, alpha: CROWN_FLIP_OVERLAY_ALPHA } });
-    this.crownFlipOverlay.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT).setDepth(100).setVisible(false);
+    this.crownFlipOverlay.fillRect(0, 0, CANVAS_W, CANVAS_H).setDepth(100).setVisible(false);
 
-    this.crownFlipContainer = this.scene.add.container(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2).setDepth(101).setVisible(false);
+    this.crownFlipContainer = this.scene.add.container(CANVAS_W / 2, CANVAS_H / 2).setDepth(101).setVisible(false);
 
     this.crownFlipCoin = this.scene.add.graphics();
-    this.crownFlipCoin.fillStyle(GOLD, 1);
+    this.crownFlipCoin.fillStyle(COLOR_GOLD, 1);
     this.crownFlipCoin.fillCircle(0, 0, CROWN_FLIP_COIN_SIZE / 2);
     this.crownFlipCoin.lineStyle(4, DARK_GREY, 1);
     this.crownFlipCoin.strokeCircle(0, 0, CROWN_FLIP_COIN_SIZE / 2);
     this.crownFlipContainer.add(this.crownFlipCoin);
 
-    this.crownFlipWinText = this.scene.add.text(0, -CROWN_FLIP_COIN_SIZE / 2 - 30, '', UI_TEXT_STYLE).setOrigin(0.5);
+    this.crownFlipWinText = this.scene.add.text(0, -CROWN_FLIP_COIN_SIZE / 2 - 30, '', TEXT_STYLE_GOLD_SEMIBOLD).setOrigin(0.5);
+    this.crownFlipWinText.setFontSize(FONT_SIZE_2XL); // Explicitly set size if base isn't large enough
     this.crownFlipContainer.add(this.crownFlipWinText);
 
-    this.crownFlipFlipButton = this.scene.add.text(
+    // Crown Flip Buttons (using drawThemedButton for consistency but customizing background)
+    const { bg: flipBtnBg, text: flipBtnText } = drawThemedButton(
+      this.scene,
       -CROWN_FLIP_BUTTON_WIDTH / 2 - CROWN_FLIP_BUTTON_SPACING / 2,
       CROWN_FLIP_COIN_SIZE / 2 + 30,
+      CROWN_FLIP_BUTTON_WIDTH,
+      50, // Approx height
       'FLIP',
-      UI_TEXT_STYLE
-    ).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    this.crownFlipFlipButton.setBackgroundColor(LIGHT_BLUE_STR).setPadding(10, 20, 10, 20);
+      'secondary' // Use secondary for outline, then customize color
+    );
+    flipBtnBg.fillStyle(COLOR_SURFACE, 1); // Override background to surface
+    flipBtnBg.fillRoundedRect(
+      -CROWN_FLIP_BUTTON_WIDTH / 2 - CROWN_FLIP_BUTTON_SPACING / 2 - CROWN_FLIP_BUTTON_WIDTH / 2,
+      CROWN_FLIP_COIN_SIZE / 2 + 30 - 25,
+      CROWN_FLIP_BUTTON_WIDTH,
+      50,
+      BTN_SECONDARY_RADIUS
+    );
+    flipBtnBg.lineStyle(1.5, 0x66ccff, 1); // Use LIGHT_BLUE_STR for border
+    flipBtnBg.strokeRoundedRect(
+      -CROWN_FLIP_BUTTON_WIDTH / 2 - CROWN_FLIP_BUTTON_SPACING / 2 - CROWN_FLIP_BUTTON_WIDTH / 2,
+      CROWN_FLIP_COIN_SIZE / 2 + 30 - 25,
+      CROWN_FLIP_BUTTON_WIDTH,
+      50,
+      BTN_SECONDARY_RADIUS
+    );
+    flipBtnText.setStyle({ color: LIGHT_BLUE_STR, fontSize: FONT_SIZE_LG }); // Override text color
+    this.crownFlipFlipButton = flipBtnText; // Assign text object
+    this.crownFlipContainer.add(flipBtnBg);
     this.crownFlipContainer.add(this.crownFlipFlipButton);
 
-    this.crownFlipWalkButton = this.scene.add.text(
+    const { bg: walkBtnBg, text: walkBtnText } = drawThemedButton(
+      this.scene,
       CROWN_FLIP_BUTTON_WIDTH / 2 + CROWN_FLIP_BUTTON_SPACING / 2,
       CROWN_FLIP_COIN_SIZE / 2 + 30,
+      CROWN_FLIP_BUTTON_WIDTH,
+      50, // Approx height
       'WALK',
-      UI_TEXT_STYLE
-    ).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    this.crownFlipWalkButton.setBackgroundColor(GOLD_STR).setPadding(10, 20, 10, 20);
+      'primary' // Use primary for gold fill
+    );
+    this.crownFlipWalkButton = walkBtnText; // Assign text object
+    this.crownFlipContainer.add(walkBtnBg);
     this.crownFlipContainer.add(this.crownFlipWalkButton);
 
     // Win Badge
     this.winBadgeText = this.scene.add.text(
-      CANVAS_WIDTH / 2,
-      CANVAS_HEIGHT / 2,
+      CANVAS_W / 2,
+      CANVAS_H / 2,
       '',
-      SURGE_BANNER_TEXT_STYLE
+      TEXT_STYLE_WIN
     ).setOrigin(0.5).setDepth(10).setVisible(false);
 
     // Bet/Win displays
-    this.betText = this.scene.add.text(BET_DISPLAY_X, DISPLAY_Y, 'BET: 0', UI_TEXT_STYLE).setOrigin(0, 0.5);
-    this.winText = this.scene.add.text(WIN_DISPLAY_X, DISPLAY_Y, 'WIN: 0', UI_TEXT_STYLE).setOrigin(1, 0.5);
+    this.betText = this.scene.add.text(BET_DISPLAY_X, DISPLAY_Y, 'BET: 0', TEXT_STYLE_SEMIBOLD).setOrigin(0, 0.5);
+    this.betText.setFontSize(FONT_SIZE_LG);
+    this.winText = this.scene.add.text(WIN_DISPLAY_X, DISPLAY_Y, 'WIN: 0', TEXT_STYLE_SEMIBOLD).setOrigin(1, 0.5);
+    this.winText.setFontSize(FONT_SIZE_LG);
 
-    // Spin Button
-    this.spinButton = this.scene.add.text(
-      CANVAS_WIDTH / 2,
+    // Spin Button (using drawThemedButton)
+    const { bg: spinBtnBg, text: spinBtnText } = drawThemedButton(
+      this.scene,
+      CANVAS_W / 2,
       SPIN_BUTTON_Y,
+      140, // width
+      60, // height
       'SPIN',
-      UI_TEXT_STYLE
-    ).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    this.spinButton.setBackgroundColor(GOLD_STR).setPadding(10, 20, 10, 20);
+      'primary'
+    );
+    this.spinButtonBg = spinBtnBg;
+    this.spinButtonText = spinBtnText;
+    this.spinButtonText.setInteractive({ useHandCursor: true });
   }
 
   /**
@@ -228,8 +296,8 @@ export class SurgeUI {
    * @param onSpin Callback function to invoke on spin.
    */
   public setOnSpin(onSpin: () => void): void {
-    this.spinButton.removeAllListeners();
-    this.spinButton.setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.audioManager.init(); onSpin(); });
+    this.spinButtonText.removeAllListeners();
+    this.spinButtonText.setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.audioManager.init(); onSpin(); });
   }
 
   /**
@@ -276,9 +344,9 @@ export class SurgeUI {
       symbolSize / 2,
       SYMBOL_EMOJIS[symbol],
       {
-        fontFamily: 'Arial',
+        fontFamily: FONT_PRIMARY,
         fontSize: `${symbolSize * 0.7}px`,
-        color: '#ffffff',
+        color: STR_TEXT,
         align: 'center',
         stroke: '#000000',
         strokeThickness: 6,
@@ -303,9 +371,9 @@ export class SurgeUI {
       symbolSize / 2,
       '⚡',
       {
-        fontFamily: 'Arial',
+        fontFamily: FONT_PRIMARY,
         fontSize: `${symbolSize * 0.7}px`,
-        color: '#ffffff',
+        color: STR_TEXT,
         align: 'center',
         stroke: '#000000',
         strokeThickness: 6,
@@ -403,15 +471,15 @@ export class SurgeUI {
    */
   public showSurgeBanner(wildReel: number, onComplete: () => void): void {
     const bannerText = this.scene.add.text(
-      CANVAS_WIDTH / 2,
-      CANVAS_HEIGHT / 2 - 50,
+      CANVAS_W / 2,
+      CANVAS_H / 2 - 50,
       'SURGE SPIN!',
       SURGE_BANNER_TEXT_STYLE
     ).setOrigin(0.5).setDepth(1000).setScale(0).setAlpha(0);
 
     const subText = this.scene.add.text(
-      CANVAS_WIDTH / 2,
-      CANVAS_HEIGHT / 2 + 20,
+      CANVAS_W / 2,
+      CANVAS_H / 2 + 20,
       `Reel ${wildReel + 1} is WILD!`,
       SURGE_BANNER_SUB_TEXT_STYLE
     ).setOrigin(0.5).setDepth(1000).setScale(0).setAlpha(0);
@@ -498,7 +566,7 @@ export class SurgeUI {
     if (amount <= 0) return;
 
     this.winBadgeText.setText(`+${amount.toFixed(2)}`);
-    this.winBadgeText.setPosition(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+    this.winBadgeText.setPosition(CANVAS_W / 2, CANVAS_H / 2);
     this.winBadgeText.setAlpha(1).setScale(1).setVisible(true);
 
     this.scene.tweens.add({
@@ -538,8 +606,9 @@ export class SurgeUI {
    * @param enabled True to enable, false to disable.
    */
   public setSpinButtonEnabled(enabled: boolean): void {
-    this.spinButton.setInteractive(enabled ? { useHandCursor: true } : false);
-    this.spinButton.setAlpha(enabled ? 1 : 0.5);
+    this.spinButtonText.setInteractive(enabled ? { useHandCursor: true } : false);
+    this.spinButtonBg.setAlpha(enabled ? 1 : 0.5);
+    this.spinButtonText.setAlpha(enabled ? 1 : 0.5);
   }
 
   /**
@@ -547,7 +616,7 @@ export class SurgeUI {
    * @param text The new text for the spin button.
    */
   public setSpinButtonText(text: string): void {
-    this.spinButton.setText(text);
+    this.spinButtonText.setText(text);
   }
 
   /**
@@ -574,6 +643,7 @@ export class SurgeUI {
     this.winBadgeText.destroy();
     this.betText.destroy();
     this.winText.destroy();
-    this.spinButton.destroy();
+    this.spinButtonBg.destroy();
+    this.spinButtonText.destroy();
   }
 }
