@@ -52,7 +52,7 @@ export interface FlapFortuneConfig {
 const DEFAULT_GRAVITY          = 0.45;
 const DEFAULT_FLAP_STRENGTH    = -7.5;
 const DEFAULT_PIPE_SPACING     = 230;
-const DEFAULT_GAP_HEIGHT       = 140;
+const DEFAULT_GAP_HEIGHT       = 120;
 const DEFAULT_SCROLL_SPEED     = 3;
 const DEFAULT_HOUSE_EDGE       = 0.03;
 const DEFAULT_COMBUSTION_CHANCE = 0.0003;
@@ -80,7 +80,7 @@ export function createFlapFortuneState(
     distanceTravelled: 0,
     pipesCleared: 0,
     multiplier: 1.0,
-    pipes: [generateFlapPipe(config.worldWidth + 100, config)],
+    pipes: [generateFlapPipe(config.worldWidth + 100, config, config.rng)],
     isAlive: true,
     combusted: false,
     cashedOut: false,
