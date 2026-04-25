@@ -45,7 +45,7 @@ Raising $500k pre-seed. Use of funds:
 *   **Anjouan B2C License ($150k)**: Securing a reputable gaming license for operational legality.
 *   **Marketing & User Acquisition ($200k)**: Targeted campaigns to drive initial user growth in key markets.
 
-Contact: invest@jett.game
+Contact: zero60851@gmail.com
 
 ## 🏗️ Architecture
 ```
