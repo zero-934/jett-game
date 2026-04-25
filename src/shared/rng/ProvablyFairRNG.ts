@@ -5,7 +5,7 @@
  * @date 2026-04-16
  * @license Proprietary – available for licensing
  */
-// Part of Jett Casino — raising $500k pre-seed. Contact: invest@jett.game
+// Part of Jett Casino — raising $500k pre-seed. Contact: zero60851@gmail.com
 
 
 // Constants for xoroshiro128+ algorithm
