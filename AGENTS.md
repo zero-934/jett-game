@@ -96,14 +96,42 @@ src/scenes/<Name>Scene.ts    ← Wires Logic + UI. Registered in Phaser game con
 
 ## Games (current)
 
-| Game | Scene Key | Description |
-|------|-----------|-------------|
-| **Jett** | `JettScene` | Vertical scroller — dodge asteroids, cash out before combustion |
-| **Shatter Step** | `ShatterStepScene` | Ladder game — pick left or right, 50/50 each row |
-| **Flap Fortune** | `FlapFortuneScene` | Horizontal scroller — flap through pipe gaps |
-| **Dice** | `DiceScene` | Single-roll dice — pick 2×, 5×, or 10× odds |
-| **Mines** | `MinesScene` | 5×5 grid — reveal safe tiles, avoid bombs |
-| **Ball Drop** | `BallDropScene` | Peg-board drop — nudge mid-fall, edge slots pay ×5 |
+| Game | Scene Key | Category |
+|------|-----------|----------|
+| **Jett** | `JettScene` | Skill |
+| **Glass Tile** | `GlassTileScene` | Skill |
+| **Flap Fortune** | `FlapFortuneScene` | Skill |
+| **Mines** | `MinesScene` | Chance |
+| **Ball Drop** | `BallDropScene` | Chance |
+| **Dice** | `DiceScene` | Chance |
+| **Dice Duel** | `DiceDuelScene` | Chance |
+| **Surge** | `SurgeScene` | Slots |
+| **Inferno** | `InfernoScene` | Slots |
+| **The Alchemist** | `AlchemistScene` | Slots |
+| **Midnight Masquerade** | `MasqueradeScene` | Slots |
+| **Doom Crash** | `DoomCrashScene` | Deferred — do not touch |
+
+---
+
+## UITheme.ts Rules (CRITICAL)
+
+`UITheme.ts` lives at `src/shared/ui/UITheme.ts`.
+It provides shared button drawing and color constants for all games.
+
+**CORRECT usage:**
+- Call `drawButton()` which returns `{ bg, text }`
+- Wire events on `bg` only — never on a Container or Text
+- Example: `const { bg, text } = drawButton(...); bg.on('pointerdown', handler);`
+
+**WRONG usage that breaks games:**
+- ❌ Never call `setInteractive()` on a `Container`
+- ❌ Never call `setInteractive()` on a `Text` object
+- ❌ Never duplicate `drawButton` locally inside a UI file
+- ❌ Never multiply color constants (`COLOR_GOLD * 1.1` is not a valid color)
+
+**When UITheme breaks a game the fix is always:**
+1. Replace local button code with `UITheme.drawButton()`
+2. Move event wiring from the Container/Text to the returned `bg` Graphics
 
 ---
 
@@ -149,6 +177,18 @@ src/scenes/<Name>Scene.ts    ← Wires Logic + UI. Registered in Phaser game con
 
 ---
 
+## 💰 Cost Rules
+
+- **Gemini handles all file writes**, renames, deletes, boilerplate
+- **Claude reviews PRs and architecture only**
+- Never read a file twice in the same session
+- Never re-audit what was already audited this session
+- Batch all file operations into single tool calls
+- Do not explain code unless asked
+- One confirmation per task — not per file
+
+---
+
 ## Git / PR Rules
 
 - **Branch naming:** `feat/<game-name>` for new games, `fix/<description>` for bugs
@@ -185,22 +225,38 @@ jett-game/
 │   │   ├── ShatterStepScene.ts
 │   │   ├── FlapFortuneScene.ts
 │   │   ├── DiceScene.ts
+│   │   ├── DiceDuelScene.ts
 │   │   ├── MinesScene.ts
-│   │   └── BallDropScene.ts
+│   │   ├── BallDropScene.ts
+│   │   ├── SurgeScene.ts
+│   │   ├── InfernoScene.ts
+│   │   ├── AlchemistScene.ts
+│   │   ├── MasqueradeScene.ts
+│   │   └── DoomCrashScene.ts      ← Deferred — do not touch
 │   ├── games/
 │   │   ├── JettLogic.ts / JettUI.ts
 │   │   ├── ShatterStepLogic.ts / ShatterStepUI.ts
 │   │   ├── FlapFortuneLogic.ts / FlapFortuneUI.ts
 │   │   ├── DiceLogic.ts / DiceUI.ts
+│   │   ├── DiceDuelLogic.ts / DiceDuelUI.ts
 │   │   ├── MinesLogic.ts / MinesUI.ts
-│   │   └── BallDropLogic.ts / BallDropUI.ts
+│   │   ├── BallDropLogic.ts / BallDropUI.ts
+│   │   ├── SurgeLogic.ts / SurgeUI.ts
+│   │   ├── InfernoLogic.ts / InfernoUI.ts
+│   │   ├── AlchemistLogic.ts / AlchemistUI.ts
+│   │   └── MasqueradeLogic.ts / MasqueradeUI.ts
 │   ├── tests/
 │   │   ├── JettLogic.test.ts
 │   │   ├── ShatterStepLogic.test.ts
 │   │   ├── FlapFortuneLogic.test.ts
 │   │   ├── DiceLogic.test.ts
+│   │   ├── DiceDuelLogic.test.ts
 │   │   ├── MinesLogic.test.ts
-│   │   └── BallDropLogic.test.ts
+│   │   ├── BallDropLogic.test.ts
+│   │   ├── SurgeLogic.test.ts
+│   │   ├── InfernoLogic.test.ts
+│   │   ├── AlchemistLogic.test.ts
+│   │   └── MasqueradeLogic.test.ts
 │   └── shared/
 │       ├── rng/
 │       │   └── ProvablyFairRNG.ts ← xoroshiro128+ PRNG, Solana VRF-ready
@@ -211,7 +267,9 @@ jett-game/
 │       │   └── configs/
 │       │       ├── masquerade.config.ts
 │       │       └── alchemist.config.ts
-│       └── audio/                 ← (Phase 2 — not yet implemented)
+│       ├── ui/
+│       │   └── UITheme.ts         ← Shared colors, fonts, drawButton() — import in all UI files
+│       └── audio/
 │           ├── audioConfig.ts     ← C Major/G Major scales, 84 BPM base
 │           ├── ShepardToneGenerator.ts ← 8-oscillator procedural climb
 │           └── CasinoAudioManager.ts   ← onWin, onNearMiss, playSurgeRise
