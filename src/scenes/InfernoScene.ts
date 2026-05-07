@@ -173,7 +173,6 @@ export class InfernoScene extends Phaser.Scene {
 
     if (this.balance < this.currentBet) {
       // TODO: Show "Insufficient funds" message
-      console.warn('Insufficient funds!');
       return;
     }
 
@@ -221,7 +220,7 @@ export class InfernoScene extends Phaser.Scene {
    * Recursively processes the spin results, handling cluster evaluation and cascades.
    * This function uses a callback chain to manage asynchronous animations.
    *
-   * @param previousState The state of the game *before* the current cascade step.
+   * @param _previousState The state of the game *before* the current cascade step.
    * @private
    */
   private processSpinResult(_previousState: InfernoState): void {
@@ -262,7 +261,6 @@ export class InfernoScene extends Phaser.Scene {
 
       if (this.infernoState.isFreeSpinTriggered) {
         // TODO: Show "Free Spins Awarded" message
-        console.log(`Awarded ${this.infernoState.freeSpinsRemaining} free spins!`);
       }
 
       if (this.infernoState.totalWin > 0 && this.infernoState.freeSpinsRemaining === 0) {
@@ -306,7 +304,7 @@ export class InfernoScene extends Phaser.Scene {
     } else {
       // If lost, hide Crown Flip and end spin
       this.infernoUI.hideCrownFlip();
-      this.endSpin();
+      this.endSpin(this.infernoState.crownFlipWin);
     }
   };
 
@@ -323,10 +321,11 @@ export class InfernoScene extends Phaser.Scene {
 
   /**
    * Finalizes the current spin, adds winnings to balance, and resets UI elements.
+   * @param payout The amount to add to the balance. Defaults to this.infernoState.totalWin.
    * @private
    */
-  private endSpin(): void {
-    this.balance += this.infernoState.totalWin;
+  private endSpin(payout: number = this.infernoState.totalWin): void {
+    this.balance += payout;
     this.balanceText.setText(`BAL: $${this.balance}`);
     this.infernoUI.updateWin(0); // Reset win display for next spin
 
