@@ -28,7 +28,8 @@ This rule exists because skipping it caused wrong audits and wasted tokens.
 - `zero-934/jett-landing` → React lobby shell
 
 **ARCHIVE — never build here:**
-- `zero-934/​​​​​​​​​​​​​​​​`
+- `zero-934/volt-casino-backup` → read only
+- `zero-934/jett-landing-backup` → read only
 
 ---
 
