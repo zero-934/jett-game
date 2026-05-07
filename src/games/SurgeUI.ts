@@ -7,8 +7,10 @@ import {
   COLOR_GOLD,
   STR_GOLD,
   STR_TEXT,
+  STR_MUTED, // ADDED: Import STR_MUTED
   FONT_PRIMARY,
   FONT_DISPLAY,
+  FONT_SIZE_SM, // ADDED: Import FONT_SIZE_SM
   FONT_SIZE_LG,
   FONT_SIZE_2XL,
   FONT_SIZE_3XL,
@@ -16,7 +18,6 @@ import {
   TEXT_STYLE_SEMIBOLD,
   TEXT_STYLE_GOLD_SEMIBOLD,
   TEXT_STYLE_WIN,
-  BTN_SECONDARY_RADIUS,
   CANVAS_W,
   CANVAS_H,
   drawButton // IMPORTED: drawButton from UITheme
@@ -27,7 +28,7 @@ const GRID_COLS = 3;
 
 const DARK_GREY = 0x222222; // Keep for surge meter inactive color
 const ELECTRIC_BLUE_STR = '#00aaff'; // Keep for surge sub-banner
-const LIGHT_BLUE_STR = '#66ccff'; // Keep for crown flip flip button
+// REMOVED: const LIGHT_BLUE_STR = '#66ccff'; // Was used only for old crown flip flip button
 
 const SYMBOL_EMOJIS: Record<SurgeSymbol, string> = {
   BOLT: '⚡',
@@ -73,10 +74,18 @@ const SURGE_BANNER_SUB_TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
   strokeThickness: 6,
 };
 
-const CROWN_FLIP_OVERLAY_ALPHA = 0.7;
-const CROWN_FLIP_COIN_SIZE = 150;
-const CROWN_FLIP_BUTTON_WIDTH = 120;
-const CROWN_FLIP_BUTTON_SPACING = 20;
+// ADDED: New Crown Flip Modal Constants
+const CROWN_MODAL_W = 300;
+const CROWN_MODAL_H = 360;
+const CROWN_COIN_R = 50;
+const CROWN_FLIP_BTN_W = 200;
+const CROWN_FLIP_BTN_H = 56;
+
+// REMOVED: Old Crown Flip Modal Constants
+// const CROWN_FLIP_OVERLAY_ALPHA = 0.7;
+// const CROWN_FLIP_COIN_SIZE = 150;
+// const CROWN_FLIP_BUTTON_WIDTH = 120;
+// const CROWN_FLIP_BUTTON_SPACING = 20;
 
 const WIN_BADGE_DURATION = 1000;
 const WIN_BADGE_OFFSET_Y = 50;
@@ -86,8 +95,6 @@ const SPIN_BUTTON_Y = 606;
 const BET_DISPLAY_X = 80;
 const WIN_DISPLAY_X = CANVAS_W - 80;
 const DISPLAY_Y = 656;
-
-// REMOVED: drawThemedButton helper function
 
 export class SurgeUI {
   private scene: Phaser.Scene;
@@ -99,14 +106,27 @@ export class SurgeUI {
   private surgeMeterText: Phaser.GameObjects.Text;
   private surgeSpinsCounterText: Phaser.GameObjects.Text;
 
-  private crownFlipOverlay: Phaser.GameObjects.Graphics;
-  private crownFlipContainer: Phaser.GameObjects.Container;
-  private crownFlipCoin: Phaser.GameObjects.Graphics;
-  private crownFlipWinText: Phaser.GameObjects.Text;
-  private crownFlipFlipBg: Phaser.GameObjects.Graphics; // NEW: Store Graphics for interaction
-  private crownFlipFlipText: Phaser.GameObjects.Text;  // NEW: Store Text for display
-  private crownFlipWalkBg: Phaser.GameObjects.Graphics;  // NEW: Store Graphics for interaction
-  private crownFlipWalkText: Phaser.GameObjects.Text;   // NEW: Store Text for display
+  // REMOVED: Old Crown Flip UI fields
+  // private crownFlipOverlay: Phaser.GameObjects.Graphics;
+  // private crownFlipContainer: Phaser.GameObjects.Container;
+  // private crownFlipCoin: Phaser.GameObjects.Graphics;
+  // private crownFlipWinText: Phaser.GameObjects.Text;
+  // private crownFlipFlipBg: Phaser.GameObjects.Graphics;
+  // private crownFlipFlipText: Phaser.GameObjects.Text;
+  // private crownFlipWalkBg: Phaser.GameObjects.Graphics;
+  // private crownFlipWalkText: Phaser.GameObjects.Text;
+
+  // NEW: Crown Flip UI fields
+  private crownOverlay: Phaser.GameObjects.Rectangle | null = null;
+  private crownModalBg: Phaser.GameObjects.Graphics | null = null;
+  private crownCoin: Phaser.GameObjects.Arc | null = null;
+  private crownEmoji: Phaser.GameObjects.Text | null = null;
+  private crownGambleLabel: Phaser.GameObjects.Text | null = null;
+  private crownWinText: Phaser.GameObjects.Text | null = null;
+  private crownFlipBg: Phaser.GameObjects.Graphics | null = null;
+  private crownFlipBtnText: Phaser.GameObjects.Text | null = null;
+  private crownWalkBg: Phaser.GameObjects.Graphics | null = null;
+  private crownWalkBtnText: Phaser.GameObjects.Text | null = null;
 
   private winBadgeText: Phaser.GameObjects.Text;
   private betText: Phaser.GameObjects.Text;
@@ -163,91 +183,50 @@ export class SurgeUI {
       TEXT_STYLE_GOLD_SEMIBOLD
     ).setOrigin(0, 0.5);
 
-    // Crown Flip UI
-    this.crownFlipOverlay = this.scene.add.graphics({ fillStyle: { color: 0x000000, alpha: CROWN_FLIP_OVERLAY_ALPHA } });
-    this.crownFlipOverlay.fillRect(0, 0, CANVAS_W, CANVAS_H).setDepth(100).setVisible(false);
+    // Crown Flip UI (NEW IMPLEMENTATION)
+    this.crownOverlay = this.scene.add.rectangle(CANVAS_W/2, CANVAS_H/2, CANVAS_W, CANVAS_H, 0x000000, 0.75)
+      .setDepth(200).setVisible(false).setAlpha(0);
 
-    this.crownFlipContainer = this.scene.add.container(CANVAS_W / 2, CANVAS_H / 2).setDepth(101).setVisible(false);
+    this.crownModalBg = this.scene.add.graphics()
+      .setDepth(201).setVisible(false).setAlpha(0);
+    this.crownModalBg.fillStyle(COLOR_SURFACE, 1);
+    this.crownModalBg.fillRoundedRect(CANVAS_W/2 - CROWN_MODAL_W/2, CANVAS_H/2 - CROWN_MODAL_H/2, CROWN_MODAL_W, CROWN_MODAL_H, 16);
+    this.crownModalBg.lineStyle(2, COLOR_GOLD, 1);
+    this.crownModalBg.strokeRoundedRect(CANVAS_W/2 - CROWN_MODAL_W/2, CANVAS_H/2 - CROWN_MODAL_H/2, CROWN_MODAL_W, CROWN_MODAL_H, 16);
 
-    this.crownFlipCoin = this.scene.add.graphics();
-    this.crownFlipCoin.fillStyle(COLOR_GOLD, 1);
-    this.crownFlipCoin.fillCircle(0, 0, CROWN_FLIP_COIN_SIZE / 2);
-    this.crownFlipCoin.lineStyle(4, DARK_GREY, 1);
-    this.crownFlipCoin.strokeCircle(0, 0, CROWN_FLIP_COIN_SIZE / 2);
-    this.crownFlipContainer.add(this.crownFlipCoin);
+    this.crownCoin = this.scene.add.arc(CANVAS_W/2, CANVAS_H/2 - 120, CROWN_COIN_R, 0, 360, false, COLOR_GOLD, 1)
+      .setDepth(202).setVisible(false).setAlpha(0);
 
-    this.crownFlipWinText = this.scene.add.text(0, -CROWN_FLIP_COIN_SIZE / 2 - 30, '', TEXT_STYLE_GOLD_SEMIBOLD).setOrigin(0.5);
-    this.crownFlipWinText.setFontSize(FONT_SIZE_2XL); // Explicitly set size if base isn't large enough
-    this.crownFlipContainer.add(this.crownFlipWinText);
+    this.crownEmoji = this.scene.add.text(CANVAS_W/2, CANVAS_H/2 - 120, '👑', {
+      fontSize: '36px',
+      color: STR_TEXT,
+      align: 'center'
+    }).setOrigin(0.5).setDepth(203).setVisible(false).setAlpha(0);
 
-    // Crown Flip Buttons (now using drawButton from UITheme)
-    const flipButtonX = -CROWN_FLIP_BUTTON_WIDTH / 2 - CROWN_FLIP_BUTTON_SPACING / 2;
-    const flipButtonY = CROWN_FLIP_COIN_SIZE / 2 + 30;
-    const flipButtonWidth = CROWN_FLIP_BUTTON_WIDTH;
-    const flipButtonHeight = 50;
-    const flipButtonRadius = BTN_SECONDARY_RADIUS;
-    const flipButtonDepth = 103; // Higher than crownFlipContainer (101)
+    this.crownGambleLabel = this.scene.add.text(CANVAS_W/2, CANVAS_H/2 - 55, 'GAMBLE', {
+      fontFamily: FONT_PRIMARY,
+      fontSize: FONT_SIZE_SM,
+      color: STR_MUTED,
+      align: 'center'
+    }).setOrigin(0.5).setDepth(202).setVisible(false).setAlpha(0);
 
-    const { bg: flipBtnBg, text: flipBtnText } = drawButton(
-      this.scene,
-      flipButtonX,
-      flipButtonY,
-      flipButtonWidth,
-      flipButtonHeight,
-      'FLIP',
-      'secondary',
-      flipButtonDepth
-    );
+    this.crownWinText = this.scene.add.text(CANVAS_W/2, CANVAS_H/2 - 25, '0', {
+      fontFamily: FONT_PRIMARY,
+      fontSize: FONT_SIZE_3XL,
+      color: STR_GOLD,
+      align: 'center',
+      fontStyle: 'bold'
+    }).setOrigin(0.5).setDepth(202).setVisible(false).setAlpha(0);
 
-    // Store the new bg and text objects
-    this.crownFlipFlipBg = flipBtnBg;
-    this.crownFlipFlipText = flipBtnText;
+    // FLIP button
+    const { bg: flipBg, text: flipText } = drawButton(this.scene, CANVAS_W/2, CANVAS_H/2 + 50, CROWN_FLIP_BTN_W, CROWN_FLIP_BTN_H, 'FLIP', 'primary', 202);
+    this.crownFlipBg = flipBg.setVisible(false).setAlpha(0);
+    this.crownFlipBtnText = flipText.setVisible(false).setAlpha(0);
 
-    // Apply custom styling overrides for FLIP button (clear and redraw graphics to change border color)
-    this.crownFlipFlipBg.clear();
-    this.crownFlipFlipBg.fillStyle(COLOR_SURFACE, 1); // Override background to surface
-    this.crownFlipFlipBg.fillRoundedRect(
-      -flipButtonWidth / 2, // Graphics are centered by drawButton, so drawing origin is 0,0.
-      -flipButtonHeight / 2,
-      flipButtonWidth,
-      flipButtonHeight,
-      flipButtonRadius
-    );
-    this.crownFlipFlipBg.lineStyle(1.5, 0x66ccff, 1); // Use LIGHT_BLUE_STR for border
-    this.crownFlipFlipBg.strokeRoundedRect(
-      -flipButtonWidth / 2,
-      -flipButtonHeight / 2,
-      flipButtonWidth,
-      flipButtonHeight,
-      flipButtonRadius
-    );
-    this.crownFlipFlipText.setStyle({ color: LIGHT_BLUE_STR, fontSize: FONT_SIZE_LG }); // Override text color
-
-    this.crownFlipContainer.add(this.crownFlipFlipBg);
-    this.crownFlipContainer.add(this.crownFlipFlipText);
-
-    const walkButtonX = CROWN_FLIP_BUTTON_WIDTH / 2 + CROWN_FLIP_BUTTON_SPACING / 2;
-    const walkButtonY = CROWN_FLIP_COIN_SIZE / 2 + 30;
-    const walkButtonWidth = CROWN_FLIP_BUTTON_WIDTH;
-    const walkButtonHeight = 50;
-    const walkButtonDepth = 103;
-
-    const { bg: walkBtnBg, text: walkBtnText } = drawButton(
-      this.scene,
-      walkButtonX,
-      walkButtonY,
-      walkButtonWidth,
-      walkButtonHeight,
-      'WALK',
-      'primary',
-      walkButtonDepth
-    );
-    // Store the new bg and text objects
-    this.crownFlipWalkBg = walkBtnBg;
-    this.crownFlipWalkText = walkBtnText;
-
-    this.crownFlipContainer.add(this.crownFlipWalkBg);
-    this.crownFlipContainer.add(this.crownFlipWalkText);
+    // WALK button
+    const { bg: walkBg, text: walkText } = drawButton(this.scene, CANVAS_W/2, CANVAS_H/2 + 120, CROWN_FLIP_BTN_W, CROWN_FLIP_BTN_H, 'WALK', 'secondary', 202);
+    this.crownWalkBg = walkBg.setVisible(false).setAlpha(0);
+    this.crownWalkBtnText = walkText.setVisible(false).setAlpha(0);
 
     // Win Badge
     this.winBadgeText = this.scene.add.text(
@@ -275,7 +254,6 @@ export class SurgeUI {
     );
     this.spinButtonBg = spinBtnBg;
     this.spinButtonText = spinBtnText;
-    // REMOVED: this.spinButtonText.setInteractive({ useHandCursor: true }); (drawButton already calls setInteractive on bg)
   }
 
   /**
@@ -283,8 +261,8 @@ export class SurgeUI {
    * @param onSpin Callback function to invoke on spin.
    */
   public setOnSpin(onSpin: () => void): void {
-    this.spinButtonBg.removeAllListeners(); // FIX: Wire events on bg Graphics
-    this.spinButtonBg.on('pointerdown', () => { this.audioManager.init(); onSpin(); }); // FIX: Wire events on bg Graphics
+    this.spinButtonBg.removeAllListeners();
+    this.spinButtonBg.on('pointerdown', () => { this.audioManager.init(); onSpin(); });
   }
 
   /**
@@ -510,39 +488,53 @@ export class SurgeUI {
    * @param onWalk Callback for when the 'WALK' button is pressed.
    */
   public showCrownFlip(currentWin: number, onFlip: () => void, onWalk: () => void): void {
-    this.crownFlipWinText.setText(`POT: ${currentWin.toFixed(2)}`);
-    this.crownFlipFlipBg?.once('pointerdown', onFlip); // FIX: Wire pointerdown to the bg Graphics
-    this.crownFlipWalkBg?.once('pointerdown', onWalk); // FIX: Wire pointerdown to the bg Graphics
+    if (this.crownWinText) {
+      this.crownWinText.setText(currentWin.toFixed(2));
+    }
 
-    this.crownFlipOverlay.setVisible(true);
-    this.crownFlipContainer.setVisible(true);
+    const allElements = [
+      this.crownOverlay, this.crownModalBg, this.crownCoin, this.crownEmoji,
+      this.crownGambleLabel, this.crownWinText,
+      this.crownFlipBg, this.crownFlipBtnText,
+      this.crownWalkBg, this.crownWalkBtnText
+    ] as any[];
 
-    this.crownFlipContainer.setScale(0);
+    allElements.forEach((e: any) => e.setVisible(true));
     this.scene.tweens.add({
-      targets: this.crownFlipContainer,
-      scale: 1,
-      ease: 'Back.easeOut',
-      duration: 300,
+      targets: allElements,
+      alpha: 1,
+      duration: 200,
+      ease: 'Linear'
     });
+
+    this.crownFlipBg?.once('pointerdown', onFlip);
+    this.crownWalkBg?.once('pointerdown', onWalk);
   }
 
   /**
    * Hides the Crown Flip modal.
    */
   public hideCrownFlip(): void {
+    const allElements = [
+      this.crownOverlay, this.crownModalBg, this.crownCoin, this.crownEmoji,
+      this.crownGambleLabel, this.crownWinText,
+      this.crownFlipBg, this.crownFlipBtnText,
+      this.crownWalkBg, this.crownWalkBtnText
+    ].filter(Boolean) as Phaser.GameObjects.GameObject[];
+
     this.scene.tweens.add({
-      targets: this.crownFlipContainer,
-      scale: 0,
-      ease: 'Back.easeIn',
+      targets: allElements,
+      alpha: 0,
       duration: 200,
+      ease: 'Linear',
       onComplete: () => {
-        this.crownFlipOverlay.setVisible(false);
-        this.crownFlipContainer.setVisible(false);
-        // Remove any lingering event listeners
-        this.crownFlipFlipBg?.removeListener('pointerdown'); // FIX: Remove listeners from bg Graphics
-        this.crownFlipWalkBg?.removeListener('pointerdown'); // FIX: Remove listeners from bg Graphics
+        (allElements as any[]).forEach((e: any) => e.setVisible(false));
       },
     });
+
+    // Remove any lingering event listeners
+    this.crownFlipBg?.removeAllListeners();
+    this.crownWalkBg?.removeAllListeners();
   }
 
   /**
@@ -593,7 +585,7 @@ export class SurgeUI {
    * @param enabled True to enable, false to disable.
    */
   public setSpinButtonEnabled(enabled: boolean): void {
-    this.spinButtonBg.setInteractive(enabled ? { useHandCursor: true } : false); // FIX: Set interactive on bg Graphics
+    this.spinButtonBg.setInteractive(enabled ? { useHandCursor: true } : false);
     this.spinButtonBg.setAlpha(enabled ? 1 : 0.5);
     this.spinButtonText.setAlpha(enabled ? 1 : 0.5);
   }
@@ -625,14 +617,19 @@ export class SurgeUI {
     this.surgeMeterGraphics.destroy();
     this.surgeMeterText.destroy();
     this.surgeSpinsCounterText.destroy();
-    this.crownFlipOverlay.destroy();
-    this.crownFlipContainer.destroy();
-    this.crownFlipCoin.destroy();
-    this.crownFlipWinText.destroy();
-    this.crownFlipFlipBg.destroy();   // FIX: Destroy new bg field
-    this.crownFlipFlipText.destroy(); // FIX: Destroy new text field
-    this.crownFlipWalkBg.destroy();   // FIX: Destroy new bg field
-    this.crownFlipWalkText.destroy(); // FIX: Destroy new text field
+
+    // NEW: Destroy Crown Flip UI fields
+    this.crownOverlay?.destroy();
+    this.crownModalBg?.destroy();
+    this.crownCoin?.destroy();
+    this.crownEmoji?.destroy();
+    this.crownGambleLabel?.destroy();
+    this.crownWinText?.destroy();
+    this.crownFlipBg?.destroy();
+    this.crownFlipBtnText?.destroy();
+    this.crownWalkBg?.destroy();
+    this.crownWalkBtnText?.destroy();
+
     this.winBadgeText.destroy();
     this.betText.destroy();
     this.winText.destroy();
