@@ -16,17 +16,10 @@ import {
   TEXT_STYLE_SEMIBOLD,
   TEXT_STYLE_GOLD_SEMIBOLD,
   TEXT_STYLE_WIN,
-  BTN_PRIMARY_BG,
-  BTN_PRIMARY_RADIUS,
-  BTN_SECONDARY_BG,
-  BTN_SECONDARY_BORDER,
   BTN_SECONDARY_RADIUS,
-  BTN_DANGER_BG,
-  BTN_DANGER_BORDER,
-  TEXT_STYLE_BTN_PRIMARY,
-  TEXT_STYLE_BTN_SECONDARY,
   CANVAS_W,
-  CANVAS_H
+  CANVAS_H,
+  drawButton // IMPORTED: drawButton from UITheme
 } from '../shared/ui/UITheme';
 
 // --- Constants ---
@@ -94,40 +87,7 @@ const BET_DISPLAY_X = 80;
 const WIN_DISPLAY_X = CANVAS_W - 80;
 const DISPLAY_Y = 656;
 
-// Helper to draw a themed button
-function drawThemedButton(
-  scene: Phaser.Scene,
-  x: number, y: number,
-  width: number, height: number,
-  label: string,
-  variant: 'primary' | 'secondary' | 'danger' = 'primary',
-  depth = 10
-): { bg: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text } {
-  const bg = scene.add.graphics().setDepth(depth);
-  const radius = variant === 'primary' ? BTN_PRIMARY_RADIUS : BTN_SECONDARY_RADIUS;
-
-  if (variant === 'primary') {
-    bg.fillStyle(BTN_PRIMARY_BG, 1);
-    bg.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
-  } else if (variant === 'secondary') {
-    bg.fillStyle(BTN_SECONDARY_BG, 1);
-    bg.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
-    bg.lineStyle(1.5, BTN_SECONDARY_BORDER, 1);
-    bg.strokeRoundedRect(x - width / 2, y - height / 2, width, height, radius);
-  } else { // danger
-    bg.fillStyle(BTN_DANGER_BG, 1);
-    bg.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
-    bg.lineStyle(1.5, BTN_DANGER_BORDER, 1);
-    bg.strokeRoundedRect(x - width / 2, y - height / 2, width, height, radius);
-  }
-
-  const textStyle = variant === 'primary' ? TEXT_STYLE_BTN_PRIMARY : TEXT_STYLE_BTN_SECONDARY;
-  const text = scene.add.text(x, y, label, textStyle)
-    .setOrigin(0.5)
-    .setDepth(depth + 1);
-
-  return { bg, text };
-}
+// REMOVED: drawThemedButton helper function
 
 export class SurgeUI {
   private scene: Phaser.Scene;
@@ -143,8 +103,10 @@ export class SurgeUI {
   private crownFlipContainer: Phaser.GameObjects.Container;
   private crownFlipCoin: Phaser.GameObjects.Graphics;
   private crownFlipWinText: Phaser.GameObjects.Text;
-  private crownFlipFlipButton: Phaser.GameObjects.Text;
-  private crownFlipWalkButton: Phaser.GameObjects.Text;
+  private crownFlipFlipBg: Phaser.GameObjects.Graphics; // NEW: Store Graphics for interaction
+  private crownFlipFlipText: Phaser.GameObjects.Text;  // NEW: Store Text for display
+  private crownFlipWalkBg: Phaser.GameObjects.Graphics;  // NEW: Store Graphics for interaction
+  private crownFlipWalkText: Phaser.GameObjects.Text;   // NEW: Store Text for display
 
   private winBadgeText: Phaser.GameObjects.Text;
   private betText: Phaser.GameObjects.Text;
@@ -218,49 +180,74 @@ export class SurgeUI {
     this.crownFlipWinText.setFontSize(FONT_SIZE_2XL); // Explicitly set size if base isn't large enough
     this.crownFlipContainer.add(this.crownFlipWinText);
 
-    // Crown Flip Buttons (using drawThemedButton for consistency but customizing background)
-    const { bg: flipBtnBg, text: flipBtnText } = drawThemedButton(
-      this.scene,
-      -CROWN_FLIP_BUTTON_WIDTH / 2 - CROWN_FLIP_BUTTON_SPACING / 2,
-      CROWN_FLIP_COIN_SIZE / 2 + 30,
-      CROWN_FLIP_BUTTON_WIDTH,
-      50, // Approx height
-      'FLIP',
-      'secondary' // Use secondary for outline, then customize color
-    );
-    flipBtnBg.fillStyle(COLOR_SURFACE, 1); // Override background to surface
-    flipBtnBg.fillRoundedRect(
-      -CROWN_FLIP_BUTTON_WIDTH / 2 - CROWN_FLIP_BUTTON_SPACING / 2 - CROWN_FLIP_BUTTON_WIDTH / 2,
-      CROWN_FLIP_COIN_SIZE / 2 + 30 - 25,
-      CROWN_FLIP_BUTTON_WIDTH,
-      50,
-      BTN_SECONDARY_RADIUS
-    );
-    flipBtnBg.lineStyle(1.5, 0x66ccff, 1); // Use LIGHT_BLUE_STR for border
-    flipBtnBg.strokeRoundedRect(
-      -CROWN_FLIP_BUTTON_WIDTH / 2 - CROWN_FLIP_BUTTON_SPACING / 2 - CROWN_FLIP_BUTTON_WIDTH / 2,
-      CROWN_FLIP_COIN_SIZE / 2 + 30 - 25,
-      CROWN_FLIP_BUTTON_WIDTH,
-      50,
-      BTN_SECONDARY_RADIUS
-    );
-    flipBtnText.setStyle({ color: LIGHT_BLUE_STR, fontSize: FONT_SIZE_LG }); // Override text color
-    this.crownFlipFlipButton = flipBtnText; // Assign text object
-    this.crownFlipContainer.add(flipBtnBg);
-    this.crownFlipContainer.add(this.crownFlipFlipButton);
+    // Crown Flip Buttons (now using drawButton from UITheme)
+    const flipButtonX = -CROWN_FLIP_BUTTON_WIDTH / 2 - CROWN_FLIP_BUTTON_SPACING / 2;
+    const flipButtonY = CROWN_FLIP_COIN_SIZE / 2 + 30;
+    const flipButtonWidth = CROWN_FLIP_BUTTON_WIDTH;
+    const flipButtonHeight = 50;
+    const flipButtonRadius = BTN_SECONDARY_RADIUS;
+    const flipButtonDepth = 103; // Higher than crownFlipContainer (101)
 
-    const { bg: walkBtnBg, text: walkBtnText } = drawThemedButton(
+    const { bg: flipBtnBg, text: flipBtnText } = drawButton(
       this.scene,
-      CROWN_FLIP_BUTTON_WIDTH / 2 + CROWN_FLIP_BUTTON_SPACING / 2,
-      CROWN_FLIP_COIN_SIZE / 2 + 30,
-      CROWN_FLIP_BUTTON_WIDTH,
-      50, // Approx height
-      'WALK',
-      'primary' // Use primary for gold fill
+      flipButtonX,
+      flipButtonY,
+      flipButtonWidth,
+      flipButtonHeight,
+      'FLIP',
+      'secondary',
+      flipButtonDepth
     );
-    this.crownFlipWalkButton = walkBtnText; // Assign text object
-    this.crownFlipContainer.add(walkBtnBg);
-    this.crownFlipContainer.add(this.crownFlipWalkButton);
+
+    // Store the new bg and text objects
+    this.crownFlipFlipBg = flipBtnBg;
+    this.crownFlipFlipText = flipBtnText;
+
+    // Apply custom styling overrides for FLIP button (clear and redraw graphics to change border color)
+    this.crownFlipFlipBg.clear();
+    this.crownFlipFlipBg.fillStyle(COLOR_SURFACE, 1); // Override background to surface
+    this.crownFlipFlipBg.fillRoundedRect(
+      -flipButtonWidth / 2, // Graphics are centered by drawButton, so drawing origin is 0,0.
+      -flipButtonHeight / 2,
+      flipButtonWidth,
+      flipButtonHeight,
+      flipButtonRadius
+    );
+    this.crownFlipFlipBg.lineStyle(1.5, 0x66ccff, 1); // Use LIGHT_BLUE_STR for border
+    this.crownFlipFlipBg.strokeRoundedRect(
+      -flipButtonWidth / 2,
+      -flipButtonHeight / 2,
+      flipButtonWidth,
+      flipButtonHeight,
+      flipButtonRadius
+    );
+    this.crownFlipFlipText.setStyle({ color: LIGHT_BLUE_STR, fontSize: FONT_SIZE_LG }); // Override text color
+
+    this.crownFlipContainer.add(this.crownFlipFlipBg);
+    this.crownFlipContainer.add(this.crownFlipFlipText);
+
+    const walkButtonX = CROWN_FLIP_BUTTON_WIDTH / 2 + CROWN_FLIP_BUTTON_SPACING / 2;
+    const walkButtonY = CROWN_FLIP_COIN_SIZE / 2 + 30;
+    const walkButtonWidth = CROWN_FLIP_BUTTON_WIDTH;
+    const walkButtonHeight = 50;
+    const walkButtonDepth = 103;
+
+    const { bg: walkBtnBg, text: walkBtnText } = drawButton(
+      this.scene,
+      walkButtonX,
+      walkButtonY,
+      walkButtonWidth,
+      walkButtonHeight,
+      'WALK',
+      'primary',
+      walkButtonDepth
+    );
+    // Store the new bg and text objects
+    this.crownFlipWalkBg = walkBtnBg;
+    this.crownFlipWalkText = walkBtnText;
+
+    this.crownFlipContainer.add(this.crownFlipWalkBg);
+    this.crownFlipContainer.add(this.crownFlipWalkText);
 
     // Win Badge
     this.winBadgeText = this.scene.add.text(
@@ -276,8 +263,8 @@ export class SurgeUI {
     this.winText = this.scene.add.text(WIN_DISPLAY_X, DISPLAY_Y, 'WIN: 0', TEXT_STYLE_SEMIBOLD).setOrigin(1, 0.5);
     this.winText.setFontSize(FONT_SIZE_LG);
 
-    // Spin Button (using drawThemedButton)
-    const { bg: spinBtnBg, text: spinBtnText } = drawThemedButton(
+    // Spin Button (using drawButton from UITheme)
+    const { bg: spinBtnBg, text: spinBtnText } = drawButton(
       this.scene,
       CANVAS_W / 2,
       SPIN_BUTTON_Y,
@@ -288,7 +275,7 @@ export class SurgeUI {
     );
     this.spinButtonBg = spinBtnBg;
     this.spinButtonText = spinBtnText;
-    this.spinButtonText.setInteractive({ useHandCursor: true });
+    // REMOVED: this.spinButtonText.setInteractive({ useHandCursor: true }); (drawButton already calls setInteractive on bg)
   }
 
   /**
@@ -296,8 +283,8 @@ export class SurgeUI {
    * @param onSpin Callback function to invoke on spin.
    */
   public setOnSpin(onSpin: () => void): void {
-    this.spinButtonText.removeAllListeners();
-    this.spinButtonText.setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.audioManager.init(); onSpin(); });
+    this.spinButtonBg.removeAllListeners(); // FIX: Wire events on bg Graphics
+    this.spinButtonBg.on('pointerdown', () => { this.audioManager.init(); onSpin(); }); // FIX: Wire events on bg Graphics
   }
 
   /**
@@ -524,8 +511,8 @@ export class SurgeUI {
    */
   public showCrownFlip(currentWin: number, onFlip: () => void, onWalk: () => void): void {
     this.crownFlipWinText.setText(`POT: ${currentWin.toFixed(2)}`);
-    this.crownFlipFlipButton.once('pointerdown', onFlip);
-    this.crownFlipWalkButton.once('pointerdown', onWalk);
+    this.crownFlipFlipBg?.once('pointerdown', onFlip); // FIX: Wire pointerdown to the bg Graphics
+    this.crownFlipWalkBg?.once('pointerdown', onWalk); // FIX: Wire pointerdown to the bg Graphics
 
     this.crownFlipOverlay.setVisible(true);
     this.crownFlipContainer.setVisible(true);
@@ -552,8 +539,8 @@ export class SurgeUI {
         this.crownFlipOverlay.setVisible(false);
         this.crownFlipContainer.setVisible(false);
         // Remove any lingering event listeners
-        this.crownFlipFlipButton.removeListener('pointerdown');
-        this.crownFlipWalkButton.removeListener('pointerdown');
+        this.crownFlipFlipBg?.removeListener('pointerdown'); // FIX: Remove listeners from bg Graphics
+        this.crownFlipWalkBg?.removeListener('pointerdown'); // FIX: Remove listeners from bg Graphics
       },
     });
   }
@@ -606,7 +593,7 @@ export class SurgeUI {
    * @param enabled True to enable, false to disable.
    */
   public setSpinButtonEnabled(enabled: boolean): void {
-    this.spinButtonText.setInteractive(enabled ? { useHandCursor: true } : false);
+    this.spinButtonBg.setInteractive(enabled ? { useHandCursor: true } : false); // FIX: Set interactive on bg Graphics
     this.spinButtonBg.setAlpha(enabled ? 1 : 0.5);
     this.spinButtonText.setAlpha(enabled ? 1 : 0.5);
   }
@@ -640,6 +627,12 @@ export class SurgeUI {
     this.surgeSpinsCounterText.destroy();
     this.crownFlipOverlay.destroy();
     this.crownFlipContainer.destroy();
+    this.crownFlipCoin.destroy();
+    this.crownFlipWinText.destroy();
+    this.crownFlipFlipBg.destroy();   // FIX: Destroy new bg field
+    this.crownFlipFlipText.destroy(); // FIX: Destroy new text field
+    this.crownFlipWalkBg.destroy();   // FIX: Destroy new bg field
+    this.crownFlipWalkText.destroy(); // FIX: Destroy new text field
     this.winBadgeText.destroy();
     this.betText.destroy();
     this.winText.destroy();
