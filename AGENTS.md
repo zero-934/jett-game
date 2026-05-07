@@ -5,6 +5,33 @@
 
 ---
 
+## 🚨 MANDATORY SESSION START — NON NEGOTIABLE
+
+Every session, every agent, every time. No exceptions:
+
+```bash
+git fetch --all && git pull origin main
+git branch -r
+find src/ -type f -name "*.ts" | sort
+```
+
+Do not touch any file until all 3 commands are confirmed complete.
+Do not declare any game or file missing until step 3 is complete.
+This rule exists because skipping it caused wrong audits and wasted tokens.
+
+---
+
+## 📁 REPO STRUCTURE
+
+**ACTIVE — build here only:**
+- `zero-934/jett-game` → game engine, source of truth
+- `zero-934/jett-landing` → React lobby shell
+
+**ARCHIVE — never build here:**
+- `zero-934/​​​​​​​​​​​​​​​​`
+
+---
+
 ## What Is This Project?
 
 **jett.game** is a mobile-first web casino game platform built with Phaser 3 + TypeScript + Vite.
