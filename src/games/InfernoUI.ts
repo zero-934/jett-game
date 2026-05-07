@@ -62,7 +62,8 @@ export class InfernoUI {
   // HUD elements
   private betText!: Phaser.GameObjects.Text;
   private winText!: Phaser.GameObjects.Text;
-  private spinButton!: Phaser.GameObjects.Container;
+  private spinButtonBg: Phaser.GameObjects.Graphics | null = null; // FIX 1: New field
+  private spinButtonText: Phaser.GameObjects.Text | null = null; // FIX 1: New field
 
   // Heat Meter elements
   private heatMeterSegments: Phaser.GameObjects.Graphics[] = [];
@@ -72,8 +73,10 @@ export class InfernoUI {
   private crownFlipContainer!: Phaser.GameObjects.Container;
   private crownFlipCoin!: Phaser.GameObjects.Graphics;
   private crownFlipWinText!: Phaser.GameObjects.Text;
-  private crownFlipButton!: Phaser.GameObjects.Container;
-  private crownWalkButton!: Phaser.GameObjects.Container;
+  private crownFlipBg: Phaser.GameObjects.Graphics | null = null; // FIX 2: New field
+  private crownFlipBtnText: Phaser.GameObjects.Text | null = null; // FIX 2: New field
+  private crownWalkBg: Phaser.GameObjects.Graphics | null = null; // FIX 2: New field
+  private crownWalkBtnText: Phaser.GameObjects.Text | null = null; // FIX 2: New field
 
   /**
    * Creates an instance of InfernoUI.
@@ -182,11 +185,26 @@ export class InfernoUI {
    */
   public showCrownFlip(currentWin: number, onFlip: () => void, onWalk: () => void): void {
     this.crownFlipWinText.setText(`Gamble ${currentWin}`);
-    this.crownFlipButton.once('pointerup', onFlip);
-    this.crownWalkButton.once('pointerup', onWalk);
+    
+    // FIX 2: Wire events directly on background graphics and show individual elements
+    this.crownFlipBg?.once('pointerup', onFlip);
+    this.crownWalkBg?.once('pointerup', onWalk);
+
     this.crownFlipContainer.setVisible(true);
+    this.crownFlipBg?.setVisible(true);
+    this.crownFlipBtnText?.setVisible(true);
+    this.crownWalkBg?.setVisible(true);
+    this.crownWalkBtnText?.setVisible(true);
+
     this.scene.tweens.add({
-      targets: [this.crownFlipOverlay, this.crownFlipContainer],
+      targets: [
+        this.crownFlipOverlay, 
+        this.crownFlipContainer, 
+        this.crownFlipBg, 
+        this.crownFlipBtnText, 
+        this.crownWalkBg, 
+        this.crownWalkBtnText
+      ],
       alpha: 1,
       duration: 200,
       ease: 'Sine.easeOut'
@@ -198,12 +216,24 @@ export class InfernoUI {
    */
   public hideCrownFlip(): void {
     this.scene.tweens.add({
-      targets: [this.crownFlipOverlay, this.crownFlipContainer],
+      targets: [
+        this.crownFlipOverlay, 
+        this.crownFlipContainer, 
+        this.crownFlipBg, 
+        this.crownFlipBtnText, 
+        this.crownWalkBg, 
+        this.crownWalkBtnText
+      ],
       alpha: 0,
       duration: 200,
       ease: 'Sine.easeOut',
       onComplete: () => {
         this.crownFlipContainer.setVisible(false);
+        // FIX 2: Hide individual elements after tween completes
+        this.crownFlipBg?.setVisible(false);
+        this.crownFlipBtnText?.setVisible(false);
+        this.crownWalkBg?.setVisible(false);
+        this.crownWalkBtnText?.setVisible(false);
       }
     });
   }
@@ -361,10 +391,19 @@ export class InfernoUI {
     this.animator.destroy();
     if (this.betText) this.betText.destroy();
     if (this.winText) this.winText.destroy();
-    if (this.spinButton) this.spinButton.destroy();
+    // FIX 1: Destroy spin button elements
+    this.spinButtonBg?.destroy();
+    this.spinButtonText?.destroy();
+    
     this.heatMeterSegments.forEach(s => s.destroy());
+    
     if (this.crownFlipContainer) this.crownFlipContainer.destroy();
     if (this.crownFlipOverlay) this.crownFlipOverlay.destroy();
+    // FIX 2: Destroy crown flip button elements
+    this.crownFlipBg?.destroy();
+    this.crownFlipBtnText?.destroy();
+    this.crownWalkBg?.destroy();
+    this.crownWalkBtnText?.destroy();
   }
 
   /**
@@ -469,12 +508,11 @@ export class InfernoUI {
         'secondary',
         100
       );
-      button.bg.setInteractive(new Phaser.Geom.Rectangle(-30, -20, 60, 40), Phaser.Geom.Rectangle.Contains);
-      button.text.setInteractive(new Phaser.Geom.Rectangle(-30, -20, 60, 40), Phaser.Geom.Rectangle.Contains);
+      // drawButton already calls setInteractive on bg
       button.bg.on('pointerdown', () => {
         this.scene.events.emit('betChange', bet);
       });
-      button.text.on('pointerdown', () => {
+      button.text.on('pointerdown', () => { // Ensure text also triggers if bg interactive area is small
         this.scene.events.emit('betChange', bet);
       });
     });
@@ -508,9 +546,10 @@ export class InfernoUI {
       'primary',
       100
     );
-    this.spinButton = this.scene.add.container(0, 0, [spinBg, spinText]); // Combine into a container
-    this.spinButton.setInteractive(new Phaser.Geom.Rectangle(CANVAS_WIDTH / 2 - buttonWidth / 2, 606 - buttonHeight / 2, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
-    this.spinButton.on('pointerup', () => { this.audioManager.init(); onSpin(); });
+    // FIX 1: Assign directly to new fields and wire event on bg
+    this.spinButtonBg = spinBg;
+    this.spinButtonText = spinText;
+    this.spinButtonBg.on('pointerup', () => { this.audioManager.init(); onSpin(); });
   }
 
   /**
@@ -550,35 +589,45 @@ export class InfernoUI {
     // Flip button
     const flipButtonWidth = 180;
     const flipButtonHeight = 60;
+    // FIX 2: Position using absolute coordinates for freestanding objects
+    const flipButtonX = CANVAS_WIDTH / 2;
+    const flipButtonY = CANVAS_HEIGHT / 2 + 80;
     const { bg: flipBg, text: flipText } = drawButton(
       this.scene,
-      0,
-      80,
+      flipButtonX,
+      flipButtonY,
       flipButtonWidth,
       flipButtonHeight,
       'FLIP',
       'primary',
-      0 // Depth handled by container
+      CROWN_FLIP_MODAL_Z_INDEX // Ensure it's above the modal
     );
-    this.crownFlipButton = this.scene.add.container(0, 0, [flipBg, flipText]);
-    this.crownFlipButton.setInteractive(new Phaser.Geom.Rectangle(-flipButtonWidth / 2, 80 - flipButtonHeight / 2, flipButtonWidth, flipButtonHeight), Phaser.Geom.Rectangle.Contains);
-    this.crownFlipContainer.add(this.crownFlipButton);
+    // FIX 2: Assign directly to new fields and initially hide
+    this.crownFlipBg = flipBg;
+    this.crownFlipBtnText = flipText;
+    this.crownFlipBg.setVisible(false).setAlpha(0);
+    this.crownFlipBtnText.setVisible(false).setAlpha(0);
 
     // Walk button
     const walkButtonWidth = 180;
     const walkButtonHeight = 60;
+    // FIX 2: Position using absolute coordinates for freestanding objects
+    const walkButtonX = CANVAS_WIDTH / 2;
+    const walkButtonY = CANVAS_HEIGHT / 2 + 160;
     const { bg: walkBg, text: walkText } = drawButton(
       this.scene,
-      0,
-      160,
+      walkButtonX,
+      walkButtonY,
       walkButtonWidth,
       walkButtonHeight,
       'WALK',
       'secondary', // Changed to secondary
-      0 // Depth handled by container
+      CROWN_FLIP_MODAL_Z_INDEX // Ensure it's above the modal
     );
-    this.crownWalkButton = this.scene.add.container(0, 0, [walkBg, walkText]);
-    this.crownWalkButton.setInteractive(new Phaser.Geom.Rectangle(-walkButtonWidth / 2, 160 - walkButtonHeight / 2, walkButtonWidth, walkButtonHeight), Phaser.Geom.Rectangle.Contains);
-    this.crownFlipContainer.add(this.crownWalkButton);
+    // FIX 2: Assign directly to new fields and initially hide
+    this.crownWalkBg = walkBg;
+    this.crownWalkBtnText = walkText;
+    this.crownWalkBg.setVisible(false).setAlpha(0);
+    this.crownWalkBtnText.setVisible(false).setAlpha(0);
   }
 }
