@@ -211,11 +211,14 @@ export class SurgeScene extends Phaser.Scene {
 
     if (this.surgeState.clusters.length > 0) {
       this.surgeUI.animateClusters(this.surgeState.clusters, () => {
-        this.surgeUI.showWinBadge(this.surgeState.totalWin);
-        this.balance += this.surgeState.totalWin;
-        this.updateBalanceDisplay();
+        // BUG 1 FIX: Removed direct crediting here. Balance is only credited when Crown Flip resolves,
+        // or if no Crown Flip, at the end of handlePostSpinLogic.
+        // this.surgeUI.showWinBadge(this.surgeState.totalWin);
+        // this.balance += this.surgeState.totalWin;
+        // this.updateBalanceDisplay();
+
         this.surgeUI.updateWin(this.surgeState.totalWin);
-          this.surgeUI.triggerAudio(this.surgeState.totalWin, this.currentBet);
+        this.surgeUI.triggerAudio(this.surgeState.totalWin, this.currentBet);
         this.handlePostSpinLogic();
       });
     } else {
@@ -258,6 +261,14 @@ export class SurgeScene extends Phaser.Scene {
         }
       );
     } else {
+      // This is the final state where no special features are active (no Crown Flip, Free Spins, or Surge banner).
+      // If there was a win (totalWin > 0) and no Crown Flip, credit it now.
+      // If there was no win (totalWin === 0), nothing to credit (BUG 3 confirmed).
+      if (this.surgeState.totalWin > 0) {
+        this.balance += this.surgeState.totalWin;
+        this.updateBalanceDisplay();
+        this.surgeUI.showWinBadge(this.surgeState.totalWin); // Show badge after final credit
+      }
       this.surgeUI.setSpinButtonEnabled(true);
       this.surgeUI.setSpinButtonText('SPIN');
       this.surgeState.isComplete = true; // Mark as complete
@@ -272,32 +283,35 @@ export class SurgeScene extends Phaser.Scene {
     if (doFlip) {
       this.surgeState = flipCrown(this.surgeState, { rng: this.rng });
       if (this.surgeState.isInCrownFlip) {
-        // Still in crown flip, show updated win
+        // Still in crown flip, show updated win for the next round of flip decision
         this.surgeUI.showCrownFlip(
           this.surgeState.crownFlipWin,
           () => this.handleCrownFlip(true),
           () => this.handleCrownFlip(false)
         );
       } else {
-        // Crown flip lost or ended
+        // Crown flip lost or ended (player either won or lost the final flip)
         this.surgeUI.hideCrownFlip();
-        this.balance += this.surgeState.totalWin; // Add final win (could be 0)
+        // BUG 2 FIX: When Crown Flip resolves, credit the actual crownFlipWin amount.
+        // If the flip was lost, crownFlipWin will be 0.
+        this.balance += this.surgeState.crownFlipWin;
         this.updateBalanceDisplay();
-        this.surgeUI.updateWin(this.surgeState.totalWin);
-          this.surgeUI.triggerAudio(this.surgeState.totalWin, this.currentBet);
-        if (this.surgeState.totalWin > 0) {
-          this.surgeUI.showWinBadge(this.surgeState.totalWin);
+        this.surgeUI.updateWin(this.surgeState.crownFlipWin); // Update UI with final win after flip
+        this.surgeUI.triggerAudio(this.surgeState.crownFlipWin, this.currentBet); // Trigger audio for final win
+        if (this.surgeState.crownFlipWin > 0) { // Only show badge if there's a positive win
+          this.surgeUI.showWinBadge(this.surgeState.crownFlipWin);
         }
         this.surgeUI.setSpinButtonEnabled(true);
         this.surgeUI.setSpinButtonText('SPIN');
       }
     } else {
+      // Player chose to "Walk" (take the current win before any flips)
       this.surgeState = walkCrown(this.surgeState);
       this.surgeUI.hideCrownFlip();
-      this.balance += this.surgeState.totalWin;
+      this.balance += this.surgeState.totalWin; // Walk takes the current totalWin (pre-flip amount)
       this.updateBalanceDisplay();
       this.surgeUI.updateWin(this.surgeState.totalWin);
-          this.surgeUI.triggerAudio(this.surgeState.totalWin, this.currentBet);
+      this.surgeUI.triggerAudio(this.surgeState.totalWin, this.currentBet);
       if (this.surgeState.totalWin > 0) {
         this.surgeUI.showWinBadge(this.surgeState.totalWin);
       }
