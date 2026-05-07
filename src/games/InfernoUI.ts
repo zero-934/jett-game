@@ -3,23 +3,21 @@ import { CasinoAudioManager } from '../shared/audio/CasinoAudioManager';
 import { SlotAnimator, THREE_REEL_PRESET } from '../shared/slot-engine/SlotAnimator';
 import type { InfernoState, InfernoCluster, InfernoSymbol, InfernoCell } from './InfernoLogic';
 import {
-  COLOR_BG,
   COLOR_SURFACE,
   COLOR_GOLD,
-  COLOR_MUTED,
   STR_GOLD,
   STR_TEXT,
   FONT_PRIMARY,
   FONT_DISPLAY,
   FONT_SIZE_XL,
-  FONT_SIZE_2XL,
   FONT_SIZE_3XL,
   FONT_SIZE_DISPLAY,
-  BTN_PRIMARY_RADIUS,
   CANVAS_W,
   CANVAS_H,
   SAFE_TOP,
-  drawButton
+  drawButton,
+  STR_MUTED,
+  FONT_SIZE_SM,
 } from '../shared/ui/UITheme';
 
 // --- Constants ---
@@ -47,8 +45,13 @@ const HEAT_METER_INACTIVE_COLOR = COLOR_SURFACE; // Using theme constant
 const HEAT_METER_ACTIVE_COLOR_START = 0xff8c00; // Dark Orange (specific to Inferno, not theme)
 const HEAT_METER_ACTIVE_COLOR_END = COLOR_GOLD; // Gold (Using theme constant)
 
-const CROWN_FLIP_MODAL_Z_INDEX = 2000;
-const CROWN_FLIP_COIN_RADIUS = 60;
+// New Crown Flip Modal Constants
+const CROWN_MODAL_W = 300;
+const CROWN_MODAL_H = 360;
+const CROWN_COIN_R = 50;
+const CROWN_FLIP_BTN_W = 200;
+const CROWN_FLIP_BTN_H = 56;
+
 
 /**
  * InfernoUI class manages the visual representation and animations for the Inferno slot game.
@@ -62,21 +65,23 @@ export class InfernoUI {
   // HUD elements
   private betText!: Phaser.GameObjects.Text;
   private winText!: Phaser.GameObjects.Text;
-  private spinButtonBg: Phaser.GameObjects.Graphics | null = null; // FIX 1: New field
-  private spinButtonText: Phaser.GameObjects.Text | null = null; // FIX 1: New field
+  private spinButtonBg: Phaser.GameObjects.Graphics | null = null;
+  private spinButtonText: Phaser.GameObjects.Text | null = null;
 
   // Heat Meter elements
   private heatMeterSegments: Phaser.GameObjects.Graphics[] = [];
 
-  // Crown Flip Modal elements
-  private crownFlipOverlay!: Phaser.GameObjects.Rectangle;
-  private crownFlipContainer!: Phaser.GameObjects.Container;
-  private crownFlipCoin!: Phaser.GameObjects.Graphics;
-  private crownFlipWinText!: Phaser.GameObjects.Text;
-  private crownFlipBg: Phaser.GameObjects.Graphics | null = null; // FIX 2: New field
-  private crownFlipBtnText: Phaser.GameObjects.Text | null = null; // FIX 2: New field
-  private crownWalkBg: Phaser.GameObjects.Graphics | null = null; // FIX 2: New field
-  private crownWalkBtnText: Phaser.GameObjects.Text | null = null; // FIX 2: New field
+  // Crown Flip Modal elements (new fields)
+  private crownOverlay: Phaser.GameObjects.Rectangle | null = null;
+  private crownModalBg: Phaser.GameObjects.Graphics | null = null;
+  private crownCoin: Phaser.GameObjects.Arc | null = null;
+  private crownEmoji: Phaser.GameObjects.Text | null = null;
+  private crownGambleLabel: Phaser.GameObjects.Text | null = null;
+  private crownWinText: Phaser.GameObjects.Text | null = null;
+  private crownFlipBg: Phaser.GameObjects.Graphics | null = null;
+  private crownFlipBtnText: Phaser.GameObjects.Text | null = null;
+  private crownWalkBg: Phaser.GameObjects.Graphics | null = null;
+  private crownWalkBtnText: Phaser.GameObjects.Text | null = null;
 
   /**
    * Creates an instance of InfernoUI.
@@ -184,58 +189,63 @@ export class InfernoUI {
    * @param onWalk Callback when the player chooses to walk away.
    */
   public showCrownFlip(currentWin: number, onFlip: () => void, onWalk: () => void): void {
-    this.crownFlipWinText.setText(`Gamble ${currentWin}`);
-    
-    // FIX 2: Wire events directly on background graphics and show individual elements
-    this.crownFlipBg?.once('pointerup', onFlip);
-    this.crownWalkBg?.once('pointerup', onWalk);
+    this.crownWinText?.setText(currentWin.toFixed(2));
 
-    this.crownFlipContainer.setVisible(true);
-    this.crownFlipBg?.setVisible(true);
-    this.crownFlipBtnText?.setVisible(true);
-    this.crownWalkBg?.setVisible(true);
-    this.crownWalkBtnText?.setVisible(true);
+    const elements = [
+      this.crownOverlay,
+      this.crownModalBg,
+      this.crownCoin,
+      this.crownEmoji,
+      this.crownGambleLabel,
+      this.crownWinText,
+      this.crownFlipBg,
+      this.crownFlipBtnText,
+      this.crownWalkBg,
+      this.crownWalkBtnText
+    ] as any[];
+
+    elements.forEach((element: any) => element.setVisible(true));
 
     this.scene.tweens.add({
-      targets: [
-        this.crownFlipOverlay, 
-        this.crownFlipContainer, 
-        this.crownFlipBg, 
-        this.crownFlipBtnText, 
-        this.crownWalkBg, 
-        this.crownWalkBtnText
-      ],
+      targets: elements,
       alpha: 1,
       duration: 200,
       ease: 'Sine.easeOut'
     });
+
+    this.crownFlipBg?.once('pointerup', onFlip);
+    this.crownWalkBg?.once('pointerup', onWalk);
   }
 
   /**
    * Hides the Crown Flip modal.
    */
   public hideCrownFlip(): void {
+    const elements = [
+      this.crownOverlay,
+      this.crownModalBg,
+      this.crownCoin,
+      this.crownEmoji,
+      this.crownGambleLabel,
+      this.crownWinText,
+      this.crownFlipBg,
+      this.crownFlipBtnText,
+      this.crownWalkBg,
+      this.crownWalkBtnText
+    ].filter(e => e !== null) as Phaser.GameObjects.GameObject[];
+
     this.scene.tweens.add({
-      targets: [
-        this.crownFlipOverlay, 
-        this.crownFlipContainer, 
-        this.crownFlipBg, 
-        this.crownFlipBtnText, 
-        this.crownWalkBg, 
-        this.crownWalkBtnText
-      ],
+      targets: elements,
       alpha: 0,
       duration: 200,
       ease: 'Sine.easeOut',
       onComplete: () => {
-        this.crownFlipContainer.setVisible(false);
-        // FIX 2: Hide individual elements after tween completes
-        this.crownFlipBg?.setVisible(false);
-        this.crownFlipBtnText?.setVisible(false);
-        this.crownWalkBg?.setVisible(false);
-        this.crownWalkBtnText?.setVisible(false);
+        (elements as any[]).forEach((element: any) => element.setVisible(false));
       }
     });
+
+    this.crownFlipBg?.removeAllListeners();
+    this.crownWalkBg?.removeAllListeners();
   }
 
   /**
@@ -297,13 +307,13 @@ export class InfernoUI {
           scale: 1.2,
           duration: 300,
           ease: 'Back.easeOut'
-},
+        },
         {
           targets: bannerText,
           scale: 1.0,
           duration: 150,
           ease: 'Sine.easeIn'
-},
+        },
         {
           targets: bannerText,
           duration: 1200, // Hold duration
@@ -318,9 +328,9 @@ export class InfernoUI {
             bannerText.destroy();
             onComplete();
           }
-},
+        },
       ]
-});
+    });
   }
 
   /**
@@ -341,7 +351,7 @@ export class InfernoUI {
         : HEAT_METER_INACTIVE_COLOR;
       segment.fillStyle(color, 1);
       const sw = HEAT_METER_WIDTH / HEAT_METER_SEGMENTS;
-      segment.fillRoundedRect(0, 0, sw, HEAT_METER_HEIGHT, 4);
+      segment.fillRoundedRect(0, 0, sw - 2, HEAT_METER_HEIGHT, 4); // -2 for small gap
 
       if (isActive) {
         // Add a subtle glow tween
@@ -389,17 +399,20 @@ export class InfernoUI {
    */
   public destroy(): void {
     this.animator.destroy();
-    if (this.betText) this.betText.destroy();
-    if (this.winText) this.winText.destroy();
-    // FIX 1: Destroy spin button elements
+    this.betText?.destroy();
+    this.winText?.destroy();
     this.spinButtonBg?.destroy();
     this.spinButtonText?.destroy();
-    
+
     this.heatMeterSegments.forEach(s => s.destroy());
-    
-    if (this.crownFlipContainer) this.crownFlipContainer.destroy();
-    if (this.crownFlipOverlay) this.crownFlipOverlay.destroy();
-    // FIX 2: Destroy crown flip button elements
+
+    // Destroy all new crown flip fields
+    this.crownOverlay?.destroy();
+    this.crownModalBg?.destroy();
+    this.crownCoin?.destroy();
+    this.crownEmoji?.destroy();
+    this.crownGambleLabel?.destroy();
+    this.crownWinText?.destroy();
     this.crownFlipBg?.destroy();
     this.crownFlipBtnText?.destroy();
     this.crownWalkBg?.destroy();
@@ -493,29 +506,8 @@ export class InfernoUI {
    * @param onSpin Callback function for the spin button.
    */
   private buildHUD(onSpin: () => void): void {
-    // Bet selector buttons
-    const BET_OPTIONS = [1, 5, 10, 25, 50];
-    const betSpacing = 68;
-    const betStartX = CANVAS_WIDTH / 2 - (BET_OPTIONS.length - 1) * betSpacing / 2;
-    BET_OPTIONS.forEach((bet, i) => {
-      const button = drawButton(
-        this.scene,
-        betStartX + i * betSpacing,
-        536,
-        60,
-        40,
-        `$${bet}`,
-        'secondary',
-        100
-      );
-      // drawButton already calls setInteractive on bg
-      button.bg.on('pointerdown', () => {
-        this.scene.events.emit('betChange', bet);
-      });
-      button.text.on('pointerdown', () => { // Ensure text also triggers if bg interactive area is small
-        this.scene.events.emit('betChange', bet);
-      });
-    });
+    // BUG FIX: Removed duplicate bet selector buttons.
+    // The Bet Text, Win Text, and Spin button remain.
 
     // Bet Text
     this.betText = this.scene.add.text(
@@ -546,7 +538,6 @@ export class InfernoUI {
       'primary',
       100
     );
-    // FIX 1: Assign directly to new fields and wire event on bg
     this.spinButtonBg = spinBg;
     this.spinButtonText = spinText;
     this.spinButtonBg.on('pointerup', () => { this.audioManager.init(); onSpin(); });
@@ -556,75 +547,71 @@ export class InfernoUI {
    * Builds the Crown Flip modal, initially hidden.
    */
   private buildCrownFlipModal(): void {
-    this.crownFlipContainer = this.scene.add.container(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2).setDepth(CROWN_FLIP_MODAL_Z_INDEX).setAlpha(0).setVisible(false);
-
     // Dark overlay
-    this.crownFlipOverlay = this.scene.add.rectangle(
-      CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, CANVAS_WIDTH, CANVAS_HEIGHT, COLOR_BG, 0.8 // Using theme bg color
-    ).setDepth(CROWN_FLIP_MODAL_Z_INDEX - 1).setAlpha(0).setVisible(false);
+    this.crownOverlay = this.scene.add.rectangle(CANVAS_W/2, CANVAS_H/2, CANVAS_W, CANVAS_H, 0x000000, 0.75)
+      .setDepth(200).setVisible(false).setAlpha(0);
 
     // Modal background
-    const modalBg = this.scene.add.graphics();
-    modalBg.fillStyle(COLOR_SURFACE, 1); // Using theme surface
-    modalBg.fillRoundedRect(-150, -200, 300, 400, BTN_PRIMARY_RADIUS); // Using theme radius
-    this.crownFlipContainer.add(modalBg);
+    this.crownModalBg = this.scene.add.graphics()
+      .setDepth(201).setVisible(false).setAlpha(0);
+    this.crownModalBg.fillStyle(COLOR_SURFACE, 1);
+    this.crownModalBg.fillRoundedRect(CANVAS_W/2-CROWN_MODAL_W/2, CANVAS_H/2-CROWN_MODAL_H/2, CROWN_MODAL_W, CROWN_MODAL_H, 16);
+    this.crownModalBg.lineStyle(2, COLOR_GOLD, 1);
+    this.crownModalBg.strokeRoundedRect(CANVAS_W/2-CROWN_MODAL_W/2, CANVAS_H/2-CROWN_MODAL_H/2, CROWN_MODAL_W, CROWN_MODAL_H, 16);
 
     // Coin
-    this.crownFlipCoin = this.scene.add.graphics();
-    this.crownFlipCoin.fillStyle(COLOR_GOLD, 1); // Using theme gold
-    this.crownFlipCoin.fillCircle(0, -100, CROWN_FLIP_COIN_RADIUS);
-    this.crownFlipCoin.lineStyle(4, COLOR_MUTED, 1); // Using theme muted color
-    this.crownFlipCoin.strokeCircle(0, -100, CROWN_FLIP_COIN_RADIUS);
-    this.crownFlipContainer.add(this.crownFlipCoin);
+    this.crownCoin = this.scene.add.arc(CANVAS_W/2, CANVAS_H/2-120, CROWN_COIN_R, 0, 360, false, COLOR_GOLD, 1)
+      .setDepth(202).setVisible(false).setAlpha(0);
 
-    // Win text
-    this.crownFlipWinText = this.scene.add.text(0, 0, 'Gamble 0', {
+    // Emoji on coin
+    this.crownEmoji = this.scene.add.text(CANVAS_W/2, CANVAS_H/2-120, '👑', {
       fontFamily: FONT_PRIMARY,
-      fontSize: FONT_SIZE_2XL,
+      fontSize: '36px',
+      color: STR_TEXT // Use theme text color
+    }).setOrigin(0.5).setDepth(203).setVisible(false).setAlpha(0);
+
+    // Gamble Label
+    this.crownGambleLabel = this.scene.add.text(CANVAS_W/2, CANVAS_H/2-55, 'GAMBLE', {
+      fontFamily: FONT_PRIMARY,
+      fontSize: FONT_SIZE_SM,
+      color: STR_MUTED
+    }).setOrigin(0.5).setDepth(202).setVisible(false).setAlpha(0);
+
+    // Win Text
+    this.crownWinText = this.scene.add.text(CANVAS_W/2, CANVAS_H/2-25, '0', {
+      fontFamily: FONT_PRIMARY,
+      fontSize: FONT_SIZE_3XL,
       color: STR_GOLD,
       fontStyle: 'bold'
-    }).setOrigin(0.5);
-    this.crownFlipContainer.add(this.crownFlipWinText);
+    }).setOrigin(0.5).setDepth(202).setVisible(false).setAlpha(0);
 
-    // Flip button
-    const flipButtonWidth = 180;
-    const flipButtonHeight = 60;
-    // FIX 2: Position using absolute coordinates for freestanding objects
-    const flipButtonX = CANVAS_WIDTH / 2;
-    const flipButtonY = CANVAS_HEIGHT / 2 + 80;
+    // FLIP button
     const { bg: flipBg, text: flipText } = drawButton(
       this.scene,
-      flipButtonX,
-      flipButtonY,
-      flipButtonWidth,
-      flipButtonHeight,
+      CANVAS_W/2,
+      CANVAS_H/2+50,
+      CROWN_FLIP_BTN_W,
+      CROWN_FLIP_BTN_H,
       'FLIP',
       'primary',
-      CROWN_FLIP_MODAL_Z_INDEX // Ensure it's above the modal
+      202
     );
-    // FIX 2: Assign directly to new fields and initially hide
     this.crownFlipBg = flipBg;
     this.crownFlipBtnText = flipText;
     this.crownFlipBg.setVisible(false).setAlpha(0);
     this.crownFlipBtnText.setVisible(false).setAlpha(0);
 
-    // Walk button
-    const walkButtonWidth = 180;
-    const walkButtonHeight = 60;
-    // FIX 2: Position using absolute coordinates for freestanding objects
-    const walkButtonX = CANVAS_WIDTH / 2;
-    const walkButtonY = CANVAS_HEIGHT / 2 + 160;
+    // WALK button
     const { bg: walkBg, text: walkText } = drawButton(
       this.scene,
-      walkButtonX,
-      walkButtonY,
-      walkButtonWidth,
-      walkButtonHeight,
+      CANVAS_W/2,
+      CANVAS_H/2+120,
+      CROWN_FLIP_BTN_W,
+      CROWN_FLIP_BTN_H,
       'WALK',
-      'secondary', // Changed to secondary
-      CROWN_FLIP_MODAL_Z_INDEX // Ensure it's above the modal
+      'secondary',
+      202
     );
-    // FIX 2: Assign directly to new fields and initially hide
     this.crownWalkBg = walkBg;
     this.crownWalkBtnText = walkText;
     this.crownWalkBg.setVisible(false).setAlpha(0);
