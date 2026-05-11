@@ -52,6 +52,7 @@ export class JettUI {
   private pointerX  = 0;
   private tickTimer: Phaser.Time.TimerEvent | null = null;
   private state: ReturnType<typeof createJettState> | null = null;
+  private lastAltitudeFlash = 0;  // Track last altitude milestone flash for UI feedback
 
   constructor(scene: Phaser.Scene, config: JettConfig) {
     this.scene   = scene;
@@ -166,6 +167,12 @@ export class JettUI {
 
     if (this.state.isAlive && !this.state.cashedOut) {
       tickJett(this.state, this.pointerX, this.config);
+    }
+
+    // Check for altitude milestone and trigger visual feedback
+    if (this.state.lastMilestoneAltitude > this.lastAltitudeFlash) {
+      this.lastAltitudeFlash = this.state.lastMilestoneAltitude;
+      this.triggerAltitudeMilestoneFlash();
     }
 
     this.renderBackground();
@@ -387,6 +394,39 @@ export class JettUI {
     }
     this.cashOutButtonBg?.disableInteractive();
     this.scene.time.delayedCall(600, () => this.showPlayAgain());
+  }
+
+  private triggerAltitudeMilestoneFlash(): void {
+    // Brief gold flash and screen pulse when reaching every 100 altitude milestone
+    // Creates psychological reward moment without being intrusive
+    const { worldWidth, screenHeight } = this.config;
+
+    // Gold flash overlay
+    const flash = this.scene.add.rectangle(
+      worldWidth / 2, screenHeight / 2,
+      worldWidth, screenHeight,
+      COLOR_GOLD, 0.15
+    ).setDepth(15);
+
+    this.scene.tweens.add({
+      targets: flash,
+      alpha: 0,
+      duration: 200,
+      ease: 'Quad.easeOut',
+      onComplete: () => flash.destroy(),
+    });
+
+    // Optional: subtle scale pulse on altitude text (if you want it more pronounced)
+    if (this.altitudeText) {
+      const origScale = this.altitudeText.scale;
+      this.scene.tweens.add({
+        targets: this.altitudeText,
+        scaleX: origScale * 1.1,
+        scaleY: origScale * 1.1,
+        duration: 100,
+        yoyo: true,
+      });
+    }
   }
 
   private triggerCombustion(): void {

@@ -40,6 +40,7 @@ export interface JettState {
   bet: number;
   speed: number;
   tickCount: number;
+  lastMilestoneAltitude: number;  // Tracks altitude milestones (every 100) for UI feedback
 }
 
 /** Configuration for a Jett game instance. */
@@ -53,10 +54,10 @@ export interface JettConfig {
 }
 
 const DEFAULT_HOUSE_EDGE          = 0.03;
-const DEFAULT_COMBUSTION_CHANCE   = 0.0004;
+const DEFAULT_COMBUSTION_CHANCE   = 0.0005;  // Base combustion per tick (matches Flap Fortune)
 const MULTIPLIER_PER_100_ALTITUDE = 1.12;
-const BASE_SPEED                  = 2;
-const MAX_SPEED                   = 8;
+const BASE_SPEED                  = 1.2;     // Slowed from 2 — extends session length
+const MAX_SPEED                   = 4;       // Slowed from 8 — extends session length
 
 /** How many asteroid "slots" exist per spawn wave. Increases with altitude. */
 function asteroidsPerWave(altitude: number): number {
@@ -94,6 +95,7 @@ export function createJettState(bet: number, config: JettConfig): JettState {
     bet,
     speed: BASE_SPEED,
     tickCount: 0,
+    lastMilestoneAltitude: 0,
   };
 }
 
@@ -172,17 +174,25 @@ export function tickJett(
     return state;
   }
 
-  // Combustion (house edge mechanic)
+  // Combustion (house edge mechanic) — scales with altitude like Flap Fortune scales with pipes
   // Base rate = 0.0005 (0.05% per frame = ~1 in 2000) — noticeable but not frustrating.
   // Scales up with altitude so higher multipliers carry real risk.
   // This ensures: (a) house edge is always present, (b) occasional instant failures
   // create psychological tension from frame 1, (c) no multiplier ever feels "safe".
+  // Matches Flap Fortune psychology: BASE_COMBUSTION * (1 + progress_metric * scaling_factor)
   const BASE_COMBUSTION = 0.0005;
   const scaledChance = Math.max(BASE_COMBUSTION, combustionChance * (1 + state.altitude / 4000));
   if (rng() < scaledChance) {
     state.isAlive   = false;
     state.combusted = true;
     state.payout    = 0;
+  }
+
+  // Track altitude milestones (every 100 units) for UI feedback (altitude flash effect)
+  // Caller (JettUI) can check state.lastMilestoneAltitude to trigger visual feedback
+  const currentMilestone = Math.floor(state.altitude / 100) * 100;
+  if (currentMilestone > state.lastMilestoneAltitude && currentMilestone > 0) {
+    state.lastMilestoneAltitude = currentMilestone;
   }
 
   return state;
