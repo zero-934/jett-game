@@ -1,4 +1,7 @@
 # 🎰 Jett Casino
+
+**⚠️ PROPRIETARY — Code available for licensing only. See [LICENSE](./LICENSE)**
+
 ![Tests](https://github.com/zero-934/jett-game/actions/workflows/test.yml/badge.svg)
 [![Live Demo](https://img.shields.io/badge/▶_PLAY_NOW-jett.game-c9a84c?style=for-the-badge)](https://zero-934.github.io/jett-game/)
 
