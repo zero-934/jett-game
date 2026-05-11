@@ -397,34 +397,16 @@ export class JettUI {
   }
 
   private triggerAltitudeMilestoneFlash(): void {
-    // Brief gold flash and screen pulse when reaching every 100 altitude milestone
-    // Creates psychological reward moment without being intrusive
-    const { worldWidth, screenHeight } = this.config;
-
-    // Gold flash overlay
-    const flash = this.scene.add.rectangle(
-      worldWidth / 2, screenHeight / 2,
-      worldWidth, screenHeight,
-      COLOR_GOLD, 0.15
-    ).setDepth(15);
-
-    this.scene.tweens.add({
-      targets: flash,
-      alpha: 0,
-      duration: 200,
-      ease: 'Quad.easeOut',
-      onComplete: () => flash.destroy(),
-    });
-
-    // Optional: subtle scale pulse on altitude text (if you want it more pronounced)
+    // Altitude text pulses when reaching every 100 altitude milestone
+    // Creates psychological reward moment for progression
     if (this.altitudeText) {
-      const origScale = this.altitudeText.scale;
       this.scene.tweens.add({
         targets: this.altitudeText,
-        scaleX: origScale * 1.1,
-        scaleY: origScale * 1.1,
+        scaleX: 1.15,
+        scaleY: 1.15,
         duration: 100,
         yoyo: true,
+        ease: 'Quad.easeInOut',
       });
     }
   }

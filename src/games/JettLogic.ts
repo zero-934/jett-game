@@ -56,8 +56,8 @@ export interface JettConfig {
 const DEFAULT_HOUSE_EDGE          = 0.03;
 const DEFAULT_COMBUSTION_CHANCE   = 0.0005;  // Base combustion per tick (matches Flap Fortune)
 const MULTIPLIER_PER_100_ALTITUDE = 1.12;
-const BASE_SPEED                  = 1.2;     // Slowed from 2 — extends session length
-const MAX_SPEED                   = 4;       // Slowed from 8 — extends session length
+const BASE_SPEED                  = 0.8;     // Slowed from 2 — much slower initial climb
+const MAX_SPEED                   = 2.5;     // Slowed from 8 — capped at slower speed
 
 /** How many asteroid "slots" exist per spawn wave. Increases with altitude. */
 function asteroidsPerWave(altitude: number): number {
