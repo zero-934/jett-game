@@ -140,8 +140,7 @@ export class MinesUI {
   }
 
   private buildInstructions(): void {
-    // Removed instructional text overlay — grid is self-explanatory
-    // Players tap to reveal tiles, multiplier updates in real time
+    // No instructions — tap to reveal, that's it
   }
 
   private buildGrid(): void {
