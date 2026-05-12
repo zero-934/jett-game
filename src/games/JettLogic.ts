@@ -54,7 +54,7 @@ export interface JettConfig {
 }
 
 const DEFAULT_HOUSE_EDGE          = 0.03;
-const DEFAULT_COMBUSTION_CHANCE   = 0.0005;  // Base combustion per tick (matches Flap Fortune)
+const DEFAULT_COMBUSTION_CHANCE   = 0.0003;  // Base combustion per tick (matches Flap Fortune for fair feel)
 const MULTIPLIER_PER_100_ALTITUDE = 1.10;    // Reduced from 1.12 — slower multiplier growth for natural pacing
 const BASE_SPEED                  = 1.2;     // Increased from 0.8 — faster initial climb feels snappier
 const MAX_SPEED                   = 3.0;     // Increased from 2.5 — allows acceleration to higher speeds
@@ -175,13 +175,13 @@ export function tickJett(
   }
 
   // Combustion (house edge mechanic) — scales with altitude like Flap Fortune scales with pipes
-  // Base rate = 0.0005 (0.05% per frame = ~1 in 2000) — noticeable but not frustrating.
+  // Base rate = 0.0003 (0.03% per frame = ~1 in 3333) — matches Flap Fortune's fairness.
   // Scales up with altitude so higher multipliers carry real risk.
   // This ensures: (a) house edge is always present, (b) occasional instant failures
-  // create psychological tension from frame 1, (c) no multiplier ever feels "safe".
+  // create psychological tension without feeling random, (c) skill dominates early, risk compounds late.
   // Matches Flap Fortune psychology: BASE_COMBUSTION * (1 + progress_metric * scaling_factor)
-  const BASE_COMBUSTION = 0.0005;
-  const scaledChance = Math.max(BASE_COMBUSTION, combustionChance * (1 + state.altitude / 4000));
+  const BASE_COMBUSTION = 0.0003;
+  const scaledChance = Math.max(BASE_COMBUSTION, combustionChance * (1 + state.altitude / 5000));
   if (rng() < scaledChance) {
     state.isAlive   = false;
     state.combusted = true;
