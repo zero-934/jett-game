@@ -66,6 +66,15 @@ export class MinesUI {
     const { width, height } = this.scene.scale;
     const cy = height / 2 - 30;
 
+    // MINES title at top
+    const pageTitle = this.scene.add.text(width / 2, SAFE_TOP + 14, 'MINES', {
+      fontFamily: '"Fredoka One", sans-serif',
+      fontSize: '24px',
+      color: '#c9a84c',
+      letterSpacing: 3,
+    }).setOrigin(0.5).setDepth(10);
+    this.bombSelectorObjs.push(pageTitle);
+
     const title = this.scene.add.text(width / 2, cy - 60, 'HOW MANY MINES?', {
       ...TEXT_STYLE_LABEL,
       fontSize: FONT_SIZE_LG,
