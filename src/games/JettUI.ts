@@ -53,7 +53,6 @@ export class JettUI {
   private tickTimer: Phaser.Time.TimerEvent | null = null;
   private state: ReturnType<typeof createJettState> | null = null;
   private lastAltitudeFlash = 0;  // Track last altitude milestone flash for UI feedback
-  private gameStarted = false;    // Track if player has tapped to start
   private startScreenObjects: Phaser.GameObjects.GameObject[] = [];  // Objects to clean up before game starts
 
   constructor(scene: Phaser.Scene, config: JettConfig) {
@@ -66,7 +65,6 @@ export class JettUI {
   public start(bet: number): void {
     this.cleanup();
     this.state = createJettState(bet, this.config);
-    this.gameStarted = false;
     this.buildBackground();
     this.buildPlayer();
     this.buildHUD();
