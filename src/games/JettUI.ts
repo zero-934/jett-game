@@ -454,17 +454,34 @@ export class JettUI {
   }
 
   private triggerAltitudeMilestoneFlash(): void {
-    // Altitude text pulses when reaching every 100 altitude milestone
-    // Creates psychological reward moment for progression
+    // Altitude text and multiplier pulse when reaching every 100 altitude milestone
+    // Creates psychological reward moment for progression (like "ding" in Flap Fortune)
     if (this.altitudeText) {
       this.scene.tweens.add({
         targets: this.altitudeText,
-        scaleX: 1.15,
-        scaleY: 1.15,
-        duration: 100,
+        scaleX: 1.25,
+        scaleY: 1.25,
+        duration: 150,
         yoyo: true,
         ease: 'Quad.easeInOut',
       });
+    }
+    
+    if (this.multiplierText) {
+      this.scene.tweens.add({
+        targets: this.multiplierText,
+        scaleX: 1.2,
+        scaleY: 1.2,
+        duration: 150,
+        yoyo: true,
+        ease: 'Quad.easeInOut',
+      });
+    }
+    
+    // Optional: Add a quick "flash" to the background for more impact
+    if (this.bgGraphics) {
+      this.bgGraphics.fillStyle(0xc9a84c, 0.1);
+      this.bgGraphics.fillRect(0, 0, this.config.worldWidth, this.config.screenHeight);
     }
   }
 
