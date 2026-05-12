@@ -207,10 +207,11 @@ export class MinesUI {
     const { width, height } = this.scene.scale;
 
     // MINES title at top center
-    this.scene.add.text(width / 2, SAFE_TOP + 12, 'MINES', {
-      ...TEXT_STYLE_GOLD_SEMIBOLD,
-      fontSize: FONT_SIZE_XL,
-      letterSpacing: 2,
+    this.scene.add.text(width / 2, SAFE_TOP + 14, 'MINES', {
+      fontFamily: '"Fredoka One", sans-serif',
+      fontSize: '24px',
+      color: '#c9a84c',
+      letterSpacing: 3,
     }).setOrigin(0.5).setDepth(10);
 
     // Multiplier shown prominently below the grid
