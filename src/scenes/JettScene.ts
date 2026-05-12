@@ -28,7 +28,7 @@ export class JettScene extends Phaser.Scene {
       worldWidth: width,
       screenHeight: height,
       houseEdge: 0.03,
-      combustionChancePerTick: 0.001,  // TESTING: increased from 0.0003 for visibility
+      combustionChancePerTick: 0.05,  // TESTING: cranked up for visibility (normally 0.0003)
     });
 
     this.jettUI.start(DEFAULT_BET);

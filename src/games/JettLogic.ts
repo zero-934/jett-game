@@ -175,13 +175,13 @@ export function tickJett(
   }
 
   // Combustion (house edge mechanic) — scales with altitude like Flap Fortune scales with pipes
-  // Base rate = 0.001 (0.1% per frame = ~1 in 1000) — increased for testing/visibility.
+  // Base rate = 0.05 (5% per frame) — AGGRESSIVELY INCREASED for testing/visibility.
   // TODO: Revert to 0.0003 once confirmed working.
   // Scales up with altitude so higher multipliers carry real risk.
   // This ensures: (a) house edge is always present, (b) occasional instant failures
   // create psychological tension without feeling random, (c) skill dominates early, risk compounds late.
   // Matches Flap Fortune psychology: BASE_COMBUSTION * (1 + progress_metric * scaling_factor)
-  const BASE_COMBUSTION = 0.001;  // TESTING: increased from 0.0003
+  const BASE_COMBUSTION = 0.05;  // TESTING: cranked up for visibility (normally 0.0003)
   const scaledChance = Math.max(BASE_COMBUSTION, combustionChance * (1 + state.altitude / 5000));
   const rngValue = rng();
   if (rngValue < scaledChance) {
