@@ -53,6 +53,8 @@ export class JettUI {
   private tickTimer: Phaser.Time.TimerEvent | null = null;
   private state: ReturnType<typeof createJettState> | null = null;
   private lastAltitudeFlash = 0;  // Track last altitude milestone flash for UI feedback
+  private gameStarted = false;    // Track if player has tapped to start
+  private startScreenObjects: Phaser.GameObjects.GameObject[] = [];  // Objects to clean up before game starts
 
   constructor(scene: Phaser.Scene, config: JettConfig) {
     this.scene   = scene;
@@ -64,16 +66,13 @@ export class JettUI {
   public start(bet: number): void {
     this.cleanup();
     this.state = createJettState(bet, this.config);
+    this.gameStarted = false;
     this.buildBackground();
     this.buildPlayer();
     this.buildHUD();
+    this.buildStartScreen();
     this.registerInput();
-    this.tickTimer = this.scene.time.addEvent({
-      delay: 16,
-      loop: true,
-      callback: this.onTick,
-      callbackScope: this,
-    });
+    // Tick timer starts when player taps "GO" in buildStartScreen()
   }
 
   public cleanup(): void {
@@ -95,10 +94,71 @@ export class JettUI {
     this.cashOutLabel?.destroy();
     this.playAgainButtonBg?.destroy();
     this.playAgainLabel?.destroy();
+    for (const obj of this.startScreenObjects) {
+      if (obj && !obj.isDestroyed) (obj as any).destroy();
+    }
+    this.startScreenObjects = [];
     this.state = null;
   }
 
   // ─── Build ────────────────────────────────────────────────────────────────
+
+  private buildStartScreen(): void {
+    const { worldWidth, screenHeight } = this.config;
+
+    // Semi-transparent overlay
+    const overlay = this.scene.add.rectangle(
+      worldWidth / 2, screenHeight / 2,
+      worldWidth, screenHeight,
+      0x000000, 0.6
+    ).setDepth(100);
+    this.startScreenObjects.push(overlay);
+
+    // "TAP TO START" text
+    const title = this.scene.add.text(
+      worldWidth / 2, screenHeight / 2 - 80,
+      'TAP TO START',
+      {
+        fontFamily: '"Fredoka One", sans-serif',
+        fontSize: '32px',
+        color: '#c9a84c',
+        letterSpacing: 2,
+      }
+    ).setOrigin(0.5).setDepth(101);
+    this.startScreenObjects.push(title);
+
+    // Start button
+    const { bg: startBg, text: startLabel } = drawButton(
+      this.scene,
+      worldWidth / 2,
+      screenHeight / 2 + 40,
+      180,
+      56,
+      'GO',
+      'primary',
+      101
+    );
+    startBg.setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this.handleStartGame());
+    this.startScreenObjects.push(startBg, startLabel);
+  }
+
+  private handleStartGame(): void {
+    // Remove start screen
+    for (const obj of this.startScreenObjects) {
+      if (obj && !obj.isDestroyed) (obj as any).destroy();
+    }
+    this.startScreenObjects = [];
+
+    // Start the game tick loop
+    this.gameStarted = true;
+    this.tickTimer = this.scene.time.addEvent({
+      delay: 16,
+      loop: true,
+      callback: this.onTick,
+      callbackScope: this,
+    });
+  }
 
   private buildBackground(): void {
     const { worldWidth, screenHeight } = this.config;
