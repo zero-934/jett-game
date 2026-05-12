@@ -140,12 +140,8 @@ export class MinesUI {
   }
 
   private buildInstructions(): void {
-    const { width } = this.scene.scale;
-    this.scene.add.text(width / 2, SAFE_TOP + 12, 'Reveal tiles · Hit a bomb and lose everything', {
-      ...TEXT_STYLE_LABEL,
-      fontSize: FONT_SIZE_SM,
-      align: 'center',
-    }).setOrigin(0.5);
+    // Removed instructional text overlay — grid is self-explanatory
+    // Players tap to reveal tiles, multiplier updates in real time
   }
 
   private buildGrid(): void {
