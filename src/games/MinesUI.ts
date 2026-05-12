@@ -207,6 +207,13 @@ export class MinesUI {
   private buildCashOut(): void {
     const { width, height } = this.scene.scale;
 
+    // MINES title at top center
+    this.scene.add.text(width / 2, SAFE_TOP + 12, 'MINES', {
+      ...TEXT_STYLE_GOLD_SEMIBOLD,
+      fontSize: FONT_SIZE_XL,
+      letterSpacing: 2,
+    }).setOrigin(0.5).setDepth(10);
+
     // Multiplier shown prominently below the grid
     const gridBottom = (SAFE_TOP + 40 + (height - SAFE_TOP - 40 - (5 * 64 + 4 * 6) - 120) / 2) + (5 * 64 + 4 * 6);
     this.scene.add.text(width / 2, gridBottom + 18, 'MULTIPLIER', {

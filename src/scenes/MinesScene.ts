@@ -35,16 +35,8 @@ export class MinesScene extends Phaser.Scene {
       .setOrigin(0.5).setDepth(51).setInteractive({ useHandCursor: true })
       .on('pointerdown', () => window.location.href='https://zero-934.github.io/jett-landing/');
 
-    // Title below nav bar
-    this.add.text(width / 2, 58, 'MINES', {
-      fontFamily: '"Fredoka One", sans-serif',
-      fontSize: '26px', color: '#c9a84c', letterSpacing: 6,
-    }).setOrigin(0.5).setDepth(10);
-
-    this.add.text(width / 2, 80, 'Reveal tiles · Hit a bomb and lose everything', {
-      fontFamily: '"Fredoka One", sans-serif',
-      fontSize: '11px', color: '#666677', letterSpacing: 2,
-    }).setOrigin(0.5).setDepth(10);
+    // Title below nav bar — handled by MinesUI now
+    // Removed instructional text overlay for cleaner UI
 
     bar.fillStyle(0xc9a84c, 0.06);
     bar.fillRect(0, 36, width, 54);
