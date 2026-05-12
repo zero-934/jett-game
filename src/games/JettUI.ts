@@ -149,7 +149,6 @@ export class JettUI {
     this.startScreenObjects = [];
 
     // Start the game tick loop
-    this.gameStarted = true;
     this.tickTimer = this.scene.time.addEvent({
       delay: 16,
       loop: true,
