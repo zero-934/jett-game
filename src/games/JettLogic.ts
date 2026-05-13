@@ -188,7 +188,7 @@ export function tickJett(
 
   // Spawn coins — every 300m altitude
   // Coins are valuable rewards for skillful flight, providing multiplier boosts
-  const COIN_SPAWN_INTERVAL = 300; // altitude units between coin spawns
+  const COIN_SPAWN_INTERVAL = 200; // altitude units between coin spawns (faster decisions)
   if (state.altitude - state.lastCoinSpawnAltitude >= COIN_SPAWN_INTERVAL) {
     state.lastCoinSpawnAltitude = state.altitude;
     const coinX = Math.random() * (config.worldWidth - 40) + 20; // Keep within bounds
