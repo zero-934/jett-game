@@ -185,9 +185,9 @@ export function tickJett(
   // Cull asteroids far below
   state.asteroids = state.asteroids.filter(a => a.worldY > state.altitude - config.screenHeight);
 
-  // Spawn coins — every 150m for testing (normally 300m for rarity)
-  // Coins are valuable, rewarding skillful flight and exploration
-  const COIN_SPAWN_INTERVAL = 150; // altitude units between coin spawns (reduced for testing)
+  // Spawn coins — every 300m altitude
+  // Coins are valuable rewards for skillful flight, providing multiplier boosts
+  const COIN_SPAWN_INTERVAL = 300; // altitude units between coin spawns
   if (state.altitude - state.lastCoinSpawnAltitude >= COIN_SPAWN_INTERVAL) {
     state.lastCoinSpawnAltitude = state.altitude;
     const coinX = Math.random() * (config.worldWidth - 40) + 20; // Keep within bounds
@@ -200,10 +200,6 @@ export function tickJett(
       animPhase: 0,
     };
     state.coins.push(coin);
-    // DEBUG
-    if (typeof console !== 'undefined') {
-      console.log(`[Jett] Spawned coin #${coin.id} at altitude ${state.altitude.toFixed(0)}, coins total: ${state.coins.length}`);
-    }
   }
 
   // Update coin animations and cull far below
