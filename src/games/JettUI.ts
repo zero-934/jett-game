@@ -183,55 +183,31 @@ export class JettUI {
       });
     }
 
-    // Planet 1 (Saturn-like gas giant with rings) — static background decoration
+    // Planet 1 (Cartoon Earth - simple and clean) — static background decoration
     this.bgPlanetGraphics = this.scene.add.graphics().setDepth(1);
     const p1x = worldWidth * 0.78;
     const p1y = screenHeight * 0.18;
     const p1r = 42;
     
-    // Draw rings FIRST (so planet sits on top)
-    // Outer ring (faint) — approximate ellipse with arc
-    this.bgPlanetGraphics.lineStyle(3, 0xddaa55, 0.4);
-    for (let i = 0; i < Math.PI * 2; i += 0.1) {
-      const ringX = p1x + Math.cos(i) * p1r * 1.6;
-      const ringY = p1y + Math.sin(i) * p1r * 0.5 + p1r * 0.15;
-      if (i === 0) this.bgPlanetGraphics.moveTo(ringX, ringY);
-      else this.bgPlanetGraphics.lineTo(ringX, ringY);
-    }
-    this.bgPlanetGraphics.closePath();
-    this.bgPlanetGraphics.strokePath();
-    
-    // Inner ring (brighter)
-    this.bgPlanetGraphics.lineStyle(5, 0xffcc77, 0.7);
-    for (let i = 0; i < Math.PI * 2; i += 0.1) {
-      const ringX = p1x + Math.cos(i) * p1r * 1.4;
-      const ringY = p1y + Math.sin(i) * p1r * 0.42 + p1r * 0.15;
-      if (i === 0) this.bgPlanetGraphics.moveTo(ringX, ringY);
-      else this.bgPlanetGraphics.lineTo(ringX, ringY);
-    }
-    this.bgPlanetGraphics.closePath();
-    this.bgPlanetGraphics.strokePath();
-    
-    // Planet body (yellow)
-    this.bgPlanetGraphics.fillStyle(0xffdd44, 0.9);
+    // Ocean base (light blue)
+    this.bgPlanetGraphics.fillStyle(0x5ba3d0, 0.95);
     this.bgPlanetGraphics.fillCircle(p1x, p1y, p1r);
     
-    // Atmospheric bands (tan stripes)
-    this.bgPlanetGraphics.fillStyle(0xddaa44, 0.5);
-    this.bgPlanetGraphics.fillCircle(p1x, p1y - p1r * 0.35, p1r * 1.8);
-    this.bgPlanetGraphics.fillRect(p1x - p1r * 1.2, p1y - p1r * 0.15, p1r * 2.4, p1r * 0.3);
-    this.bgPlanetGraphics.fillRect(p1x - p1r * 1.2, p1y + p1r * 0.25, p1r * 2.4, p1r * 0.25);
+    // Continents (bright green, simple shapes)
+    this.bgPlanetGraphics.fillStyle(0x5dd95d, 0.85);
+    // Large landmass (top-right)
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.25, p1y - p1r * 0.3, p1r * 0.28);
+    // Large landmass (bottom-left)
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.3, p1y + p1r * 0.25, p1r * 0.22);
+    // Small island (right)
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.5, p1y + p1r * 0.1, p1r * 0.1);
     
-    // Storm detail (orange spot)
-    this.bgPlanetGraphics.fillStyle(0xff8844, 0.6);
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.2, p1y - p1r * 0.15, p1r * 0.18);
+    // Highlight (white shine)
+    this.bgPlanetGraphics.fillStyle(0xffffff, 0.5);
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.35, p1y - p1r * 0.35, p1r * 0.18);
     
-    // Highlight (bright reflection)
-    this.bgPlanetGraphics.fillStyle(0xffff99, 0.6);
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.3, p1y - p1r * 0.35, p1r * 0.2);
-    
-    // Planet outline
-    this.bgPlanetGraphics.lineStyle(3, 0xcc9933, 1);
+    // Simple outline
+    this.bgPlanetGraphics.lineStyle(3, 0x4a8cb0, 1);
     this.bgPlanetGraphics.strokeCircle(p1x, p1y, p1r);
 
     // Moon (grey with heavy cratering) — static background decoration
