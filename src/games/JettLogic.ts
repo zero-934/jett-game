@@ -250,9 +250,9 @@ export function tickJett(
     state.payout    = 0;
   }
 
-  // Track altitude milestones (every 100 units) for UI feedback (altitude flash effect)
+  // Track altitude milestones (every 250 units) for UI feedback (altitude flash effect)
   // Caller (JettUI) can check state.lastMilestoneAltitude to trigger visual feedback
-  const currentMilestone = Math.floor(state.altitude / 100) * 100;
+  const currentMilestone = Math.floor(state.altitude / 250) * 250;
   if (currentMilestone > state.lastMilestoneAltitude && currentMilestone > 0) {
     state.lastMilestoneAltitude = currentMilestone;
   }
