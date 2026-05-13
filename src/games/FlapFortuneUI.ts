@@ -256,9 +256,6 @@ export class FlapFortuneUI {
     if (!this.bgGraphics) return;
     const t   = this.scene.time.now / 1000;
     const g   = this.bgGraphics;
-    const scrollFar  = this.groundScrollX * 0.08; // far parallax
-    const scrollMid  = this.groundScrollX * 0.20; // mid parallax
-    const scrollNear = this.groundScrollX * 0.45; // near parallax
 
     g.clear();
 
@@ -266,7 +263,7 @@ export class FlapFortuneUI {
     g.fillGradientStyle(0x08021a, 0x08021a, 0x2a0e0e, 0x2a0e0e, 1);
     g.fillRect(0, 0, worldWidth, worldHeight);
 
-    // ── Moon with halo ──────────────────────────────────────────────────────
+    // ── Moon with halo (static, doesn't scroll) ──────────────────────────────
     const moonX = worldWidth * 0.78;
     const moonY = worldHeight * 0.13;
     g.fillStyle(0x4433aa, 0.12);
@@ -276,24 +273,24 @@ export class FlapFortuneUI {
     g.fillStyle(0x08021a, 0.55); // crescent cut
     g.fillCircle(moonX + 12, moonY - 6, 25);
 
-    // ── Stars ───────────────────────────────────────────────────────────────
+    // ── Stars (static, twinkle only) ─────────────────────────────────────────
     for (const star of this.stars) {
       const alpha = 0.4 + 0.5 * Math.sin(star.phase + t * 0.8);
       g.fillStyle(0xffffff, alpha);
       g.fillCircle(star.x, star.y, star.r);
     }
 
-    // ── Far distant mountains / hills ───────────────────────────────────────
+    // ── Far distant mountains / hills (simple repeating pattern) ──────────────
     g.fillStyle(0x100820, 1);
     const hillW = worldWidth / 3;
     for (let hi = 0; hi < 5; hi++) {
-      const hx = ((hi * hillW * 0.7 - scrollFar) % (worldWidth + hillW) + worldWidth + hillW) % (worldWidth + hillW) - hillW / 2;
+      const hx = (hi * hillW * 0.7) % worldWidth;
       const hh = 55 + (hi % 3) * 25;
       g.fillTriangle(hx, worldHeight * 0.72, hx + hillW * 0.5, worldHeight * 0.72 - hh, hx + hillW, worldHeight * 0.72);
     }
 
-    // ── Mid castle — large background keep ──────────────────────────────────
-    const keepX = ((worldWidth * 0.3 - scrollMid) % worldWidth + worldWidth) % worldWidth - 30;
+    // ── Mid castle — large background keep (static, no scroll) ────────────────
+    const keepX = worldWidth * 0.3;
     const keepW = 120;
     const keepH = 160;
     const keepY = worldHeight * 0.72 - keepH;
@@ -334,41 +331,38 @@ export class FlapFortuneUI {
     g.fillRect(keepX + keepW / 2 - 1, keepY - 38, 2, 22);
     g.fillTriangle(keepX + keepW / 2 + 1, keepY - 38, keepX + keepW / 2 + 14, keepY - 31, keepX + keepW / 2 + 1, keepY - 24);
 
-    // ── Foreground castle wall ───────────────────────────────────────────────
+    // ── Foreground castle wall (static, no scroll) ────────────────────────────
     const wallY = worldHeight * 0.78;
     const wallH = worldHeight - wallY;
     g.fillStyle(0x2a2228, 1);
     g.fillRect(0, wallY, worldWidth, wallH);
 
-    // Wall stone blocks (scrolling)
+    // Wall stone blocks (repeating pattern, no scroll)
     const bW = 44; const bH = 20;
     g.fillStyle(0x353035, 0.5);
     for (let row = 0; row < 4; row++) {
       const offset2 = (row % 2 === 0) ? 0 : bW / 2;
-      const tileOff2 = (scrollNear + offset2) % bW;
-      for (let bx2 = -tileOff2; bx2 < worldWidth + bW; bx2 += bW) {
-        g.fillRect(bx2, wallY + row * bH, bW - 2, bH - 1);
+      for (let bx2 = 0; bx2 < worldWidth; bx2 += bW) {
+        g.fillRect(bx2 + offset2, wallY + row * bH, bW - 2, bH - 1);
       }
     }
 
-    // Wall battlements at top
+    // Wall battlements at top (repeating pattern)
     g.fillStyle(0x2a2228, 1);
     const merlonW = 18;
     const merlonH = 22;
     const merlonGap = 14;
     const merlonPitch = merlonW + merlonGap;
-    const merlonOff = scrollNear % merlonPitch;
-    for (let mx = -merlonOff - merlonPitch; mx < worldWidth + merlonPitch; mx += merlonPitch) {
+    for (let mx = 0; mx < worldWidth; mx += merlonPitch) {
       g.fillRect(mx, wallY - merlonH, merlonW, merlonH);
     }
 
-    // Foreground towers
+    // Foreground towers (static positions, no scrolling)
     const fgTowers = [
-      { x: ((- scrollNear * 0.6) % (worldWidth * 1.5) + worldWidth * 1.5) % (worldWidth * 1.5) - 30, w: 60, h: 120 },
-      { x: ((worldWidth * 0.55 - scrollNear * 0.6) % (worldWidth * 1.5) + worldWidth * 1.5) % (worldWidth * 1.5) - 30, w: 50, h: 100 },
+      { x: 20, w: 60, h: 120 },
+      { x: worldWidth * 0.55, w: 50, h: 100 },
     ];
     for (const ft of fgTowers) {
-      if (ft.x > worldWidth + 80) continue;
       g.fillStyle(0x252028, 1);
       g.fillRect(ft.x, wallY - ft.h, ft.w, ft.h + wallH);
       // Tower battlements
@@ -378,7 +372,7 @@ export class FlapFortuneUI {
       // Cone roof
       g.fillStyle(0x5a0808, 1);
       g.fillTriangle(ft.x - 4, wallY - ft.h, ft.x + ft.w + 4, wallY - ft.h, ft.x + ft.w / 2, wallY - ft.h - 48);
-      // Arched window with glow
+      // Arched window with glow (twinkle only, no movement)
       g.fillStyle(0xffbb22, 0.5 + 0.2 * Math.sin(t * 1.5 + ft.x));
       const wndX = ft.x + ft.w / 2 - 5;
       const wndY = wallY - ft.h + 28;
@@ -390,19 +384,18 @@ export class FlapFortuneUI {
       g.fillTriangle(ft.x + ft.w / 2 + 1, wallY - ft.h - 66, ft.x + ft.w / 2 + 13, wallY - ft.h - 59, ft.x + ft.w / 2 + 1, wallY - ft.h - 52);
     }
 
-    // ── Torches on wall ──────────────────────────────────────────────────────
+    // ── Torches on wall (static positions, twinkle only) ──────────────────────
     for (const torch of this.torches) {
-      const tx = ((torch.x - scrollNear * 0.3) % worldWidth + worldWidth) % worldWidth;
       const ty = wallY - 12;
       const flicker = 0.7 + 0.3 * Math.sin(torch.phase + t * 9);
       g.fillStyle(GATE_IRON, 1);
-      g.fillRect(tx - 2, ty - 2, 4, 14);
+      g.fillRect(torch.x - 2, ty - 2, 4, 14);
       g.fillStyle(TORCH_ORANGE, flicker);
-      g.fillTriangle(tx - 5, ty - 2, tx + 5, ty - 2, tx, ty - 18);
+      g.fillTriangle(torch.x - 5, ty - 2, torch.x + 5, ty - 2, torch.x, ty - 18);
       g.fillStyle(0xffee44, flicker * 0.9);
-      g.fillTriangle(tx - 3, ty - 2, tx + 3, ty - 2, tx, ty - 12);
+      g.fillTriangle(torch.x - 3, ty - 2, torch.x + 3, ty - 2, torch.x, ty - 12);
       g.fillStyle(TORCH_ORANGE, 0.10 * flicker);
-      g.fillCircle(tx, ty - 8, 20);
+      g.fillCircle(torch.x, ty - 8, 20);
     }
   }
 
