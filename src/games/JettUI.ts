@@ -31,8 +31,8 @@ export class JettUI {
   // Background
   private bgGraphics: Phaser.GameObjects.Graphics | null = null;
   private stars: { x: number; y: number; r: number; phase: number }[] = [];
-  private bgPlanet:  Phaser.GameObjects.Arc | null = null;
-  private bgPlanet2: Phaser.GameObjects.Arc | null = null;
+  private bgPlanetGraphics:  Phaser.GameObjects.Graphics | null = null;
+  private bgPlanet2Graphics: Phaser.GameObjects.Graphics | null = null;
 
   // Asteroid graphics pool — keyed by asteroid id
   private asteroidGraphics: Map<number, Phaser.GameObjects.Graphics> = new Map();
@@ -89,8 +89,8 @@ export class JettUI {
     this.playerBody?.destroy();
     this.playerPack?.destroy();
     this.bgGraphics?.destroy();
-    this.bgPlanet?.destroy();
-    this.bgPlanet2?.destroy();
+    this.bgPlanetGraphics?.destroy();
+    this.bgPlanet2Graphics?.destroy();
     this.flameGraphics?.destroy();
     for (const g of this.asteroidGraphics.values()) g.destroy();
     this.asteroidGraphics.clear();
@@ -183,12 +183,19 @@ export class JettUI {
       });
     }
 
-    this.bgPlanet = this.scene.add.arc(
-      worldWidth * 0.78, screenHeight * 0.18, 42, 0, 360, false, 0x2244aa, 0.6
-    ).setDepth(1).setStrokeStyle(2, 0x1a3388, 1);
-    this.bgPlanet2 = this.scene.add.arc(
-      worldWidth * 0.14, screenHeight * 0.38, 22, 0, 360, false, 0x773322, 0.6
-    ).setDepth(1).setStrokeStyle(2, 0x552211, 1);
+    // Planet 1 (blue)
+    this.bgPlanetGraphics = this.scene.add.graphics().setDepth(1);
+    this.bgPlanetGraphics.fillStyle(0x2244aa, 0.7);
+    this.bgPlanetGraphics.fillCircle(worldWidth * 0.78, screenHeight * 0.18, 42);
+    this.bgPlanetGraphics.lineStyle(2, 0x1a3388, 1);
+    this.bgPlanetGraphics.strokeCircle(worldWidth * 0.78, screenHeight * 0.18, 42);
+
+    // Planet 2 (brown)
+    this.bgPlanet2Graphics = this.scene.add.graphics().setDepth(1);
+    this.bgPlanet2Graphics.fillStyle(0x773322, 0.7);
+    this.bgPlanet2Graphics.fillCircle(worldWidth * 0.14, screenHeight * 0.38, 22);
+    this.bgPlanet2Graphics.lineStyle(2, 0x552211, 1);
+    this.bgPlanet2Graphics.strokeCircle(worldWidth * 0.14, screenHeight * 0.38, 22);
   }
 
   private buildPlayer(): void {
