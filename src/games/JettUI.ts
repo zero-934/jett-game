@@ -183,18 +183,18 @@ export class JettUI {
       });
     }
 
-    // Planet 1 (blue)
+    // Planet 1 (blue) — static background decoration
     this.bgPlanetGraphics = this.scene.add.graphics().setDepth(1);
-    this.bgPlanetGraphics.fillStyle(0x2244aa, 0.7);
+    this.bgPlanetGraphics.fillStyle(0x3366dd, 0.8);
     this.bgPlanetGraphics.fillCircle(worldWidth * 0.78, screenHeight * 0.18, 42);
-    this.bgPlanetGraphics.lineStyle(2, 0x1a3388, 1);
+    this.bgPlanetGraphics.lineStyle(3, 0x1a3388, 1);
     this.bgPlanetGraphics.strokeCircle(worldWidth * 0.78, screenHeight * 0.18, 42);
 
-    // Planet 2 (brown)
+    // Planet 2 (brown) — static background decoration
     this.bgPlanet2Graphics = this.scene.add.graphics().setDepth(1);
-    this.bgPlanet2Graphics.fillStyle(0x773322, 0.7);
+    this.bgPlanet2Graphics.fillStyle(0xaa5544, 0.8);
     this.bgPlanet2Graphics.fillCircle(worldWidth * 0.14, screenHeight * 0.38, 22);
-    this.bgPlanet2Graphics.lineStyle(2, 0x552211, 1);
+    this.bgPlanet2Graphics.lineStyle(3, 0x552211, 1);
     this.bgPlanet2Graphics.strokeCircle(worldWidth * 0.14, screenHeight * 0.38, 22);
   }
 
@@ -313,23 +313,7 @@ export class JettUI {
       this.bgGraphics.strokePath();
     }
 
-    // Planets drift slowly upward
-    if (this.bgPlanetGraphics) {
-      const y1 = ((screenHeight * 0.18 - altitude * 0.018) % screenHeight + screenHeight) % screenHeight;
-      this.bgPlanetGraphics.clear();
-      this.bgPlanetGraphics.fillStyle(0x2244aa, 0.7);
-      this.bgPlanetGraphics.fillCircle(this.config.worldWidth * 0.78, y1, 42);
-      this.bgPlanetGraphics.lineStyle(2, 0x1a3388, 1);
-      this.bgPlanetGraphics.strokeCircle(this.config.worldWidth * 0.78, y1, 42);
-    }
-    if (this.bgPlanet2Graphics) {
-      const y2 = ((screenHeight * 0.38 - altitude * 0.013) % screenHeight + screenHeight) % screenHeight;
-      this.bgPlanet2Graphics.clear();
-      this.bgPlanet2Graphics.fillStyle(0x773322, 0.7);
-      this.bgPlanet2Graphics.fillCircle(this.config.worldWidth * 0.14, y2, 22);
-      this.bgPlanet2Graphics.lineStyle(2, 0x552211, 1);
-      this.bgPlanet2Graphics.strokeCircle(this.config.worldWidth * 0.14, y2, 22);
-    }
+    // Planets are static background elements (no parallax scrolling)
   }
 
   private renderAsteroids(): void {
