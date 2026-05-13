@@ -217,11 +217,18 @@ export class FlapFortuneUI {
     if (!this.state) return;
 
     if (this.waitingToStart) {
+      // Make wizard bob up and down gently while waiting
+      const t = this.scene.time.now;
+      const bobAmount = Math.sin(t / 500) * 12; // Gentle bobbing motion
+      if (this.state) {
+        this.state.playerY = this.config.worldHeight / 2 + bobAmount;
+      }
+      
       // Render background and character with "tap to start" visual feedback
       this.renderBackground();
       this.renderWizard();
+      
       // Show pulsing tap prompt
-      const t = this.scene.time.now;
       const pulseAlpha = 0.5 + 0.5 * Math.sin(t / 300);
       this.statusText?.setAlpha(pulseAlpha).setText('TAP TO START');
       this.statusText?.setColor(GOLD_STR);
