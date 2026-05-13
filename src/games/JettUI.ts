@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import type { JettConfig } from './JettLogic';
 import { createJettState, tickJett, cashOutJett } from './JettLogic';
+import { createRNG } from '../shared/rng/ProvablyFairRNG';
 import {
   COLOR_BG,
   COLOR_SURFACE,
@@ -59,6 +60,7 @@ export class JettUI {
   private state: ReturnType<typeof createJettState> | null = null;
   private lastAltitudeFlash = 0;  // Track last altitude milestone flash for UI feedback
   private startScreenObjects: Phaser.GameObjects.GameObject[] = [];  // Objects to clean up before game starts
+  private rng: ReturnType<typeof createRNG> | null = null;  // Persistent RNG for the session
 
   constructor(scene: Phaser.Scene, config: JettConfig) {
     this.scene   = scene;
@@ -69,7 +71,9 @@ export class JettUI {
 
   public start(bet: number): void {
     this.cleanup();
+    this.rng = createRNG();  // Create RNG once per game session
     this.state = createJettState(bet, this.config);
+    this.state.rng = this.rng.random.bind(this.rng);  // Pass RNG function to state
     this.buildBackground();
     this.buildPlayer();
     this.buildHUD();

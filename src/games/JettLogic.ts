@@ -58,6 +58,7 @@ export interface JettState {
   tickCount: number;
   lastMilestoneAltitude: number;  // Tracks altitude milestones (every 100) for UI feedback
   lastCoinSpawnAltitude: number;  // Tracks last altitude where a coin spawned
+  rng?: () => number;  // Optional RNG function (passed from UI layer for persistence)
 }
 
 /** Configuration for a Jett game instance. */
@@ -141,8 +142,8 @@ export function tickJett(
 
   const houseEdge        = config.houseEdge               ?? DEFAULT_HOUSE_EDGE;
   const combustionChance = config.combustionChancePerTick  ?? DEFAULT_COMBUSTION_CHANCE;
-  const _rng = new ProvablyFairRNG();
-  const rng              = config.rng                      ?? _rng.random.bind(_rng);
+  // Use persistent RNG from state if available, otherwise create new one
+  const rng              = state.rng ?? config.rng ?? new ProvablyFairRNG().random.bind(new ProvablyFairRNG());
 
   state.tickCount++;
 
@@ -242,6 +243,12 @@ export function tickJett(
   const BASE_COMBUSTION = 0.01;  // TESTING: Cranked to 0.01 (1 in 100) for immediate visibility
   const scaledChance = Math.max(BASE_COMBUSTION, combustionChance * (1 + state.altitude / 5000));
   const rngValue = rng();
+  
+  // DEBUG: Log every 300 ticks to see RNG values
+  if (state.tickCount % 300 === 0 && typeof console !== 'undefined') {
+    console.log(`[Tick ${state.tickCount}] RNG sample: ${rngValue.toFixed(6)}, Threshold: ${scaledChance.toFixed(6)}`);
+  }
+  
   if (rngValue < scaledChance) {
     state.isAlive   = false;
     state.combusted = true;
