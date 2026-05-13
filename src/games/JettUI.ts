@@ -183,67 +183,87 @@ export class JettUI {
       });
     }
 
-    // Planet 1 (blue gas giant with bands) — static background decoration
+    // Planet 1 (Earth-like with continents and oceans) — static background decoration
     this.bgPlanetGraphics = this.scene.add.graphics().setDepth(1);
     const p1x = worldWidth * 0.78;
     const p1y = screenHeight * 0.18;
     const p1r = 42;
     
-    // Main body
-    this.bgPlanetGraphics.fillStyle(0x3366dd, 0.85);
+    // Ocean (blue base)
+    this.bgPlanetGraphics.fillStyle(0x1166dd, 0.9);
     this.bgPlanetGraphics.fillCircle(p1x, p1y, p1r);
     
-    // Atmospheric bands
-    this.bgPlanetGraphics.lineStyle(4, 0x2255cc, 0.6);
-    this.bgPlanetGraphics.beginPath();
-    this.bgPlanetGraphics.arc(p1x, p1y, p1r * 0.85, 0, Math.PI * 2);
-    this.bgPlanetGraphics.strokePath();
+    // Continents (green/brown landmasses)
+    this.bgPlanetGraphics.fillStyle(0x22aa33, 0.8);
+    // North America-like
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.35, p1y - p1r * 0.3, p1r * 0.22);
+    // South America-like
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.3, p1y + p1r * 0.25, p1r * 0.15);
+    // Africa-like
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.2, p1y, p1r * 0.2);
+    // Small islands
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.45, p1y - p1r * 0.1, p1r * 0.08);
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.1, p1y - p1r * 0.5, p1r * 0.06);
     
-    this.bgPlanetGraphics.lineStyle(3, 0x1144bb, 0.5);
-    this.bgPlanetGraphics.beginPath();
-    this.bgPlanetGraphics.arc(p1x, p1y, p1r * 0.6, 0, Math.PI * 2);
-    this.bgPlanetGraphics.strokePath();
+    // Cloud swirls (white)
+    this.bgPlanetGraphics.fillStyle(0xffffff, 0.4);
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.15, p1y - p1r * 0.25, p1r * 0.12);
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.4, p1y + p1r * 0.15, p1r * 0.1);
     
-    // Highlight (reflection)
-    this.bgPlanetGraphics.fillStyle(0x88bbff, 0.4);
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.3, p1y - p1r * 0.3, p1r * 0.25);
+    // Polar ice (white)
+    this.bgPlanetGraphics.fillStyle(0xffffff, 0.6);
+    this.bgPlanetGraphics.fillCircle(p1x, p1y - p1r * 0.9, p1r * 0.08);
+    
+    // Highlight (sun reflection)
+    this.bgPlanetGraphics.fillStyle(0x88bbff, 0.5);
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.35, p1y - p1r * 0.35, p1r * 0.2);
     
     // Outline
-    this.bgPlanetGraphics.lineStyle(3, 0x1a3388, 1);
+    this.bgPlanetGraphics.lineStyle(3, 0x0055aa, 1);
     this.bgPlanetGraphics.strokeCircle(p1x, p1y, p1r);
 
-    // Moon (grey with craters) — static background decoration
+    // Moon (grey with heavy cratering) — static background decoration
     this.bgPlanet2Graphics = this.scene.add.graphics().setDepth(1);
     const p2x = worldWidth * 0.14;
     const p2y = screenHeight * 0.38;
     const p2r = 22;
     
-    // Main body (light grey)
-    this.bgPlanet2Graphics.fillStyle(0xcccccc, 0.9);
+    // Main body (light grey lunar surface)
+    this.bgPlanet2Graphics.fillStyle(0xbbbbbb, 0.95);
     this.bgPlanet2Graphics.fillCircle(p2x, p2y, p2r);
     
-    // Large crater (dark grey)
-    this.bgPlanet2Graphics.fillStyle(0x666666, 0.7);
-    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.35, p2y - p2r * 0.25, p2r * 0.18);
+    // Large impact crater (very dark)
+    this.bgPlanet2Graphics.fillStyle(0x444444, 0.8);
+    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.4, p2y - p2r * 0.28, p2r * 0.2);
+    
+    // Large crater rim (lighter)
+    this.bgPlanet2Graphics.fillStyle(0x999999, 0.5);
+    this.bgPlanet2Graphics.strokeCircle(p2x - p2r * 0.4, p2y - p2r * 0.28, p2r * 0.21);
     
     // Medium crater
-    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.4, p2y + p2r * 0.2, p2r * 0.14);
+    this.bgPlanet2Graphics.fillStyle(0x555555, 0.7);
+    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.42, p2y + p2r * 0.22, p2r * 0.15);
+    
+    // Medium crater rim
+    this.bgPlanet2Graphics.fillStyle(0x999999, 0.4);
+    this.bgPlanet2Graphics.strokeCircle(p2x + p2r * 0.42, p2y + p2r * 0.22, p2r * 0.16);
     
     // Small crater
-    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.15, p2y - p2r * 0.45, p2r * 0.1);
+    this.bgPlanet2Graphics.fillStyle(0x666666, 0.6);
+    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.1, p2y - p2r * 0.5, p2r * 0.12);
     
-    // Tiny craters
-    this.bgPlanet2Graphics.fillStyle(0x777777, 0.6);
-    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.1, p2y + p2r * 0.5, p2r * 0.06);
-    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.25, p2y - p2r * 0.15, p2r * 0.05);
+    // Tiny craters scattered
+    this.bgPlanet2Graphics.fillStyle(0x777777, 0.5);
+    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.15, p2y + p2r * 0.48, p2r * 0.07);
+    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.3, p2y - p2r * 0.15, p2r * 0.06);
+    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.5, p2y + p2r * 0.1, p2r * 0.05);
     
-    // Crater highlights (lighter edges)
-    this.bgPlanet2Graphics.fillStyle(0xaaaaaa, 0.5);
-    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.35, p2y - p2r * 0.25, p2r * 0.08);
-    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.4, p2y + p2r * 0.2, p2r * 0.06);
+    // Bright lunar highlands
+    this.bgPlanet2Graphics.fillStyle(0xdddddd, 0.4);
+    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.25, p2y + p2r * 0.4, p2r * 0.15);
     
     // Outline
-    this.bgPlanet2Graphics.lineStyle(2, 0x888888, 1);
+    this.bgPlanet2Graphics.lineStyle(2, 0x999999, 1);
     this.bgPlanet2Graphics.strokeCircle(p2x, p2y, p2r);
   }
 
