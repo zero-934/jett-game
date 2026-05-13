@@ -318,17 +318,17 @@ export class JettUI {
       const y1 = ((screenHeight * 0.18 - altitude * 0.018) % screenHeight + screenHeight) % screenHeight;
       this.bgPlanetGraphics.clear();
       this.bgPlanetGraphics.fillStyle(0x2244aa, 0.7);
-      this.bgPlanetGraphics.fillCircle(config.worldWidth * 0.78, y1, 42);
+      this.bgPlanetGraphics.fillCircle(this.config.worldWidth * 0.78, y1, 42);
       this.bgPlanetGraphics.lineStyle(2, 0x1a3388, 1);
-      this.bgPlanetGraphics.strokeCircle(config.worldWidth * 0.78, y1, 42);
+      this.bgPlanetGraphics.strokeCircle(this.config.worldWidth * 0.78, y1, 42);
     }
     if (this.bgPlanet2Graphics) {
       const y2 = ((screenHeight * 0.38 - altitude * 0.013) % screenHeight + screenHeight) % screenHeight;
       this.bgPlanet2Graphics.clear();
       this.bgPlanet2Graphics.fillStyle(0x773322, 0.7);
-      this.bgPlanet2Graphics.fillCircle(config.worldWidth * 0.14, y2, 22);
+      this.bgPlanet2Graphics.fillCircle(this.config.worldWidth * 0.14, y2, 22);
       this.bgPlanet2Graphics.lineStyle(2, 0x552211, 1);
-      this.bgPlanet2Graphics.strokeCircle(config.worldWidth * 0.14, y2, 22);
+      this.bgPlanet2Graphics.strokeCircle(this.config.worldWidth * 0.14, y2, 22);
     }
   }
 
