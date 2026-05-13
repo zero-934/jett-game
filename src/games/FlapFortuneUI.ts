@@ -217,9 +217,14 @@ export class FlapFortuneUI {
     if (!this.state) return;
 
     if (this.waitingToStart) {
-      // Still render background and character while frozen
+      // Render background and character with "tap to start" visual feedback
       this.renderBackground();
       this.renderWizard();
+      // Show pulsing tap prompt
+      const t = this.scene.time.now;
+      const pulseAlpha = 0.5 + 0.5 * Math.sin(t / 300);
+      this.statusText?.setAlpha(pulseAlpha).setText('TAP TO START');
+      this.statusText?.setColor(GOLD_STR);
       return;
     }
     if (this.state.isAlive && !this.state.cashedOut) {
@@ -289,7 +294,7 @@ export class FlapFortuneUI {
       g.fillTriangle(hx, worldHeight * 0.72, hx + hillW * 0.5, worldHeight * 0.72 - hh, hx + hillW, worldHeight * 0.72);
     }
 
-    // ── Mid castle — large background keep (static, no scroll) ────────────────
+    // ── Mid castle — large background keep (enhanced with detail) ──────────────
     const keepX = worldWidth * 0.3;
     const keepW = 120;
     const keepH = 160;
@@ -297,39 +302,56 @@ export class FlapFortuneUI {
     g.fillStyle(0x1a1220, 1);
     // Main keep body
     g.fillRect(keepX, keepY, keepW, keepH);
-    // Keep battlements
+    // Keep battlements with inner depth
     const mW = 14;
     for (let m = 0; m < 7; m++) {
-      if (m % 2 === 0) g.fillRect(keepX + m * (keepW / 7), keepY - 16, mW, 16);
+      if (m % 2 === 0) {
+        g.fillRect(keepX + m * (keepW / 7), keepY - 16, mW, 16);
+        g.fillStyle(0x0a0810, 1);
+        g.fillRect(keepX + m * (keepW / 7) + 2, keepY - 14, mW - 4, 4);
+        g.fillStyle(0x1a1220, 1);
+      }
     }
-    // Keep windows — arched (two rows)
-    g.fillStyle(0xffcc33, 0.55);
-    for (let row = 0; row < 2; row++) {
+    // Keep windows — arched (three rows with glow)
+    for (let row = 0; row < 3; row++) {
       for (let col = 0; col < 3; col++) {
         const wx = keepX + 18 + col * 36;
-        const wy = keepY + 20 + row * 55;
+        const wy = keepY + 15 + row * 45;
+        const windowGlow = 0.3 + 0.25 * Math.sin(t * 0.8 + wx * 0.01);
+        g.fillStyle(0xffcc33, windowGlow * 0.4);
+        g.fillRect(wx - 2, wy + 4, 14, 20);
+        g.fillStyle(0xffcc33, 0.6);
         g.fillRect(wx, wy + 6, 10, 14);
         g.fillTriangle(wx - 1, wy + 6, wx + 11, wy + 6, wx + 5, wy);
       }
     }
-    // Side towers of keep
+    // Side towers of keep — enhanced
     g.fillStyle(0x1a1220, 1);
     for (const tx of [keepX - 18, keepX + keepW - 2]) {
       const th = keepH + 30;
       g.fillRect(tx, worldHeight * 0.72 - th, 20, th);
-      // Tower battlements
+      // Tower battlements with depth
       for (let m = 0; m < 3; m++) {
-        if (m % 2 === 0) g.fillRect(tx + m * 7, worldHeight * 0.72 - th - 10, 7, 10);
+        if (m % 2 === 0) {
+          g.fillRect(tx + m * 7, worldHeight * 0.72 - th - 10, 7, 10);
+          g.fillStyle(0x0a0810, 1);
+          g.fillRect(tx + m * 7 + 1, worldHeight * 0.72 - th - 8, 5, 3);
+          g.fillStyle(0x1a1220, 1);
+        }
       }
       // Cone roof
       g.fillStyle(0x3a0a0a, 1);
       g.fillTriangle(tx - 2, worldHeight * 0.72 - th, tx + 22, worldHeight * 0.72 - th, tx + 10, worldHeight * 0.72 - th - 35);
+      // Tower window (lit with flicker)
+      g.fillStyle(0xffcc33, 0.4 + 0.2 * Math.sin(t * 0.6 + tx * 0.005));
+      g.fillRect(tx + 5, worldHeight * 0.72 - th + 40, 10, 12);
       g.fillStyle(0x1a1220, 1);
     }
-    // Keep flag
+    // Keep flag (animated slight wave)
+    const flagWave = Math.sin(t * 0.005) * 2;
     g.fillStyle(0x880000, 1);
     g.fillRect(keepX + keepW / 2 - 1, keepY - 38, 2, 22);
-    g.fillTriangle(keepX + keepW / 2 + 1, keepY - 38, keepX + keepW / 2 + 14, keepY - 31, keepX + keepW / 2 + 1, keepY - 24);
+    g.fillTriangle(keepX + keepW / 2 + 1 + flagWave, keepY - 38, keepX + keepW / 2 + 14 + flagWave, keepY - 31, keepX + keepW / 2 + 1 + flagWave, keepY - 24);
 
     // ── Foreground castle wall (static, no scroll) ────────────────────────────
     const wallY = worldHeight * 0.78;
