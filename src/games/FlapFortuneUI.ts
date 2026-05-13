@@ -217,9 +217,7 @@ export class FlapFortuneUI {
     if (!this.state) return;
 
     if (this.waitingToStart) {
-      // Make wizard bob up and down gently while waiting
       const t = this.scene.time.now;
-      const bobAmount = Math.sin(t / 500) * 12; // Gentle bobbing motion
       
       // Apply gravity and flap (like during game, but without gate logic)
       const GRAVITY = 0.35;
