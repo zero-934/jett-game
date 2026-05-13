@@ -200,6 +200,10 @@ export function tickJett(
       animPhase: 0,
     };
     state.coins.push(coin);
+    // DEBUG
+    if (typeof console !== 'undefined') {
+      console.log(`[Jett] Spawned coin #${coin.id} at altitude ${state.altitude.toFixed(0)}, coins total: ${state.coins.length}`);
+    }
   }
 
   // Update coin animations and cull far below
