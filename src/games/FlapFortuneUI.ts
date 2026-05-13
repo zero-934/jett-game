@@ -220,9 +220,22 @@ export class FlapFortuneUI {
       // Make wizard bob up and down gently while waiting
       const t = this.scene.time.now;
       const bobAmount = Math.sin(t / 500) * 12; // Gentle bobbing motion
-      if (this.state) {
-        this.state.playerY = this.config.worldHeight / 2 + bobAmount;
+      
+      // Apply gravity and flap (like during game, but without gate logic)
+      const GRAVITY = 0.35;
+      this.state.playerVelocityY += GRAVITY;
+      this.state.playerVelocityY = Math.max(-8, Math.min(8, this.state.playerVelocityY));
+      this.state.playerY += this.state.playerVelocityY;
+      
+      // If flapping during wait, give it a boost (practice mode)
+      if (this.isFlapping) {
+        this.state.playerVelocityY = -7;
+        this.isFlapping = false;
       }
+      
+      // Keep wizard in bounds (don't let them crash during practice)
+      const wr = 12;
+      this.state.playerY = Math.max(wr, Math.min(this.config.worldHeight - wr, this.state.playerY));
       
       // Render background and character with "tap to start" visual feedback
       this.renderBackground();
