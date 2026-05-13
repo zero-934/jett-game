@@ -183,53 +183,45 @@ export class JettUI {
       });
     }
 
-    // Planet 1 (Earth-like with realistic continents and oceans) — static background decoration
+    // Planet 1 (Saturn-like gas giant with rings) — static background decoration
     this.bgPlanetGraphics = this.scene.add.graphics().setDepth(1);
     const p1x = worldWidth * 0.78;
     const p1y = screenHeight * 0.18;
     const p1r = 42;
     
-    // Ocean base (deep blue)
-    this.bgPlanetGraphics.fillStyle(0x0a4a9a, 0.95);
+    // Draw rings FIRST (so planet sits on top)
+    // Outer ring (faint)
+    this.bgPlanetGraphics.lineStyle(3, 0xddaa55, 0.4);
+    this.bgPlanetGraphics.beginPath();
+    this.bgPlanetGraphics.ellipse(p1x, p1y + p1r * 0.15, p1r * 1.6, p1r * 0.5, 0);
+    this.bgPlanetGraphics.strokePath();
+    
+    // Inner ring (brighter)
+    this.bgPlanetGraphics.lineStyle(5, 0xffcc77, 0.7);
+    this.bgPlanetGraphics.beginPath();
+    this.bgPlanetGraphics.ellipse(p1x, p1y + p1r * 0.15, p1r * 1.4, p1r * 0.42, 0);
+    this.bgPlanetGraphics.strokePath();
+    
+    // Planet body (yellow)
+    this.bgPlanetGraphics.fillStyle(0xffdd44, 0.9);
     this.bgPlanetGraphics.fillCircle(p1x, p1y, p1r);
     
-    // Lighter ocean areas
-    this.bgPlanetGraphics.fillStyle(0x1166dd, 0.7);
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.25, p1y - p1r * 0.15, p1r * 0.3);
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.5, p1y - p1r * 0.2, p1r * 0.25);
+    // Atmospheric bands (tan stripes)
+    this.bgPlanetGraphics.fillStyle(0xddaa44, 0.5);
+    this.bgPlanetGraphics.fillCircle(p1x, p1y - p1r * 0.35, p1r * 1.8);
+    this.bgPlanetGraphics.fillRect(p1x - p1r * 1.2, p1y - p1r * 0.15, p1r * 2.4, p1r * 0.3);
+    this.bgPlanetGraphics.fillRect(p1x - p1r * 1.2, p1y + p1r * 0.25, p1r * 2.4, p1r * 0.25);
     
-    // Major continents (forest green)
-    this.bgPlanetGraphics.fillStyle(0x228833, 0.85);
-    // North America
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.32, p1y - p1r * 0.28, p1r * 0.24);
-    // South America
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.28, p1y + p1r * 0.3, p1r * 0.18);
-    // Africa/Eurasia
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.15, p1y + p1r * 0.05, p1r * 0.28);
-    // Australia
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.4, p1y + p1r * 0.35, p1r * 0.12);
+    // Storm detail (orange spot)
+    this.bgPlanetGraphics.fillStyle(0xff8844, 0.6);
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.2, p1y - p1r * 0.15, p1r * 0.18);
     
-    // Desert areas (tan/brown)
-    this.bgPlanetGraphics.fillStyle(0xdd8844, 0.6);
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.25, p1y + p1r * 0.15, p1r * 0.15);
+    // Highlight (bright reflection)
+    this.bgPlanetGraphics.fillStyle(0xffff99, 0.6);
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.3, p1y - p1r * 0.35, p1r * 0.2);
     
-    // Cloud systems (white swirls)
-    this.bgPlanetGraphics.fillStyle(0xffffff, 0.5);
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.45, p1y - p1r * 0.1, p1r * 0.14);
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.35, p1y + p1r * 0.25, p1r * 0.11);
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.1, p1y - p1r * 0.4, p1r * 0.08);
-    
-    // Polar ice caps
-    this.bgPlanetGraphics.fillStyle(0xffffff, 0.8);
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.05, p1y - p1r * 0.92, p1r * 0.1);
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.05, p1y + p1r * 0.92, p1r * 0.08);
-    
-    // Sun reflection/highlight
-    this.bgPlanetGraphics.fillStyle(0xaaccff, 0.6);
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.4, p1y - p1r * 0.38, p1r * 0.22);
-    
-    // Thick outline
-    this.bgPlanetGraphics.lineStyle(4, 0x004488, 1);
+    // Planet outline
+    this.bgPlanetGraphics.lineStyle(3, 0xcc9933, 1);
     this.bgPlanetGraphics.strokeCircle(p1x, p1y, p1r);
 
     // Moon (grey with heavy cratering) — static background decoration
