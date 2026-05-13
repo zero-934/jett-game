@@ -219,21 +219,9 @@ export class FlapFortuneUI {
     if (this.waitingToStart) {
       const t = this.scene.time.now;
       
-      // Apply gravity and flap (like during game, but without gate logic)
-      const GRAVITY = 0.35;
-      this.state.playerVelocityY += GRAVITY;
-      this.state.playerVelocityY = Math.max(-8, Math.min(8, this.state.playerVelocityY));
-      this.state.playerY += this.state.playerVelocityY;
-      
-      // If flapping during wait, give it a boost (practice mode)
-      if (this.isFlapping) {
-        this.state.playerVelocityY = -7;
-        this.isFlapping = false;
-      }
-      
-      // Keep wizard in bounds (don't let them crash during practice)
-      const wr = 12;
-      this.state.playerY = Math.max(wr, Math.min(this.config.worldHeight - wr, this.state.playerY));
+      // Wizard just sits centered, waiting for first tap to start
+      this.state.playerY = this.config.worldHeight / 2;
+      this.state.playerVelocityY = 0;
       
       // Render background and character with "tap to start" visual feedback
       this.renderBackground();
