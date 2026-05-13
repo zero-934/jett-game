@@ -239,13 +239,16 @@ export function tickJett(
   // This ensures: (a) house edge is always present, (b) occasional instant failures
   // create psychological tension without feeling random, (c) skill dominates early, risk compounds late.
   // Matches Flap Fortune psychology: BASE_COMBUSTION * (1 + progress_metric * scaling_factor)
-  const BASE_COMBUSTION = 0.0005;  // Increased from 0.0003 for better visibility + fairness
+  const BASE_COMBUSTION = 0.01;  // TESTING: Cranked to 0.01 (1 in 100) for immediate visibility
   const scaledChance = Math.max(BASE_COMBUSTION, combustionChance * (1 + state.altitude / 5000));
   const rngValue = rng();
   if (rngValue < scaledChance) {
     state.isAlive   = false;
     state.combusted = true;
     state.payout    = 0;
+    if (typeof console !== 'undefined') {
+      console.log(`💥 COMBUSTION at tick ${state.tickCount}, altitude ${state.altitude.toFixed(0)}, rng=${rngValue.toFixed(6)}`);
+    }
   }
 
   // Track altitude milestones (every 100 units) for UI feedback (altitude flash effect)
