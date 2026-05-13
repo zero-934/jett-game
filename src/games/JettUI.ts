@@ -212,28 +212,38 @@ export class JettUI {
     this.bgPlanetGraphics.lineStyle(3, 0x1a3388, 1);
     this.bgPlanetGraphics.strokeCircle(p1x, p1y, p1r);
 
-    // Planet 2 (rocky planet with craters) — static background decoration
+    // Moon (grey with craters) — static background decoration
     this.bgPlanet2Graphics = this.scene.add.graphics().setDepth(1);
     const p2x = worldWidth * 0.14;
     const p2y = screenHeight * 0.38;
     const p2r = 22;
     
-    // Main body
-    this.bgPlanet2Graphics.fillStyle(0xaa5544, 0.85);
+    // Main body (light grey)
+    this.bgPlanet2Graphics.fillStyle(0xcccccc, 0.9);
     this.bgPlanet2Graphics.fillCircle(p2x, p2y, p2r);
     
-    // Craters
-    this.bgPlanet2Graphics.fillStyle(0x663322, 0.6);
-    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.4, p2y - p2r * 0.3, p2r * 0.15);
-    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.3, p2y + p2r * 0.25, p2r * 0.12);
-    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.1, p2y - p2r * 0.6, p2r * 0.08);
+    // Large crater (dark grey)
+    this.bgPlanet2Graphics.fillStyle(0x666666, 0.7);
+    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.35, p2y - p2r * 0.25, p2r * 0.18);
     
-    // Highlight
-    this.bgPlanet2Graphics.fillStyle(0xdd8855, 0.5);
-    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.35, p2y - p2r * 0.35, p2r * 0.15);
+    // Medium crater
+    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.4, p2y + p2r * 0.2, p2r * 0.14);
+    
+    // Small crater
+    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.15, p2y - p2r * 0.45, p2r * 0.1);
+    
+    // Tiny craters
+    this.bgPlanet2Graphics.fillStyle(0x777777, 0.6);
+    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.1, p2y + p2r * 0.5, p2r * 0.06);
+    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.25, p2y - p2r * 0.15, p2r * 0.05);
+    
+    // Crater highlights (lighter edges)
+    this.bgPlanet2Graphics.fillStyle(0xaaaaaa, 0.5);
+    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.35, p2y - p2r * 0.25, p2r * 0.08);
+    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.4, p2y + p2r * 0.2, p2r * 0.06);
     
     // Outline
-    this.bgPlanet2Graphics.lineStyle(2, 0x552211, 1);
+    this.bgPlanet2Graphics.lineStyle(2, 0x888888, 1);
     this.bgPlanet2Graphics.strokeCircle(p2x, p2y, p2r);
   }
 
