@@ -24,6 +24,19 @@ export interface JettAsteroid {
   rotationSpeed: number;
 }
 
+/** A single coin in world coordinates. */
+export interface JettCoin {
+  id: number;
+  x: number;
+  /** World Y — altitude at which this coin sits. */
+  worldY: number;
+  radius: number;
+  /** Collected flag — true if player has picked this up. */
+  collected: boolean;
+  /** Animation phase (0-1) for pulse effect. */
+  animPhase: number;
+}
+
 /** Full Jett game state snapshot. */
 export interface JettState {
   playerX: number;
@@ -32,7 +45,10 @@ export interface JettState {
   altitude: number;
   multiplier: number;
   asteroids: JettAsteroid[];
+  coins: JettCoin[];
   nextAsteroidId: number;
+  nextCoinId: number;
+  coinsCollected: number;
   isAlive: boolean;
   cashedOut: boolean;
   combusted: boolean;
@@ -41,6 +57,7 @@ export interface JettState {
   speed: number;
   tickCount: number;
   lastMilestoneAltitude: number;  // Tracks altitude milestones (every 100) for UI feedback
+  lastCoinSpawnAltitude: number;  // Tracks last altitude where a coin spawned
 }
 
 /** Configuration for a Jett game instance. */
@@ -87,7 +104,10 @@ export function createJettState(bet: number, config: JettConfig): JettState {
     altitude: 0,
     multiplier: 1.0,
     asteroids: [],
+    coins: [],
     nextAsteroidId: 0,
+    nextCoinId: 0,
+    coinsCollected: 0,
     isAlive: true,
     cashedOut: false,
     combusted: false,
@@ -96,6 +116,7 @@ export function createJettState(bet: number, config: JettConfig): JettState {
     speed: BASE_SPEED,
     tickCount: 0,
     lastMilestoneAltitude: 0,
+    lastCoinSpawnAltitude: 0,
   };
 }
 
@@ -164,8 +185,46 @@ export function tickJett(
   // Cull asteroids far below
   state.asteroids = state.asteroids.filter(a => a.worldY > state.altitude - config.screenHeight);
 
-  // Update multiplier
-  state.multiplier = computeMultiplier(state.altitude, houseEdge);
+  // Spawn coins — every 300m (or ~every 300 ticks at avg speed 1.2)
+  // Coins are rare and valuable, rewarding skillful flight
+  const COIN_SPAWN_INTERVAL = 300; // altitude units between coin spawns
+  if (state.altitude - state.lastCoinSpawnAltitude >= COIN_SPAWN_INTERVAL) {
+    state.lastCoinSpawnAltitude = state.altitude;
+    const coinX = Math.random() * (config.worldWidth - 40) + 20; // Keep within bounds
+    const coin: JettCoin = {
+      id: state.nextCoinId++,
+      x: coinX,
+      worldY: state.altitude + config.screenHeight * 0.8, // Spawn ahead in view
+      radius: 8,
+      collected: false,
+      animPhase: 0,
+    };
+    state.coins.push(coin);
+  }
+
+  // Update coin animations and cull far below
+  for (const coin of state.coins) {
+    coin.animPhase = (coin.animPhase + 0.05) % 1; // Pulse animation
+  }
+  state.coins = state.coins.filter(c => !c.collected && c.worldY > state.altitude - config.screenHeight);
+
+  // Check coin collection
+  for (const coin of state.coins) {
+    if (!coin.collected) {
+      const dx = state.playerX - coin.x;
+      const dy = state.playerWorldY - coin.worldY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < state.playerRadius + coin.radius) {
+        coin.collected = true;
+        state.coinsCollected++;
+        // Apply multiplier boost: +0.03x per coin
+        state.multiplier += 0.03;
+      }
+    }
+  }
+
+  // Update multiplier (accounts for coin boosts)
+  state.multiplier = computeMultiplier(state.altitude, houseEdge) + (state.coinsCollected * 0.03);
 
   // Collision check
   if (checkAsteroidCollision(state)) {

@@ -36,6 +36,9 @@ export class JettUI {
   // Asteroid graphics pool — keyed by asteroid id
   private asteroidGraphics: Map<number, Phaser.GameObjects.Graphics> = new Map();
 
+  // Coin graphics pool — keyed by coin id
+  private coinGraphics: Map<number, Phaser.GameObjects.Graphics> = new Map();
+
   // Flame
   private flameGraphics: Phaser.GameObjects.Graphics | null = null;
 
@@ -85,6 +88,8 @@ export class JettUI {
     this.flameGraphics?.destroy();
     for (const g of this.asteroidGraphics.values()) g.destroy();
     this.asteroidGraphics.clear();
+    for (const g of this.coinGraphics.values()) g.destroy();
+    this.coinGraphics.clear();
     this.multiplierText?.destroy();
     this.altitudeText?.destroy();
     this.statusText?.destroy();
@@ -234,6 +239,7 @@ export class JettUI {
 
     this.renderBackground();
     this.renderAsteroids();
+    this.renderCoins();
     this.renderPlayer();
     this.renderFlame();
     this.updateHUD();
@@ -370,6 +376,59 @@ export class JettUI {
     g.fillStyle(0x554433, 0.7);
     g.fillCircle(cx - radius * 0.25, cy - radius * 0.15, radius * 0.18);
     g.fillCircle(cx + radius * 0.3,  cy + radius * 0.2,  radius * 0.12);
+  }
+
+  private renderCoins(): void {
+    if (!this.state) return;
+    const altitude     = this.state.altitude;
+    const screenHeight = this.config.screenHeight;
+
+    // Remove stale graphics
+    const activeIds = new Set(this.state.coins.filter(c => !c.collected).map(c => c.id));
+    for (const [id, g] of this.coinGraphics) {
+      if (!activeIds.has(id)) { g.destroy(); this.coinGraphics.delete(id); }
+    }
+
+    for (const coin of this.state.coins) {
+      if (coin.collected) continue;
+
+      // World → screen Y
+      const screenY = this.playerScreenY - (coin.worldY - altitude);
+      if (screenY < -50 || screenY > screenHeight + 50) continue;
+
+      let g = this.coinGraphics.get(coin.id);
+      if (!g) {
+        g = this.scene.add.graphics().setDepth(4);
+        this.coinGraphics.set(coin.id, g);
+      }
+
+      this.drawCoin(g, coin.x, screenY, coin.radius, coin.animPhase);
+    }
+  }
+
+  private drawCoin(
+    g: Phaser.GameObjects.Graphics,
+    cx: number, cy: number,
+    radius: number,
+    animPhase: number
+  ): void {
+    g.clear();
+    
+    // Pulse effect based on animation phase
+    const pulseScale = 0.85 + 0.15 * Math.sin(animPhase * Math.PI * 2);
+    const r = radius * pulseScale;
+    
+    // Gold coin with shine
+    g.fillStyle(0xffd700, 1); // Bright gold
+    g.fillCircle(cx, cy, r);
+    
+    // Darker gold edge for depth
+    g.lineStyle(2, 0xcc9900, 1);
+    g.strokeCircleShape(new Phaser.Geom.Circle(cx, cy, r));
+    
+    // Shine highlight (top-left)
+    g.fillStyle(0xffff99, 0.6);
+    g.fillCircle(cx - r * 0.3, cy - r * 0.3, r * 0.3);
   }
 
   private renderPlayer(): void {
