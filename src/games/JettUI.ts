@@ -209,7 +209,7 @@ export class JettUI {
       .setDepth(10);
 
     this.coinsText = this.scene.add
-      .text(16, SAFE_TOP + 65, '🪙 0', TEXT_STYLE_LABEL)
+      .text(16, SAFE_TOP + 65, '🪙 0', { fontFamily: '"Fredoka One", sans-serif', fontSize: '14px', color: '#ffd700' })
       .setDepth(10);
 
     this.coinBonusText = this.scene.add

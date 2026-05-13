@@ -28,7 +28,7 @@ export class JettScene extends Phaser.Scene {
       worldWidth: width,
       screenHeight: height,
       houseEdge: 0.03,
-      combustionChancePerTick: 0.0003,  // Matches Flap Fortune baseline
+      combustionChancePerTick: 0.0005,  // Increased from 0.0003 for better visibility
     });
 
     this.jettUI.start(DEFAULT_BET);
