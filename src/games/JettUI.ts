@@ -46,6 +46,7 @@ export class JettUI {
   private multiplierText: Phaser.GameObjects.Text | null = null;
   private altitudeText:   Phaser.GameObjects.Text | null = null;
   private statusText:     Phaser.GameObjects.Text | null = null;
+  private debugText:      Phaser.GameObjects.Text | null = null;  // DEBUG
   private cashOutButtonBg: Phaser.GameObjects.Graphics | null = null; // Use Graphics for themed button
   private cashOutLabel:   Phaser.GameObjects.Text | null = null;
   private playAgainButtonBg: Phaser.GameObjects.Graphics | null = null;
@@ -93,6 +94,7 @@ export class JettUI {
     this.multiplierText?.destroy();
     this.altitudeText?.destroy();
     this.statusText?.destroy();
+    this.debugText?.destroy();
     this.cashOutButtonBg?.destroy();
     this.cashOutLabel?.destroy();
     this.playAgainButtonBg?.destroy();
@@ -208,6 +210,11 @@ export class JettUI {
       .text(worldWidth / 2, this.config.screenHeight * 0.35, '', TEXT_STYLE_SEMIBOLD)
       .setOrigin(0.5).setDepth(10)
       .setFontSize(FONT_SIZE_XL);
+
+    // DEBUG: Show coin spawning
+    this.debugText = this.scene.add
+      .text(worldWidth / 2, 100, 'coins: 0', { fontFamily: 'monospace', fontSize: '12px', color: '#ffd700' })
+      .setOrigin(0.5).setDepth(100);
 
     const btnWidth = 124;
     const btnHeight = 44;
@@ -474,6 +481,7 @@ export class JettUI {
     if (!this.state) return;
     this.multiplierText?.setText(`x${this.state.multiplier.toFixed(2)}`);
     this.altitudeText?.setText(`ALT: ${Math.floor(this.state.altitude)}m`);
+    this.debugText?.setText(`coins: ${this.state.coins.length}|${this.state.coinsCollected}`);
   }
 
   // ─── Actions ──────────────────────────────────────────────────────────────
