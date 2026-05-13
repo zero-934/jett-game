@@ -184,11 +184,11 @@ export class JettUI {
     }
 
     this.bgPlanet = this.scene.add.arc(
-      worldWidth * 0.78, screenHeight * 0.18, 42, 0, 360, false, 0x2244aa, 0.45
-    );
+      worldWidth * 0.78, screenHeight * 0.18, 42, 0, 360, false, 0x2244aa, 0.6
+    ).setDepth(1).setStrokeStyle(2, 0x1a3388, 1);
     this.bgPlanet2 = this.scene.add.arc(
-      worldWidth * 0.14, screenHeight * 0.38, 22, 0, 360, false, 0x773322, 0.4
-    );
+      worldWidth * 0.14, screenHeight * 0.38, 22, 0, 360, false, 0x773322, 0.6
+    ).setDepth(1).setStrokeStyle(2, 0x552211, 1);
   }
 
   private buildPlayer(): void {
