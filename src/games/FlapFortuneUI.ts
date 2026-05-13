@@ -205,7 +205,15 @@ export class FlapFortuneUI {
   }
 
   private registerInput(): void {
-    this.scene.input.on('pointerdown', () => { this.waitingToStart = false; this.isFlapping = true; });
+    this.scene.input.on('pointerdown', () => { 
+      if (this.waitingToStart) {
+        // First tap: flap immediately, then start game
+        this.isFlapping = true;
+      } else {
+        this.isFlapping = true;
+      }
+      this.waitingToStart = false;
+    });
     this.scene.input.on('pointerup',   () => { this.isFlapping = false; });
     this.scene.input.keyboard?.on('keydown-SPACE', () => { this.isFlapping = true; });
     this.scene.input.keyboard?.on('keyup-SPACE',   () => { this.isFlapping = false; });
@@ -219,9 +227,21 @@ export class FlapFortuneUI {
     if (this.waitingToStart) {
       const t = this.scene.time.now;
       
-      // Wizard just sits centered, waiting for first tap to start
-      this.state.playerY = this.config.worldHeight / 2;
-      this.state.playerVelocityY = 0;
+      // Apply gravity and flap physics (so first tap moves wizard immediately)
+      const GRAVITY = 0.35;
+      this.state.playerVelocityY += GRAVITY;
+      this.state.playerVelocityY = Math.max(-8, Math.min(8, this.state.playerVelocityY));
+      this.state.playerY += this.state.playerVelocityY;
+      
+      // If flapping, apply flap boost
+      if (this.isFlapping) {
+        this.state.playerVelocityY = -7;
+        this.isFlapping = false;
+      }
+      
+      // Keep wizard in bounds
+      const wr = 12;
+      this.state.playerY = Math.max(wr, Math.min(this.config.worldHeight - wr, this.state.playerY));
       
       // Render background and character with "tap to start" visual feedback
       this.renderBackground();
