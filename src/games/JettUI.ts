@@ -190,16 +190,26 @@ export class JettUI {
     const p1r = 42;
     
     // Draw rings FIRST (so planet sits on top)
-    // Outer ring (faint)
+    // Outer ring (faint) — approximate ellipse with arc
     this.bgPlanetGraphics.lineStyle(3, 0xddaa55, 0.4);
-    this.bgPlanetGraphics.beginPath();
-    this.bgPlanetGraphics.ellipse(p1x, p1y + p1r * 0.15, p1r * 1.6, p1r * 0.5, 0);
+    for (let i = 0; i < Math.PI * 2; i += 0.1) {
+      const ringX = p1x + Math.cos(i) * p1r * 1.6;
+      const ringY = p1y + Math.sin(i) * p1r * 0.5 + p1r * 0.15;
+      if (i === 0) this.bgPlanetGraphics.moveTo(ringX, ringY);
+      else this.bgPlanetGraphics.lineTo(ringX, ringY);
+    }
+    this.bgPlanetGraphics.closePath();
     this.bgPlanetGraphics.strokePath();
     
     // Inner ring (brighter)
     this.bgPlanetGraphics.lineStyle(5, 0xffcc77, 0.7);
-    this.bgPlanetGraphics.beginPath();
-    this.bgPlanetGraphics.ellipse(p1x, p1y + p1r * 0.15, p1r * 1.4, p1r * 0.42, 0);
+    for (let i = 0; i < Math.PI * 2; i += 0.1) {
+      const ringX = p1x + Math.cos(i) * p1r * 1.4;
+      const ringY = p1y + Math.sin(i) * p1r * 0.42 + p1r * 0.15;
+      if (i === 0) this.bgPlanetGraphics.moveTo(ringX, ringY);
+      else this.bgPlanetGraphics.lineTo(ringX, ringY);
+    }
+    this.bgPlanetGraphics.closePath();
     this.bgPlanetGraphics.strokePath();
     
     // Planet body (yellow)
