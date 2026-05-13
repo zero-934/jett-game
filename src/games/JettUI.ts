@@ -183,43 +183,53 @@ export class JettUI {
       });
     }
 
-    // Planet 1 (Earth-like with continents and oceans) — static background decoration
+    // Planet 1 (Earth-like with realistic continents and oceans) — static background decoration
     this.bgPlanetGraphics = this.scene.add.graphics().setDepth(1);
     const p1x = worldWidth * 0.78;
     const p1y = screenHeight * 0.18;
     const p1r = 42;
     
-    // Ocean (blue base)
-    this.bgPlanetGraphics.fillStyle(0x1166dd, 0.9);
+    // Ocean base (deep blue)
+    this.bgPlanetGraphics.fillStyle(0x0a4a9a, 0.95);
     this.bgPlanetGraphics.fillCircle(p1x, p1y, p1r);
     
-    // Continents (green/brown landmasses)
-    this.bgPlanetGraphics.fillStyle(0x22aa33, 0.8);
-    // North America-like
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.35, p1y - p1r * 0.3, p1r * 0.22);
-    // South America-like
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.3, p1y + p1r * 0.25, p1r * 0.15);
-    // Africa-like
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.2, p1y, p1r * 0.2);
-    // Small islands
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.45, p1y - p1r * 0.1, p1r * 0.08);
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.1, p1y - p1r * 0.5, p1r * 0.06);
+    // Lighter ocean areas
+    this.bgPlanetGraphics.fillStyle(0x1166dd, 0.7);
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.25, p1y - p1r * 0.15, p1r * 0.3);
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.5, p1y - p1r * 0.2, p1r * 0.25);
     
-    // Cloud swirls (white)
-    this.bgPlanetGraphics.fillStyle(0xffffff, 0.4);
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.15, p1y - p1r * 0.25, p1r * 0.12);
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.4, p1y + p1r * 0.15, p1r * 0.1);
+    // Major continents (forest green)
+    this.bgPlanetGraphics.fillStyle(0x228833, 0.85);
+    // North America
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.32, p1y - p1r * 0.28, p1r * 0.24);
+    // South America
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.28, p1y + p1r * 0.3, p1r * 0.18);
+    // Africa/Eurasia
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.15, p1y + p1r * 0.05, p1r * 0.28);
+    // Australia
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.4, p1y + p1r * 0.35, p1r * 0.12);
     
-    // Polar ice (white)
-    this.bgPlanetGraphics.fillStyle(0xffffff, 0.6);
-    this.bgPlanetGraphics.fillCircle(p1x, p1y - p1r * 0.9, p1r * 0.08);
+    // Desert areas (tan/brown)
+    this.bgPlanetGraphics.fillStyle(0xdd8844, 0.6);
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.25, p1y + p1r * 0.15, p1r * 0.15);
     
-    // Highlight (sun reflection)
-    this.bgPlanetGraphics.fillStyle(0x88bbff, 0.5);
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.35, p1y - p1r * 0.35, p1r * 0.2);
+    // Cloud systems (white swirls)
+    this.bgPlanetGraphics.fillStyle(0xffffff, 0.5);
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.45, p1y - p1r * 0.1, p1r * 0.14);
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.35, p1y + p1r * 0.25, p1r * 0.11);
+    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.1, p1y - p1r * 0.4, p1r * 0.08);
     
-    // Outline
-    this.bgPlanetGraphics.lineStyle(3, 0x0055aa, 1);
+    // Polar ice caps
+    this.bgPlanetGraphics.fillStyle(0xffffff, 0.8);
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.05, p1y - p1r * 0.92, p1r * 0.1);
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.05, p1y + p1r * 0.92, p1r * 0.08);
+    
+    // Sun reflection/highlight
+    this.bgPlanetGraphics.fillStyle(0xaaccff, 0.6);
+    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.4, p1y - p1r * 0.38, p1r * 0.22);
+    
+    // Thick outline
+    this.bgPlanetGraphics.lineStyle(4, 0x004488, 1);
     this.bgPlanetGraphics.strokeCircle(p1x, p1y, p1r);
 
     // Moon (grey with heavy cratering) — static background decoration
@@ -262,8 +272,8 @@ export class JettUI {
     this.bgPlanet2Graphics.fillStyle(0xdddddd, 0.4);
     this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.25, p2y + p2r * 0.4, p2r * 0.15);
     
-    // Outline
-    this.bgPlanet2Graphics.lineStyle(2, 0x999999, 1);
+    // Thick outline
+    this.bgPlanet2Graphics.lineStyle(3, 0x666666, 1);
     this.bgPlanet2Graphics.strokeCircle(p2x, p2y, p2r);
   }
 
