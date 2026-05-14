@@ -35,12 +35,7 @@ export class FlapFortuneScene extends Phaser.Scene {
 
     this.flapUI.start(DEFAULT_BET);
 
-    // TAP TO FLAP instruction — disappears on first tap
-    const tapHint = this.add.text(width / 2, height * 0.55, 'TAP TO FLAP', {
-      fontFamily: 'monospace', fontSize: '28px', color: '#ffffff',
-      stroke: '#000000', strokeThickness: 5,
-    }).setOrigin(0.5).setDepth(20);
-    this.input.once('pointerdown', () => tapHint.destroy());
+    // TAP TO START is now shown in FlapFortuneUI, no need for duplicate hint here
 
     // Universal nav bar
     const navBg = this.add.graphics();
