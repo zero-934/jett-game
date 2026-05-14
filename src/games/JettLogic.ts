@@ -8,6 +8,7 @@ import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
  * @author Agent 934
  * @date 2026-04-12
  * @license Proprietary – available for licensing
+ * @version 2.3 - May 14 coin spawn at 150m
  */
 
 /** A single asteroid in world coordinates. */
