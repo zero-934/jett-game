@@ -57,7 +57,7 @@ export interface JettState {
   speed: number;
   tickCount: number;
   lastMilestoneAltitude: number;  // Tracks altitude milestones (every 100) for UI feedback
-  lastCoinSpawnAltitude: number;  // Tracks last altitude where a coin spawned
+  lastCoinSpawnAltitude: number;  // Tracks last altitude where a coin spawned (starts at -300 for first coin at 0m)
   rng?: () => number;  // Optional RNG function (passed from UI layer for persistence)
 }
 
@@ -117,7 +117,7 @@ export function createJettState(bet: number, config: JettConfig): JettState {
     speed: BASE_SPEED,
     tickCount: 0,
     lastMilestoneAltitude: 0,
-    lastCoinSpawnAltitude: 0,
+    lastCoinSpawnAltitude: -300, // Start at -300 so first coin spawns at 0m altitude
   };
 }
 
@@ -186,9 +186,9 @@ export function tickJett(
   // Cull asteroids far below
   state.asteroids = state.asteroids.filter(a => a.worldY > state.altitude - config.screenHeight);
 
-  // Spawn coins — every 150m altitude for balanced engagement
+  // Spawn coins — every 300m altitude (first at 0m, then 300m, 600m, etc.)
   // Coins are valuable rewards for skillful flight, providing multiplier boosts
-  const COIN_SPAWN_INTERVAL = 150; // altitude units between coin spawns (balanced frequency)
+  const COIN_SPAWN_INTERVAL = 300; // altitude units between coin spawns
   if (state.altitude - state.lastCoinSpawnAltitude >= COIN_SPAWN_INTERVAL) {
     state.lastCoinSpawnAltitude = state.altitude;
     const coinX = Math.random() * (config.worldWidth - 40) + 20; // Keep within bounds
