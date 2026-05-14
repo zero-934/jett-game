@@ -254,13 +254,12 @@ export class FlapFortuneUI {
       this.groundScrollX = (this.groundScrollX + (this.config.scrollSpeed ?? 3)) % this.config.worldWidth;
     }
 
-    // Show HUD text during gameplay
+    // Always ensure HUD is visible during gameplay
     this.multiplierText?.setVisible(true);
     this.gatesText?.setVisible(true);
-    this.exitLabel?.setVisible(true);
     
     // Hide start screen text once game has started
-    this.statusText?.setVisible(true).setText('');
+    this.statusText?.setText('');
     
     this.renderBackground();
     this.renderGates();
@@ -572,8 +571,9 @@ export class FlapFortuneUI {
 
   private updateHUD(): void {
     if (!this.state) return;
-    this.multiplierText?.setText(`x${this.state.multiplier.toFixed(2)}`);
-    this.gatesText?.setText(`GATES: ${this.state.pipesCleared}`);
+    // Always keep HUD visible during gameplay
+    this.multiplierText?.setVisible(true).setText(`x${this.state.multiplier.toFixed(2)}`);
+    this.gatesText?.setVisible(true).setText(`GATES: ${this.state.pipesCleared}`);
     // Show cash-out strip only after first pipe is cleared
     const canCashOut = this.state.pipesCleared >= 1;
     this.exitStrip?.setVisible(canCashOut);
