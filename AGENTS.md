@@ -460,3 +460,44 @@ git checkout main && git pull
 8. File header on **every** file — `@file`, `@purpose`, `@author Agent 934`, `@date`, `@license Proprietary`. No exceptions.
 9. New public functions need JSDoc: `@param`, `@returns`, `@example`.
 10. **Ethical audio constraint:** NEVER trigger celebratory audio on a net loss. Always check `if (winAmount > betAmount)` before playing win sounds. A spin that returns less than the bet is a loss — treat it as one.
+
+---
+
+## 🚨 CRITICAL ISSUE: Jett Coin Spawn Not Deploying (May 14, 19:18)
+
+**Status:** UNRESOLVED - npm cache fix worked for Flap, but Jett coins still wrong
+
+**Problem:**
+- Changed `lastCoinSpawnAltitude: -150` to spawn coins at 150m
+- Even test value `-50` (should be very early) did NOT deploy
+- Coins STILL spawn at ~800m in deployed game
+
+**What DID work today:**
+- Flap Fortune HUD visibility fix ✅ (cache fix deployed this)
+- Gravity fix ✅
+- Text fixes ✅
+
+**What DIDN'T work:**
+- Jett coin spawn initialization ❌ (no value changes deploy)
+
+**Why this is odd:**
+- Same codebase
+- Same workflow (cache disabled)
+- Same git push process
+- But Flap changes deploy, Jett changes don't
+
+**Hypothesis for next session:**
+- Coin spawn might be hardcoded elsewhere in codebase
+- Runtime override happening somewhere
+- Different cache for JettLogic specifically
+- Value is being reset after initialization
+
+**For Gemini/next agent:**
+1. Search codebase: `grep -r "lastCoinSpawnAltitude" src/`
+2. Check if coin spawning has separate logic path
+3. Verify deployed bundle actually contains `-50` value
+4. Check JettLogic.ts full tick logic for coin resets
+5. May need to add debug logging to see what value is actually used at runtime
+
+**Blocking issue:** Game is unpolished without early coin spawn. Coins at 800m feels too late for engagement.
+
