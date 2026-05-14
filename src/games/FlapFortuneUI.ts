@@ -13,7 +13,7 @@ import { createFlapFortuneState, tickFlapFortune } from './FlapFortuneLogic';
 import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
 
 const GOLD     = 0xc9a84c;
-const GOLD_STR = '#c9a84c';
+const GOLD_STR = '#c9a84c'; // v2.0 - May 14 fixes
 
 // Medieval palette
 const _SKY_TOP     = 0x1a0a2e; void _SKY_TOP; // kept for reference
