@@ -230,30 +230,17 @@ export class FlapFortuneUI {
     if (this.waitingToStart) {
       const t = this.scene.time.now;
       
-      // Apply gravity and flap physics (so first tap moves wizard immediately)
-      const GRAVITY = 0.35;
-      this.state.playerVelocityY += GRAVITY;
-      this.state.playerVelocityY = Math.max(-8, Math.min(8, this.state.playerVelocityY));
-      this.state.playerY += this.state.playerVelocityY;
-      
-      // If flapping, apply flap boost
-      if (this.isFlapping) {
-        this.state.playerVelocityY = -7;
-        this.isFlapping = false;
-      }
-      
-      // Keep wizard in bounds
-      const wr = 12;
-      this.state.playerY = Math.max(wr, Math.min(this.config.worldHeight - wr, this.state.playerY));
+      // Keep wizard centered while waiting (no gravity until game starts)
+      this.state.playerY = this.config.worldHeight / 2;
+      this.state.playerVelocityY = 0;
       
       // Render background and character with "tap to start" visual feedback
       this.renderBackground();
       this.renderWizard();
       
-      // Show pulsing tap prompt
+      // Show pulsing tap prompt (only one text element)
       const pulseAlpha = 0.5 + 0.5 * Math.sin(t / 300);
-      this.statusText?.setAlpha(pulseAlpha).setText('TAP TO START');
-      this.statusText?.setColor(GOLD_STR);
+      this.statusText?.setAlpha(pulseAlpha).setText('TAP TO START').setColor(GOLD_STR);
       return;
     }
     if (this.state.isAlive && !this.state.cashedOut) {
