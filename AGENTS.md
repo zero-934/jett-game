@@ -21,6 +21,45 @@ This rule exists because skipping it caused wrong audits and wasted tokens.
 
 ---
 
+## 🚨 DEPLOYMENT & GIT ACCESS — CRITICAL
+
+**GitHub Access Token Required**
+
+If git auth breaks locally (common), ask the user for a GitHub Personal Access Token (PAT):
+
+```bash
+# User: Go to https://github.com/settings/tokens
+# Generate token with: repo + workflow scopes
+# Copy token, give to agent
+```
+
+**Using the token to deploy:**
+```bash
+git push https://TOKEN@github.com/zero-934/jett-game.git main --force
+```
+
+**Current token:** See TOOLS.md (expires May 16, 2026)
+
+**Deployment Rules (CRITICAL — May 14, 2026 incident)**
+
+1. **NEVER manually push to gh-pages branch** — conflicts with GitHub Actions
+2. **Use ONE deployment method only** — GitHub Actions → GitHub Pages, NOT Vercel + Pages
+3. **Always uninstall conflicting CI/CD** — Vercel auto-deploy was silently blocking all checks
+4. **Force-push resets work** — if deployment gets corrupted, reset to last known good commit + force-push
+
+**If deployment is stuck:**
+1. Check GitHub Actions workflow status
+2. Verify GitHub Pages source is set to "GitHub Actions" (Settings → Pages)
+3. Delete gh-pages branch if it exists (conflicts with Actions)
+4. If nothing works, reset to last deployed commit and force-push
+
+**Backup repos before major resets:**
+```bash
+git clone https://github.com/zero-934/jett-game.git jett-game-backup-YYYY-MM-DD
+```
+
+---
+
 ## 📁 REPO STRUCTURE
 
 **ACTIVE — build here only:**
