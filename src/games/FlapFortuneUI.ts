@@ -262,6 +262,9 @@ export class FlapFortuneUI {
       this.groundScrollX = (this.groundScrollX + (this.config.scrollSpeed ?? 3)) % this.config.worldWidth;
     }
 
+    // Hide start screen text once game has started
+    this.statusText?.setVisible(true).setText('');
+    
     this.renderBackground();
     this.renderGates();
     this.renderWizard();
