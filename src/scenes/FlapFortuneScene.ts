@@ -19,6 +19,7 @@ export class FlapFortuneScene extends Phaser.Scene {
   }
 
   create(): void {
+    // v2.1 - May 14 final fixes (remove TAP TO FLAP duplicate)
     const { width, height } = this.scale;
 
     this.flapUI = new FlapFortuneUI(this, {
