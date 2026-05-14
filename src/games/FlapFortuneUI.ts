@@ -234,13 +234,18 @@ export class FlapFortuneUI {
       this.state.playerY = this.config.worldHeight / 2;
       this.state.playerVelocityY = 0;
       
+      // Hide all HUD text except status
+      this.multiplierText?.setVisible(false);
+      this.gatesText?.setVisible(false);
+      this.exitLabel?.setVisible(false);
+      
       // Render background and character with "tap to start" visual feedback
       this.renderBackground();
       this.renderWizard();
       
       // Show pulsing tap prompt (only one text element)
       const pulseAlpha = 0.5 + 0.5 * Math.sin(t / 300);
-      this.statusText?.setAlpha(pulseAlpha).setText('TAP TO START').setColor(GOLD_STR);
+      this.statusText?.setVisible(true).setAlpha(pulseAlpha).setText('TAP TO START').setColor(GOLD_STR);
       return;
     }
     if (this.state.isAlive && !this.state.cashedOut) {
