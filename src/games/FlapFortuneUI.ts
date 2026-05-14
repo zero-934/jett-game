@@ -73,6 +73,9 @@ export class FlapFortuneUI {
   public start(bet: number): void {
     this.cleanup();
     this.state = createFlapFortuneState(bet, this.config);
+    // Start wizard centered and stable (not falling)
+    this.state.playerY = this.config.worldHeight / 2;
+    this.state.playerVelocityY = 0;
     this.buildBackground();
     this.buildWizard();
     this.buildHUD();

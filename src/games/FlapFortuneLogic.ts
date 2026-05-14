@@ -51,7 +51,7 @@ export interface FlapFortuneConfig {
 
 const DEFAULT_GRAVITY          = 0.45;
 const DEFAULT_FLAP_STRENGTH    = -7.5;
-const DEFAULT_PIPE_SPACING     = 230;
+const DEFAULT_PIPE_SPACING     = 200; // Reduced from 230 for faster pipe spawning
 const DEFAULT_GAP_HEIGHT       = 120;
 const DEFAULT_SCROLL_SPEED     = 3;
 const DEFAULT_HOUSE_EDGE       = 0.03;
