@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import type { JettConfig } from './JettLogic';
 import { createJettState, tickJett, cashOutJett } from './JettLogic';
 import { createRNG } from '../shared/rng/ProvablyFairRNG';
+import { CasinoAudioManager } from '../shared/audio/CasinoAudioManager';
 import {
   COLOR_BG,
   COLOR_SURFACE,
@@ -56,6 +57,8 @@ export class JettUI {
 
 
   private pointerX  = 0;
+  private lastCoinsCollected = 0;  // Track coins for sound effect
+  private audioManager = new CasinoAudioManager();
   private tickTimer: Phaser.Time.TimerEvent | null = null;
   private state: ReturnType<typeof createJettState> | null = null;
   private lastAltitudeFlash = 0;  // Track last altitude milestone flash for UI feedback
@@ -555,6 +558,12 @@ export class JettUI {
     this.coinsText?.setText(`🪙 ${this.state.coinsCollected}`);
     const coinBonus = this.state.coinsCollected * 0.03;
     this.coinBonusText?.setText(`+${coinBonus.toFixed(2)}x`);
+    
+    // Play coin sound when a new coin is collected
+    if (this.state.coinsCollected > this.lastCoinsCollected) {
+      this.lastCoinsCollected = this.state.coinsCollected;
+      this.audioManager.playCoinCollect();
+    }
   }
 
   // ─── Actions ──────────────────────────────────────────────────────────────

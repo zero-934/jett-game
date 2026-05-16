@@ -282,4 +282,38 @@ export class CasinoAudioManager {
       startTime += (LOSS_SOUND_DURATION_MS / 1000) / LOSS_FREQUENCIES.length;
     });
   }
+
+  /**
+   * Plays a bright, ascending tone for coin collection.
+   * Quick and satisfying feedback for the player.
+   * @public
+   */
+  public playCoinCollect(): void {
+    if (!this.audioCtx || !this._enabled) return;
+
+    const now = this.audioCtx.currentTime;
+    // Two quick notes: E5 (659.25 Hz) then G5 (783.99 Hz) for a bright "ding-dong"
+    const coinNotes = [659.25, 783.99]; // E5, G5
+    const noteDuration = 150; // ms per note
+    let startTime = now;
+
+    coinNotes.forEach((frequency) => {
+      const oscillator = this.audioCtx!.createOscillator();
+      const gainNode = this.audioCtx!.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      oscillator.connect(gainNode);
+      gainNode.connect(this.masterGain!);
+
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(NOTE_PEAK_GAIN * 0.7, startTime + 0.01); // Quick attack
+      gainNode.gain.linearRampToValueAtTime(0, startTime + (noteDuration / 1000) + 0.05);
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + (noteDuration / 1000) + 0.05);
+
+      startTime += noteDuration / 1000;
+    });
+  }
 }
