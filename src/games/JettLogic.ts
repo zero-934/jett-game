@@ -99,7 +99,7 @@ function waveSpacing(altitude: number): number {
  * const state = createJettState(10, { worldWidth: 390, screenHeight: 844 });
  */
 export function createJettState(bet: number, config: JettConfig): JettState {
-  return {
+  const state: JettState = {
     playerX: config.worldWidth / 2,
     playerWorldY: 0,
     playerRadius: config.playerRadius ?? 12,
@@ -108,7 +108,7 @@ export function createJettState(bet: number, config: JettConfig): JettState {
     asteroids: [],
     coins: [],
     nextAsteroidId: 0,
-    nextCoinId: 0,
+    nextCoinId: 1,
     coinsCollected: 0,
     isAlive: true,
     cashedOut: false,
@@ -118,8 +118,20 @@ export function createJettState(bet: number, config: JettConfig): JettState {
     speed: BASE_SPEED,
     tickCount: 0,
     lastMilestoneAltitude: 0,
-    lastCoinSpawnAltitude: -250, // First coin spawns at ~250m (earlier), then 550m, 850m, etc (every 300m)
+    lastCoinSpawnAltitude: 0,
   };
+
+  // Spawn first coin immediately at game start for early engagement
+  state.coins.push({
+    id: 0,
+    x: config.worldWidth / 2,
+    worldY: config.screenHeight * 0.8,
+    radius: 8,
+    collected: false,
+    animPhase: 0,
+  });
+
+  return state;
 }
 
 /**
