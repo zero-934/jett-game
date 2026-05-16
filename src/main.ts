@@ -27,6 +27,7 @@ const config: Phaser.Types.Core.GameConfig = {
   width: 390,
   height: 844,
   backgroundColor: '#000000',
+  resolution: window.devicePixelRatio || 2,
   scene: [LockScene, HomeScene, JettScene, ShatterStepScene, FlapFortuneScene, DiceScene, MinesScene, BallDropScene, MasqueradeScene, AlchemistScene, InfernoScene, SurgeScene, DiceDuelScene, DoomCrashScene],
   parent: 'app',
   scale: {
