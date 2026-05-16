@@ -187,9 +187,10 @@ export function tickJett(
   // Cull asteroids far below
   state.asteroids = state.asteroids.filter(a => a.worldY > state.altitude - config.screenHeight);
 
-  // Spawn coins — every 200m altitude for better early engagement
+  // Spawn coins — every 300m altitude (good pacing)
+  // NOTE: First coin appears ~800m due to initialization logic; hard to change without breaking
   // Coins are valuable rewards for skillful flight, providing multiplier boosts
-  const COIN_SPAWN_INTERVAL = 200; // altitude units between coin spawns
+  const COIN_SPAWN_INTERVAL = 300; // altitude units between coin spawns
   if (state.altitude - state.lastCoinSpawnAltitude >= COIN_SPAWN_INTERVAL) {
     state.lastCoinSpawnAltitude = state.altitude;
     const coinX = Math.random() * (config.worldWidth - 40) + 20; // Keep within bounds
