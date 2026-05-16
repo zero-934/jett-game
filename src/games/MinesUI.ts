@@ -66,20 +66,20 @@ export class MinesUI {
     const { width, height } = this.scene.scale;
     const cy = height / 2 - 30;
 
-    // MINES title at top
+    // MINES title at top — match lobby style (clean, crisp)
     const pageTitle = this.scene.add.text(width / 2, SAFE_TOP + 14, 'MINES', {
-      fontFamily: '"Fredoka One", sans-serif',
+      fontFamily: 'Arial, sans-serif',
       fontSize: '24px',
       color: '#c9a84c',
-      letterSpacing: 3,
+      fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
     this.bombSelectorObjs.push(pageTitle);
 
+    // Prompt — simplified styling
     const title = this.scene.add.text(width / 2, cy - 60, 'HOW MANY MINES?', {
-      ...TEXT_STYLE_LABEL,
-      fontSize: FONT_SIZE_LG,
-      color: STR_MUTED,
-      letterSpacing: 0.5,
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '14px',
+      color: '#999999',
     }).setOrigin(0.5);
     this.bombSelectorObjs.push(title);
 
@@ -96,8 +96,10 @@ export class MinesUI {
       this.paintSelectorBtn(bg, cx, cy, btnW, btnH, count === this.selectedBombs);
 
       const label = this.scene.add.text(cx, cy, `${count} 💣`, {
-        ...TEXT_STYLE_GOLD_SEMIBOLD,
-        fontSize: FONT_SIZE_XL,
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '18px',
+        color: '#c9a84c',
+        fontStyle: 'bold',
       }).setOrigin(0.5).setDepth(2);
 
       const hit = this.scene.add.rectangle(cx, cy, btnW, btnH, 0, 0)
@@ -215,37 +217,39 @@ export class MinesUI {
   private buildCashOut(): void {
     const { width, height } = this.scene.scale;
 
-    // MINES title at top center
+    // MINES title at top center — match lobby style
     this.scene.add.text(width / 2, SAFE_TOP + 14, 'MINES', {
-      fontFamily: '"Fredoka One", sans-serif',
+      fontFamily: 'Arial, sans-serif',
       fontSize: '24px',
       color: '#c9a84c',
-      letterSpacing: 3,
+      fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
     // Multiplier shown prominently below the grid
     const gridBottom = (SAFE_TOP + 40 + (height - SAFE_TOP - 40 - (5 * 64 + 4 * 6) - 120) / 2) + (5 * 64 + 4 * 6);
     this.scene.add.text(width / 2, gridBottom + 18, 'MULTIPLIER', {
-      ...TEXT_STYLE_LABEL,
-      fontSize: FONT_SIZE_SM,
-      letterSpacing: 0.5,
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '12px',
+      color: '#999999',
     }).setOrigin(0.5).setDepth(10);
 
     this.multiplierText = this.scene.add.text(width / 2, gridBottom + 48, 'x1.00', {
-      ...TEXT_STYLE_GOLD_SEMIBOLD,
-      fontSize: FONT_SIZE_3XL,
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '32px',
+      color: '#c9a84c',
+      fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
     this.scene.add.text(16, SAFE_TOP + 12, `BET: ${this.BET}`, {
-      ...TEXT_STYLE_BODY,
-      fontSize: FONT_SIZE_BASE,
-      color: STR_GOLD,
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '13px',
+      color: '#c9a84c',
     }).setDepth(10);
 
     this.statusText = this.scene.add.text(width / 2, height - 80, '', {
-      ...TEXT_STYLE_SEMIBOLD,
-      fontSize: FONT_SIZE_XL,
-      color: STR_TEXT,
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '18px',
+      color: '#ffffff',
       align: 'center',
     }).setOrigin(0.5).setDepth(10);
 
