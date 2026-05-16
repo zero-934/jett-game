@@ -118,7 +118,7 @@ export function createJettState(bet: number, config: JettConfig): JettState {
     speed: BASE_SPEED,
     tickCount: 0,
     lastMilestoneAltitude: 0,
-    lastCoinSpawnAltitude: 9999, // TEST: If coins spawn at 9999m, this deployed. If 800m, old code is live.
+    lastCoinSpawnAltitude: -100, // Coins spawn at 100m (early engagement)
   };
 }
 
