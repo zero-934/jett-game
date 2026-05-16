@@ -118,7 +118,7 @@ export function createJettState(bet: number, config: JettConfig): JettState {
     speed: BASE_SPEED,
     tickCount: 0,
     lastMilestoneAltitude: 0,
-    lastCoinSpawnAltitude: 0, // Reset to default (coins spawn at 300m, 600m, 900m...)
+    lastCoinSpawnAltitude: -250, // First coin spawns at ~250m (earlier), then 550m, 850m, etc (every 300m)
   };
 }
 
