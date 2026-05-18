@@ -50,15 +50,22 @@ export class MinesUI {
 
   private buildBombSelector(): void {
     const { width, height } = this.scene.scale;
-    const cy = height / 2 - 30;
 
-    // Create HTML title
+    // Title at top
     const titleDOM = this.scene.add.dom(width / 2, SAFE_TOP + 14, 'div', 'class="mines-title"', 'MINES');
     titleDOM.setOrigin(0.5);
     this.bombSelectorObjs.push(titleDOM);
 
+    // Initialize state so we can build grid
+    this.state = createMinesState(this.BET, this.selectedBombs, this.config);
+    this.buildGrid();
+
+    // Grid is now showing! Now put selector BELOW it
+    const gridBottom = (SAFE_TOP + 40 + (height - SAFE_TOP - 40 - (5 * 64 + 4 * 6) - 120) / 2) + (5 * 64 + 4 * 6);
+    const selectorY = gridBottom + 80;
+
     // Create HTML prompt
-    const promptDOM = this.scene.add.dom(width / 2, cy - 60, 'div', 'class="mines-prompt"', 'HOW MANY MINES?');
+    const promptDOM = this.scene.add.dom(width / 2, selectorY - 40, 'div', 'class="mines-prompt"', 'HOW MANY MINES?');
     promptDOM.setOrigin(0.5);
     this.bombSelectorObjs.push(promptDOM);
 
@@ -72,7 +79,7 @@ export class MinesUI {
       const count = options[i];
       const cx = startX + i * (btnW + gap) + btnW / 2;
 
-      const buttonDOM = this.scene.add.dom(cx, cy, 'button', 'class="mines-button ' + (count === this.selectedBombs ? 'selected' : '') + '"', `${count} 💣`);
+      const buttonDOM = this.scene.add.dom(cx, selectorY, 'button', 'class="mines-button ' + (count === this.selectedBombs ? 'selected' : '') + '"', `${count} 💣`);
       buttonDOM.setOrigin(0.5);
       
       buttonDOM.node.addEventListener('click', () => {
@@ -92,24 +99,19 @@ export class MinesUI {
     }
 
     // Create HTML START button
-    const startCy = cy + 60;
-    const startButtonDOM = this.scene.add.dom(width / 2, startCy, 'button', 'class="mines-primary-button"', 'START');
+    const startButtonDOM = this.scene.add.dom(width / 2, selectorY + 60, 'button', 'class="mines-primary-button"', 'START');
     startButtonDOM.setOrigin(0.5);
     
-    startButtonDOM.node.addEventListener('click', () => this.startGame());
+    startButtonDOM.node.addEventListener('click', () => this.startGameAfterSelection());
     this.bombSelectorObjs.push(startButtonDOM);
   }
 
-
-
-  private startGame(): void {
-    // Remove selector
+  private startGameAfterSelection(): void {
+    // Remove selector UI only, keep grid
     for (const o of this.bombSelectorObjs) (o as Phaser.GameObjects.GameObject & { destroy(): void }).destroy();
     this.bombSelectorObjs = [];
 
-    this.state = createMinesState(this.BET, this.selectedBombs, this.config);
-    this.buildInstructions();
-    this.buildGrid();
+    // State already created, just show game UI
     this.buildCashOut();
   }
 
