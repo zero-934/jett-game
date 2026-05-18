@@ -4,23 +4,9 @@ import { createMinesState, revealTile, cashOutMines } from './MinesLogic';
 import {
   COLOR_SURFACE,
   COLOR_BORDER,
-  COLOR_GOLD,
-  COLOR_DANGER,
-  STR_GOLD,
-  STR_DANGER,
-  STR_TEXT,
-  STR_MUTED,
-  FONT_SIZE_SM,
-  FONT_SIZE_BASE,
-  FONT_SIZE_LG,
   FONT_SIZE_XL,
-  FONT_SIZE_3XL,
-  TEXT_STYLE_LABEL,
-  TEXT_STYLE_BODY,
   TEXT_STYLE_SEMIBOLD,
-  TEXT_STYLE_GOLD_SEMIBOLD,
   SAFE_TOP,
-  drawButton
 } from '../shared/ui/UITheme';
 
 export class MinesUI {
@@ -29,8 +15,8 @@ export class MinesUI {
   private state:  ReturnType<typeof createMinesState> | null = null;
 
   private tileObjects: { bg: Phaser.GameObjects.Graphics; icon: Phaser.GameObjects.Text }[] = [];
-  private multiplierText: Phaser.GameObjects.Text | null = null;
-  private statusText:     Phaser.GameObjects.Text | null = null;
+  private multiplierText: Phaser.GameObjects.DOMElement | null = null;
+  private statusText:     Phaser.GameObjects.DOMElement | null = null;
   private cashOutBtnBg:   Phaser.GameObjects.Graphics | null = null;
   private cashOutLabel:   Phaser.GameObjects.Text | null = null;
 
@@ -66,78 +52,55 @@ export class MinesUI {
     const { width, height } = this.scene.scale;
     const cy = height / 2 - 30;
 
-    // MINES title at top — match lobby style (clean, crisp)
-    const pageTitle = this.scene.add.text(width / 2, SAFE_TOP + 14, 'MINES', {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '24px',
-      color: '#c9a84c',
-      fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(10);
-    this.bombSelectorObjs.push(pageTitle);
+    // Create HTML title
+    const titleDOM = this.scene.add.dom(width / 2, SAFE_TOP + 14, 'div', 'class="mines-title"', 'MINES');
+    titleDOM.setOrigin(0.5);
+    this.bombSelectorObjs.push(titleDOM);
 
-    // Prompt — simplified styling
-    const title = this.scene.add.text(width / 2, cy - 60, 'HOW MANY MINES?', {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '14px',
-      color: '#999999',
-    }).setOrigin(0.5);
-    this.bombSelectorObjs.push(title);
+    // Create HTML prompt
+    const promptDOM = this.scene.add.dom(width / 2, cy - 60, 'div', 'class="mines-prompt"', 'HOW MANY MINES?');
+    promptDOM.setOrigin(0.5);
+    this.bombSelectorObjs.push(promptDOM);
 
     const options: BombCount[] = [3, 5, 10];
-    const btnW = 80, btnH = 56, gap = 14;
+    const btnW = 80, gap = 14;
     const total = options.length * btnW + (options.length - 1) * gap;
     const startX = (width - total) / 2;
 
+    // Create HTML mine selector buttons
     for (let i = 0; i < options.length; i++) {
       const count = options[i];
       const cx = startX + i * (btnW + gap) + btnW / 2;
 
-      const bg = this.scene.add.graphics();
-      this.paintSelectorBtn(bg, cx, cy, btnW, btnH, count === this.selectedBombs);
-
-      const label = this.scene.add.text(cx, cy, `${count} 💣`, {
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '18px',
-        color: '#c9a84c',
-        fontStyle: 'bold',
-      }).setOrigin(0.5).setDepth(2);
-
-      const hit = this.scene.add.rectangle(cx, cy, btnW, btnH, 0, 0)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => {
-          this.selectedBombs = count;
-          // Refresh button styles
-          for (let j = 0; j < options.length; j++) {
-            const bj = this.bombSelectorObjs[1 + j * 3] as Phaser.GameObjects.Graphics;
-            this.paintSelectorBtn(bj, startX + j * (btnW + gap) + btnW / 2, cy, btnW, btnH, options[j] === count);
+      const buttonDOM = this.scene.add.dom(cx, cy, 'button', 'class="mines-button ' + (count === this.selectedBombs ? 'selected' : '') + '"', `${count} 💣`);
+      buttonDOM.setOrigin(0.5);
+      
+      buttonDOM.node.addEventListener('click', () => {
+        this.selectedBombs = count;
+        // Update all button styles
+        const buttons = document.querySelectorAll('.mines-button');
+        buttons.forEach((btn, idx) => {
+          if (options[idx] === count) {
+            btn.classList.add('selected');
+          } else {
+            btn.classList.remove('selected');
           }
         });
+      });
 
-      this.bombSelectorObjs.push(bg, label, hit);
+      this.bombSelectorObjs.push(buttonDOM);
     }
 
-    // START button
+    // Create HTML START button
     const startCy = cy + 60;
-    const { bg: startBg, text: startLabel } = drawButton(this.scene, width / 2, startCy, 160, 52, 'START', 'primary', 2);
-    startBg.setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.startGame());
-    this.bombSelectorObjs.push(startBg, startLabel);
+    const startButtonDOM = this.scene.add.dom(width / 2, startCy, 'button', 'class="mines-primary-button"', 'START');
+    startButtonDOM.setOrigin(0.5);
+    
+    startButtonDOM.node.addEventListener('click', () => this.startGame());
+    this.bombSelectorObjs.push(startButtonDOM);
   }
 
-  private paintSelectorBtn(g: Phaser.GameObjects.Graphics, cx: number, cy: number, w: number, h: number, selected: boolean): void {
-    g.clear();
-    if (selected) {
-      g.fillStyle(COLOR_DANGER, 0.2); // Soft red background for selected bombs
-      g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
-      g.lineStyle(1.5, COLOR_DANGER, 0.8); // Red border
-      g.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
-    } else {
-      g.fillStyle(COLOR_SURFACE, 1);
-      g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
-      g.lineStyle(1, COLOR_BORDER, 0.8);
-      g.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
-    }
-  }
+
 
   private startGame(): void {
     // Remove selector
@@ -217,48 +180,34 @@ export class MinesUI {
   private buildCashOut(): void {
     const { width, height } = this.scene.scale;
 
-    // MINES title at top center — match lobby style
-    this.scene.add.text(width / 2, SAFE_TOP + 14, 'MINES', {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '24px',
-      color: '#c9a84c',
-      fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(10);
+    // MINES title — HTML overlay
+    const titleDOM = this.scene.add.dom(width / 2, SAFE_TOP + 14, 'div', 'class="mines-title"', 'MINES');
+    titleDOM.setOrigin(0.5);
 
-    // Multiplier shown prominently below the grid
+    // Multiplier section
     const gridBottom = (SAFE_TOP + 40 + (height - SAFE_TOP - 40 - (5 * 64 + 4 * 6) - 120) / 2) + (5 * 64 + 4 * 6);
-    this.scene.add.text(width / 2, gridBottom + 18, 'MULTIPLIER', {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '12px',
-      color: '#999999',
-    }).setOrigin(0.5).setDepth(10);
+    
+    const multiplierLabelDOM = this.scene.add.dom(width / 2, gridBottom + 18, 'div', 'class="mines-multiplier-label"', 'MULTIPLIER');
+    multiplierLabelDOM.setOrigin(0.5);
 
-    this.multiplierText = this.scene.add.text(width / 2, gridBottom + 48, 'x1.00', {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '32px',
-      color: '#c9a84c',
-      fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(10);
+    const multiplierValueDOM = this.scene.add.dom(width / 2, gridBottom + 48, 'div', 'class="mines-multiplier-value"', 'x1.00');
+    multiplierValueDOM.setOrigin(0.5);
+    this.multiplierText = multiplierValueDOM as any; // Store for updates
 
-    this.scene.add.text(16, SAFE_TOP + 12, `BET: ${this.BET}`, {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '13px',
-      color: '#c9a84c',
-    }).setDepth(10);
+    // BET label — HTML overlay
+    const betLabelDOM = this.scene.add.dom(16, SAFE_TOP + 12, 'div', 'class="mines-label"', `BET: ${this.BET}`);
+    betLabelDOM.setOrigin(0);
 
-    this.statusText = this.scene.add.text(width / 2, height - 80, '', {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '18px',
-      color: '#ffffff',
-      align: 'center',
-    }).setOrigin(0.5).setDepth(10);
+    // Status text — HTML overlay
+    const statusDOM = this.scene.add.dom(width / 2, height - 80, 'div', 'class="mines-status"', '');
+    statusDOM.setOrigin(0.5);
+    this.statusText = statusDOM as any; // Store for updates
 
-    const { bg, text } = drawButton(this.scene, width - 70, SAFE_TOP + 28, 124, 44, 'CASH OUT', 'primary', 10);
-    this.cashOutBtnBg = bg;
-    this.cashOutLabel = text;
-    this.cashOutBtnBg
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.handleCashOut());
+    // CASH OUT button — HTML overlay
+    const cashOutButtonDOM = this.scene.add.dom(width - 70, SAFE_TOP + 28, 'button', 'class="mines-primary-button"', 'CASH OUT');
+    cashOutButtonDOM.setOrigin(0.5);
+    
+    cashOutButtonDOM.node.addEventListener('click', () => this.handleCashOut());
   }
 
   private handleReveal(
@@ -275,7 +224,9 @@ export class MinesUI {
     if (tile.state === 'safe') {
       this.paintTile(bg, cx, cy, w, h, 'safe');
       icon.setText('💎');
-      this.multiplierText?.setText(`x${this.state.multiplier.toFixed(2)}`).setOrigin(0.5);
+      if (this.multiplierText?.node) {
+        this.multiplierText.node.textContent = `x${this.state.multiplier.toFixed(2)}`;
+      }
     } else if (tile.state === 'bomb') {
       this.paintTile(bg, cx, cy, w, h, 'bomb');
       icon.setText('💣');
@@ -294,10 +245,17 @@ export class MinesUI {
           this.tileObjects[i].icon.setText('💣');
         }
       }
-      this.cashOutBtnBg?.disableInteractive();
-      this.cashOutLabel?.setText('GAME OVER');
-      this.cashOutBtnBg?.clear().fillStyle(COLOR_DANGER, 0.4).fillRoundedRect(this.cashOutBtnBg.x, this.cashOutBtnBg.y, 124, 44, 10); // Indicate disabled
-      this.statusText?.setText('BOOM! GAME OVER').setColor(STR_DANGER);
+      // Update HTML elements for game over
+      const cashOutBtn = document.querySelector('.mines-primary-button') as HTMLButtonElement;
+      if (cashOutBtn) {
+        cashOutBtn.disabled = true;
+        cashOutBtn.textContent = 'GAME OVER';
+        cashOutBtn.style.opacity = '0.5';
+      }
+      if (this.statusText?.node) {
+        this.statusText.node.textContent = 'BOOM! GAME OVER';
+        (this.statusText.node as HTMLElement).style.color = '#ff4444';
+      }
       this.scene.time.delayedCall(600, () => this.showPlayAgain());
     }
   }
@@ -306,17 +264,24 @@ export class MinesUI {
     if (!this.state) return;
     const payout = cashOutMines(this.state);
     if (payout > 0) {
-      this.cashOutBtnBg?.disableInteractive();
-      this.cashOutLabel?.setText('CASHED OUT');
-      this.cashOutBtnBg?.clear().fillStyle(COLOR_SURFACE, 0.8).lineStyle(1.5, COLOR_GOLD, 0.4).strokeRoundedRect(this.cashOutBtnBg.x, this.cashOutBtnBg.y, 124, 44, 10).fillRoundedRect(this.cashOutBtnBg.x, this.cashOutBtnBg.y, 124, 44, 10); // Secondary style for cashed out
-      this.statusText?.setText(`PAID OUT\n${payout.toFixed(2)} credits`).setColor(STR_GOLD);
+      const cashOutBtn = document.querySelector('.mines-primary-button') as HTMLButtonElement;
+      if (cashOutBtn) {
+        cashOutBtn.disabled = true;
+        cashOutBtn.textContent = 'CASHED OUT';
+        cashOutBtn.style.opacity = '0.6';
+      }
+      if (this.statusText?.node) {
+        this.statusText.node.innerHTML = `PAID OUT<br>${payout.toFixed(2)} credits`;
+        (this.statusText.node as HTMLElement).style.color = '#c9a84c';
+      }
       this.scene.time.delayedCall(600, () => this.showPlayAgain());
     }
   }
 
   private showPlayAgain(): void {
     const { width, height } = this.scene.scale;
-    const { bg: btn, text: _label } = drawButton(this.scene, width / 2, height - 44, 180, 50, 'PLAY AGAIN', 'primary', 20);
-    btn.on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
+    const playAgainBtn = this.scene.add.dom(width / 2, height - 44, 'button', 'class="mines-primary-button"', 'PLAY AGAIN');
+    playAgainBtn.setOrigin(0.5);
+    playAgainBtn.node.addEventListener('click', () => { this.cleanup(); this.scene.scene.restart(); });
   }
 }

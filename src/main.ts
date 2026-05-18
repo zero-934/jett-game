@@ -22,7 +22,7 @@ import { SurgeScene } from './scenes/SurgeScene';
 import { DiceDuelScene } from './scenes/DiceDuelScene';
 import { DoomCrashScene } from './scenes/DoomCrashScene';
 
-const config: Phaser.Types.Core.GameConfig = {
+const config = {
   type: Phaser.AUTO,
   width: 390,
   height: 844,
@@ -34,7 +34,10 @@ const config: Phaser.Types.Core.GameConfig = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-};
+  dom: {
+    createContainer: true,
+  },
+} as Phaser.Types.Core.GameConfig;
 
 new Phaser.Game(config);
 // Deep-link and auth handled by LockScene
