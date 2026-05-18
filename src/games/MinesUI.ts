@@ -60,26 +60,16 @@ export class MinesUI {
     this.state = createMinesState(this.BET, this.selectedBombs, this.config);
     this.buildGrid();
 
-    // Grid is now showing! Now put selector BELOW it
+    // Grid is now showing! Calculate positions
     const gridBottom = (SAFE_TOP + 40 + (height - SAFE_TOP - 40 - (5 * 64 + 4 * 6) - 120) / 2) + (5 * 64 + 4 * 6);
     const selectorY = gridBottom + 80;
-
-    // Show multiplier while selecting
-    const gridBottom = (SAFE_TOP + 40 + (height - SAFE_TOP - 40 - (5 * 64 + 4 * 6) - 120) / 2) + (5 * 64 + 4 * 6);
     
-    const multiplierLabelDOM = this.scene.add.dom(width / 2, gridBottom + 18, 'div', 'class="mines-multiplier-label"', 'MULTIPLIER');
-    multiplierLabelDOM.setOrigin(0.5);
-    this.bombSelectorObjs.push(multiplierLabelDOM);
-
-    const multiplierValueDOM = this.scene.add.dom(width / 2, gridBottom + 48, 'div', 'class="mines-multiplier-value"', `x${this.state.multiplier.toFixed(2)}`);
+    // Show multiplier as big bold gold bubble centered over grid
+    const gridCenterY = (SAFE_TOP + 40 + (height - SAFE_TOP - 40 - (5 * 64 + 4 * 6) - 120) / 2) + (5 * 64 + 4 * 6) / 2;
+    const multiplierValueDOM = this.scene.add.dom(width / 2, gridCenterY, 'div', 'class="mines-multiplier-value"', `x${this.state.multiplier.toFixed(2)}`);
     multiplierValueDOM.setOrigin(0.5);
     this.bombSelectorObjs.push(multiplierValueDOM);
     this.multiplierText = multiplierValueDOM as any;
-
-    // Create HTML prompt
-    const promptDOM = this.scene.add.dom(width / 2, selectorY - 40, 'div', 'class="mines-prompt"', 'HOW MANY MINES?');
-    promptDOM.setOrigin(0.5);
-    this.bombSelectorObjs.push(promptDOM);
 
     const options: BombCount[] = [3, 5, 10];
     const btnW = 80, gap = 14;
