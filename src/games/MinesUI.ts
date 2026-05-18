@@ -115,10 +115,6 @@ export class MinesUI {
     this.buildCashOut();
   }
 
-  private buildInstructions(): void {
-    // No instructions — tap to reveal, that's it
-  }
-
   private buildGrid(): void {
     const { width, height } = this.scene.scale;
     const cols = 5, rows = 5;
