@@ -1,6 +1,6 @@
 /**
  * @file GameHeader.ts
- * @purpose Minimal header matching lobby feel: back button, title, balance
+ * @purpose HTML-based header matching Shuffle style: boxes, crisp text, professional layout
  * @author Agent 934
  * @date 2026-05-20
  * @license Proprietary
@@ -16,64 +16,112 @@ export interface GameHeaderConfig {
 }
 
 export class GameHeader {
-  private scene: Phaser.Scene;
   private config: GameHeaderConfig;
-  private headerBg: Phaser.GameObjects.Graphics;
-  private balanceText: Phaser.GameObjects.Text;
-  private backButtonDOM: Phaser.GameObjects.DOMElement | null = null;
-  private titleText: Phaser.GameObjects.Text;
+  private headerContainer: HTMLDivElement;
+  private balanceText: HTMLElement;
 
-  private readonly HEADER_HEIGHT = 52;
-  private readonly GOLD = '#c9a84c';
-  private readonly DARK_BG = 0x050508;
+  private readonly HEADER_HEIGHT = 70;
 
   constructor(config: GameHeaderConfig) {
-    this.scene = config.scene;
     this.config = config;
 
-    const { width } = this.scene.scale;
+    // Create HTML container for header
+    this.headerContainer = document.createElement('div');
+    this.headerContainer.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: ${this.HEADER_HEIGHT}px;
+      background: #050508;
+      border-bottom: 1px solid #c9a84c;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      box-sizing: border-box;
+      z-index: 1000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    `;
 
-    // Background bar (dark, matching lobby)
-    this.headerBg = this.scene.add.graphics().setDepth(100);
-    this.headerBg.fillStyle(this.DARK_BG, 1);
-    this.headerBg.fillRect(0, 0, width, this.HEADER_HEIGHT);
+    // Back button (left)
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '← BACK';
+    backBtn.style.cssText = `
+      background: transparent;
+      border: 2px solid #c9a84c;
+      color: #c9a84c;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    `;
+    backBtn.onmouseover = () => {
+      backBtn.style.backgroundColor = 'rgba(201, 168, 76, 0.1)';
+      backBtn.style.boxShadow = '0 0 12px rgba(201, 168, 76, 0.3)';
+    };
+    backBtn.onmouseout = () => {
+      backBtn.style.backgroundColor = 'transparent';
+      backBtn.style.boxShadow = 'none';
+    };
+    backBtn.onclick = () => this.config.onBack();
+    this.headerContainer.appendChild(backBtn);
 
-    // Gold top accent line (matches lobby)
-    this.headerBg.fillStyle(0xc9a84c, 1);
-    this.headerBg.fillRect(0, 0, width, 3);
+    // Title (center)
+    const title = document.createElement('div');
+    title.textContent = this.config.title;
+    title.style.cssText = `
+      font-size: 18px;
+      font-weight: 700;
+      color: #c9a84c;
+      letter-spacing: 0.5px;
+      flex: 1;
+      text-align: center;
+    `;
+    this.headerContainer.appendChild(title);
 
-    // Back button as DOM element (pill-styled, crisp text)
-    this.backButtonDOM = this.scene.add.dom(20, this.HEADER_HEIGHT / 2, 'button', 
-      'style="background-color: transparent; border: 2px solid #c9a84c; color: #c9a84c; padding: 6px 12px; border-radius: 20px; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; cursor: pointer; margin: 0;"',
-      '← LOBBY'
-    );
-    this.backButtonDOM.setOrigin(0.5);
-    this.backButtonDOM.node.addEventListener('click', () => this.config.onBack());
+    // Balance (right, in box like Shuffle)
+    const balanceBox = document.createElement('div');
+    balanceBox.style.cssText = `
+      border: 1px solid #444;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    `;
 
-    // Game title (centered, crisp text)
-    this.titleText = this.scene.add.text(width / 2, this.HEADER_HEIGHT / 2, this.config.title, {
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
-      fontSize: '20px',
-      fontStyle: 'bold',
-      color: this.GOLD,
-    })
-      .setOrigin(0.5)
-      .setDepth(101);
+    const balanceIcon = document.createElement('span');
+    balanceIcon.textContent = '💰';
+    balanceIcon.style.fontSize = '16px';
+    balanceBox.appendChild(balanceIcon);
 
-    // Balance display (right side, clean spacing)
-    this.balanceText = this.scene.add.text(width - 20, this.HEADER_HEIGHT / 2, `💰 ${this.config.balance.toFixed(2)}`, {
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
-      fontSize: '14px',
-      fontStyle: 'bold',
-      color: this.GOLD,
-    })
-      .setOrigin(1, 0.5)
-      .setDepth(101);
+    this.balanceText = document.createElement('span');
+    this.balanceText.textContent = `${this.config.balance.toFixed(2)}`;
+    this.balanceText.style.cssText = `
+      font-size: 13px;
+      font-weight: 700;
+      color: #c9a84c;
+    `;
+    balanceBox.appendChild(this.balanceText);
+
+    this.headerContainer.appendChild(balanceBox);
+
+    // Attach to DOM (append to parent container)
+    const appContainer = document.getElementById('app');
+    if (appContainer) {
+      appContainer.style.position = 'relative';
+      appContainer.appendChild(this.headerContainer);
+    }
   }
 
   public updateBalance(amount: number): void {
     this.config.balance = amount;
-    this.balanceText.setText(`💰 ${amount.toFixed(2)}`);
+    this.balanceText.textContent = amount.toFixed(2);
   }
 
   public getHeight(): number {
@@ -81,9 +129,8 @@ export class GameHeader {
   }
 
   public destroy(): void {
-    this.headerBg.destroy();
-    this.balanceText.destroy();
-    this.titleText.destroy();
-    this.backButtonDOM?.destroy();
+    if (this.headerContainer && this.headerContainer.parentNode) {
+      this.headerContainer.parentNode.removeChild(this.headerContainer);
+    }
   }
 }

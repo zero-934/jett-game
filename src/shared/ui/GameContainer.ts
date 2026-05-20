@@ -12,7 +12,8 @@ import type { GameFooterConfig } from './GameFooter';
 import { GameHeader } from './GameHeader';
 import { GameFooter } from './GameFooter';
 
-export interface GameContainerConfig extends GameHeaderConfig, GameFooterConfig {
+export interface GameContainerConfig extends Omit<GameHeaderConfig, 'scene'>, Omit<GameFooterConfig, 'scene'> {
+  scene: Phaser.Scene;
   gameKey: string;
 }
 
