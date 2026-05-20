@@ -51,25 +51,21 @@ export class MinesUI {
   private buildBombSelector(): void {
     const { width, height } = this.scene.scale;
 
-    // Title at top
-    const titleDOM = this.scene.add.dom(width / 2, SAFE_TOP + 14, 'div', 'class="mines-title"', 'MINES');
-    titleDOM.setOrigin(0.5);
-    this.bombSelectorObjs.push(titleDOM);
-
     // Initialize state with default (will update when selected)
     this.state = createMinesState(this.BET, 5, this.config);
     this.buildGrid();
 
-    // Show multiplier ABOVE grid (big gold bubble at top)
-    const multiplierY = SAFE_TOP + 50;
+    // Show multiplier ABOVE grid (big gold bubble)
+    const multiplierY = SAFE_TOP + 85;
     const multiplierValueDOM = this.scene.add.dom(width / 2, multiplierY, 'div', 'class="mines-multiplier-value"', `x${this.state.multiplier.toFixed(2)}`);
     multiplierValueDOM.setOrigin(0.5);
+    multiplierValueDOM.setDepth(500); // High depth to ensure visibility
     this.bombSelectorObjs.push(multiplierValueDOM);
     this.multiplierText = multiplierValueDOM as any;
 
-    // Selector buttons BELOW grid
+    // Selector buttons BELOW grid (much more spacing)
     const gridBottom = SAFE_TOP + 100 + (height - SAFE_TOP - 100 - (5 * 64 + 4 * 6) - 140) / 2 + (5 * 64 + 4 * 6);
-    const selectorY = gridBottom + 60;
+    const selectorY = gridBottom + 90; // More space, no overlap
 
     const options: BombCount[] = [3, 5, 10];
     const btnW = 85, gap = 12;
@@ -152,9 +148,10 @@ export class MinesUI {
 
         const bg = this.scene.add.graphics();
         this.paintTile(bg, cx, cy, tileW, tileH, 'hidden');
+        bg.setDepth(1); // Ensure outline is visible
         
-        // Add crisp gold outline to each tile
-        bg.lineStyle(2.5, 0xc9a84c, 0.8);
+        // Add crisp gold outline to each tile (3px, solid)
+        bg.lineStyle(3, 0xc9a84c, 1); // Full opacity, thicker line
         bg.strokeRoundedRect(cx - tileW / 2, cy - tileH / 2, tileW, tileH, 8);
 
         const icon = this.scene.add.text(cx, cy, '', {
