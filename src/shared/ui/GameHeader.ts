@@ -62,30 +62,32 @@ export class GameHeader {
     const title = document.createElement('div');
     title.textContent = this.config.title;
     title.style.cssText = `
-      font-size: 26px;
-      font-weight: 800;
+      font-size: 28px;
+      font-weight: 900;
       color: #c9a84c;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       flex: 1;
       text-align: center;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
     `;
     this.headerContainer.appendChild(title);
 
     // Balance box (right, like Shuffle's dropdown)
     const balanceBox = document.createElement('div');
     balanceBox.style.cssText = `
-      border: 1.5px solid #c9a84c;
-      background: rgba(201, 168, 76, 0.08);
-      border-radius: 10px;
-      padding: 10px 16px;
+      border: 2px solid #c9a84c !important;
+      background: rgba(201, 168, 76, 0.12) !important;
+      border-radius: 12px;
+      padding: 12px 18px;
       display: flex;
       align-items: center;
       gap: 8px;
-      min-width: 140px;
+      min-width: 150px;
       flex-shrink: 0;
+      box-shadow: 0 0 8px rgba(201, 168, 76, 0.2);
     `;
 
     const balanceIcon = document.createElement('span');
