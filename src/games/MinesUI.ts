@@ -111,10 +111,10 @@ export class MinesUI {
     // Create HTML START button (disabled until selection)
     const startButtonDOM = this.scene.add.dom(width / 2, selectorY + 80, 'button', 'class="mines-primary-button"', 'SELECT MINES FIRST');
     startButtonDOM.setOrigin(0.5);
-    this.startButton = startButtonDOM.node;
-    (this.startButton as any).disabled = true;
-    this.startButton.style.opacity = '0.4';
-    this.startButton.style.cursor = 'not-allowed';
+    this.startButton = startButtonDOM.node as any;
+    this.startButton!.disabled = true;
+    (this.startButton as any).style.opacity = '0.4';
+    (this.startButton as any).style.cursor = 'not-allowed';
     
     if (this.startButton) {
       this.startButton.addEventListener('click', () => {
