@@ -20,6 +20,8 @@ export class GameHeader {
   private config: GameHeaderConfig;
   private headerBg: Phaser.GameObjects.Graphics;
   private balanceText: Phaser.GameObjects.Text;
+  private backButtonDOM: Phaser.GameObjects.DOMElement | null = null;
+  private titleText: Phaser.GameObjects.Text;
 
   private readonly HEADER_HEIGHT = 52;
   private readonly GOLD = '#c9a84c';
@@ -40,19 +42,16 @@ export class GameHeader {
     this.headerBg.fillStyle(0xc9a84c, 1);
     this.headerBg.fillRect(0, 0, width, 3);
 
-    // Back button (← style, like lobby)
-    this.scene.add.text(20, this.HEADER_HEIGHT / 2, '←', {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '24px',
-      color: this.GOLD,
-    })
-      .setOrigin(0.5)
-      .setDepth(101)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.config.onBack());
+    // Back button as DOM element (pill-styled, crisp text)
+    this.backButtonDOM = this.scene.add.dom(20, this.HEADER_HEIGHT / 2, 'button', 
+      'style="background-color: transparent; border: 2px solid #c9a84c; color: #c9a84c; padding: 6px 12px; border-radius: 20px; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; cursor: pointer; margin: 0;"',
+      '← LOBBY'
+    );
+    this.backButtonDOM.setOrigin(0.5);
+    this.backButtonDOM.node.addEventListener('click', () => this.config.onBack());
 
-    // Game title (centered, clean like lobby)
-    this.scene.add.text(width / 2, this.HEADER_HEIGHT / 2, this.config.title, {
+    // Game title (centered, crisp text)
+    this.titleText = this.scene.add.text(width / 2, this.HEADER_HEIGHT / 2, this.config.title, {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
       fontSize: '20px',
       fontStyle: 'bold',
@@ -84,5 +83,7 @@ export class GameHeader {
   public destroy(): void {
     this.headerBg.destroy();
     this.balanceText.destroy();
+    this.titleText.destroy();
+    this.backButtonDOM?.destroy();
   }
 }

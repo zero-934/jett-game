@@ -16,6 +16,9 @@
         align-items: center;
         height: 100vh;
         overflow: hidden;
+        /* Sharp text rendering */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
       #app {
         display: flex;
@@ -27,6 +30,9 @@
       #app canvas {
         display: block;
         margin: 0 auto;
+        /* Sharpen canvas rendering */
+        image-rendering: crisp-edges;
+        image-rendering: pixelated;
       }
 
       /* Mines HTML UI Overlays — Professional Game Style */
