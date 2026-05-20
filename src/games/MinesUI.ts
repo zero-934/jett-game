@@ -55,11 +55,14 @@ export class MinesUI {
     this.state = createMinesState(this.BET, 5, this.config);
     this.buildGrid();
 
-    // Show multiplier ABOVE grid (big gold bubble)
-    const multiplierY = SAFE_TOP + 85;
+    // Show multiplier ABOVE grid (LARGE, bold gold bubble)
+    const multiplierY = SAFE_TOP + 70;
     const multiplierValueDOM = this.scene.add.dom(width / 2, multiplierY, 'div', 'class="mines-multiplier-value"', `x${this.state.multiplier.toFixed(2)}`);
     multiplierValueDOM.setOrigin(0.5);
     multiplierValueDOM.setDepth(500); // High depth to ensure visibility
+    // Force visible by setting inline styles
+    (multiplierValueDOM.node as any).style.position = 'relative';
+    (multiplierValueDOM.node as any).style.zIndex = '500';
     this.bombSelectorObjs.push(multiplierValueDOM);
     this.multiplierText = multiplierValueDOM as any;
 
@@ -148,11 +151,11 @@ export class MinesUI {
 
         const bg = this.scene.add.graphics();
         this.paintTile(bg, cx, cy, tileW, tileH, 'hidden');
-        bg.setDepth(1); // Ensure outline is visible
+        bg.setDepth(2); // Ensure outline is visible
         
-        // Add crisp gold outline to each tile (3px, solid)
-        bg.lineStyle(3, 0xc9a84c, 1); // Full opacity, thicker line
-        bg.strokeRoundedRect(cx - tileW / 2, cy - tileH / 2, tileW, tileH, 8);
+        // Add BOLD gold outline to each tile (4px, crisp)
+        bg.lineStyle(4, 0xc9a84c, 1); // Full opacity, THICK line for clarity
+        bg.strokeRoundedRect(cx - tileW / 2, cy - tileH / 2, tileW, tileH, 10);
 
         const icon = this.scene.add.text(cx, cy, '', {
           ...TEXT_STYLE_SEMIBOLD,
