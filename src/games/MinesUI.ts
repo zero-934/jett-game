@@ -126,6 +126,13 @@ export class MinesUI {
     const startX = (width - totalW) / 2;
     const startY = SAFE_TOP + 40 + (height - SAFE_TOP - 40 - totalH - 120) / 2; // centred in space between header and bottom HUD
 
+    // Add grid outline container
+    const gridOutline = this.scene.add.graphics().setDepth(0);
+    gridOutline.lineStyle(3, 0xc9a84c, 0.8);
+    gridOutline.strokeRoundedRect(startX - 12, startY - 12, totalW + 24, totalH + 24, 12);
+    gridOutline.fillStyle(0x000000, 0.1);
+    gridOutline.fillRoundedRect(startX - 12, startY - 12, totalW + 24, totalH + 24, 12);
+
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const idx = r * 5 + c;
