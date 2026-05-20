@@ -116,11 +116,13 @@ export class MinesUI {
     this.startButton.style.opacity = '0.4';
     this.startButton.style.cursor = 'not-allowed';
     
-    this.startButton.addEventListener('click', () => {
-      if (this.selectedBombs) {
-        this.startGameAfterSelection();
-      }
-    });
+    if (this.startButton) {
+      this.startButton.addEventListener('click', () => {
+        if (this.selectedBombs) {
+          this.startGameAfterSelection();
+        }
+      });
+    }
     this.bombSelectorObjs.push(startButtonDOM);
   }
 
