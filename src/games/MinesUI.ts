@@ -60,19 +60,19 @@ export class MinesUI {
     this.state = createMinesState(this.BET, this.selectedBombs, this.config);
     this.buildGrid();
 
-    // Grid is now showing! Calculate positions
-    const gridBottom = (SAFE_TOP + 40 + (height - SAFE_TOP - 40 - (5 * 64 + 4 * 6) - 120) / 2) + (5 * 64 + 4 * 6);
-    const selectorY = gridBottom + 80;
-    
-    // Show multiplier as big bold gold bubble centered over grid
-    const gridCenterY = (SAFE_TOP + 40 + (height - SAFE_TOP - 40 - (5 * 64 + 4 * 6) - 120) / 2) + (5 * 64 + 4 * 6) / 2;
-    const multiplierValueDOM = this.scene.add.dom(width / 2, gridCenterY, 'div', 'class="mines-multiplier-value"', `x${this.state.multiplier.toFixed(2)}`);
+    // Show multiplier ABOVE grid (big gold bubble)
+    const multiplierY = SAFE_TOP + 60;
+    const multiplierValueDOM = this.scene.add.dom(width / 2, multiplierY, 'div', 'class="mines-multiplier-value"', `x${this.state.multiplier.toFixed(2)}`);
     multiplierValueDOM.setOrigin(0.5);
     this.bombSelectorObjs.push(multiplierValueDOM);
     this.multiplierText = multiplierValueDOM as any;
 
+    // Selector buttons BELOW grid (with proper spacing)
+    const gridBottom = SAFE_TOP + 100 + (height - SAFE_TOP - 100 - (5 * 64 + 4 * 6) - 140) / 2 + (5 * 64 + 4 * 6);
+    const selectorY = gridBottom + 50; // More space between grid and buttons
+
     const options: BombCount[] = [3, 5, 10];
-    const btnW = 80, gap = 14;
+    const btnW = 90, gap = 16;
     const total = options.length * btnW + (options.length - 1) * gap;
     const startX = (width - total) / 2;
 
@@ -101,7 +101,7 @@ export class MinesUI {
     }
 
     // Create HTML START button
-    const startButtonDOM = this.scene.add.dom(width / 2, selectorY + 60, 'button', 'class="mines-primary-button"', 'START');
+    const startButtonDOM = this.scene.add.dom(width / 2, selectorY + 70, 'button', 'class="mines-primary-button"', 'START');
     startButtonDOM.setOrigin(0.5);
     
     startButtonDOM.node.addEventListener('click', () => this.startGameAfterSelection());
@@ -124,14 +124,7 @@ export class MinesUI {
     const totalW = cols * tileW + (cols - 1) * gap;
     const totalH = rows * tileH + (rows - 1) * gap;
     const startX = (width - totalW) / 2;
-    const startY = SAFE_TOP + 40 + (height - SAFE_TOP - 40 - totalH - 120) / 2; // centred in space between header and bottom HUD
-
-    // Add grid outline container
-    const gridOutline = this.scene.add.graphics().setDepth(0);
-    gridOutline.lineStyle(3, 0xc9a84c, 0.8);
-    gridOutline.strokeRoundedRect(startX - 12, startY - 12, totalW + 24, totalH + 24, 12);
-    gridOutline.fillStyle(0x000000, 0.1);
-    gridOutline.fillRoundedRect(startX - 12, startY - 12, totalW + 24, totalH + 24, 12);
+    const startY = SAFE_TOP + 100 + (height - SAFE_TOP - 100 - totalH - 140) / 2; // moved down for multiplier space
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
@@ -141,6 +134,10 @@ export class MinesUI {
 
         const bg = this.scene.add.graphics();
         this.paintTile(bg, cx, cy, tileW, tileH, 'hidden');
+        
+        // Add gold outline to each tile
+        bg.lineStyle(2, 0xc9a84c, 0.6);
+        bg.strokeRoundedRect(cx - tileW / 2, cy - tileH / 2, tileW, tileH, 8);
 
         const icon = this.scene.add.text(cx, cy, '', {
           ...TEXT_STYLE_SEMIBOLD,
