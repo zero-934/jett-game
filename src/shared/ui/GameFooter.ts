@@ -1,6 +1,6 @@
 /**
  * @file GameFooter.ts
- * @purpose Footer for game scenes: fair verification, transaction history, wallet state, settings
+ * @purpose Footer for game scenes: bet selector, fair verification, wallet, etc.
  * @author Agent 934
  * @date 2026-05-20
  * @license Proprietary
@@ -10,14 +10,17 @@ import * as Phaser from 'phaser';
 
 export interface GameFooterConfig {
   scene: Phaser.Scene;
-  gameKey: string; // 'mines', 'dice', etc. for fair verification lookup
+  gameKey: string;
+  betOptions?: number[];
+  selectedBet?: number;
+  onBetChange?: (bet: number) => void;
   onFairVerify?: () => void;
   onTransactionHistory?: () => void;
   onWalletConnect?: () => void;
   onSettings?: () => void;
   walletConnected?: boolean;
-  walletName?: string; // 'Phantom', 'Solflare', etc.
-  networkName?: string; // 'Mainnet', 'Devnet', 'Testnet'
+  walletName?: string;
+  networkName?: string;
 }
 
 export class GameFooter {
@@ -25,148 +28,168 @@ export class GameFooter {
   private config: GameFooterConfig;
   private footerBg: Phaser.GameObjects.Graphics;
   private walletText: Phaser.GameObjects.Text;
+  private betButton: Phaser.GameObjects.Text;
+  private betDropdown: Phaser.GameObjects.Container | null = null;
 
-  private readonly FOOTER_HEIGHT = 56;
+  private readonly FOOTER_HEIGHT = 60;
   private readonly GOLD = '#c9a84c';
-  private readonly DARK_BG = 0x000000;
+  private readonly DARK_BG = 0x050508;
 
   constructor(config: GameFooterConfig) {
     this.scene = config.scene;
     this.config = {
+      betOptions: [10, 25, 50, 100],
+      selectedBet: 10,
       walletConnected: false,
       walletName: 'Phantom',
-      networkName: 'Devnet',
+      networkName: 'DEVNET',
       ...config,
     };
 
     const { width, height } = this.scene.scale;
     const footerY = height - this.FOOTER_HEIGHT;
 
-    // Background bar
+    // Background bar (dark, matching lobby)
     this.footerBg = this.scene.add.graphics().setDepth(100);
-    this.footerBg.fillStyle(this.DARK_BG, 0.9);
+    this.footerBg.fillStyle(this.DARK_BG, 1);
     this.footerBg.fillRect(0, footerY, width, this.FOOTER_HEIGHT);
 
     // Gold bottom accent line
     this.footerBg.fillStyle(0xc9a84c, 1);
     this.footerBg.fillRect(0, footerY, width, 3);
 
-    // Calculate button positions
     const btnY = footerY + this.FOOTER_HEIGHT / 2;
-    const btnSpacing = width / 5; // 5 buttons/areas
-    let btnX = btnSpacing / 2;
+    const spacing = 70; // Cleaner spacing
+    let btnX = 20;
 
-    // Fair Verification Button (⚡)
-    this.scene.add.text(btnX, btnY, '⚡', {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '20px',
+    // Bet Selector
+    this.betButton = this.scene.add.text(btnX, btnY, `BET: ${this.config.selectedBet}`, {
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
+      fontSize: '12px',
+      fontStyle: 'bold',
+      color: this.GOLD,
     })
-      .setOrigin(0.5)
+      .setOrigin(0, 0.5)
+      .setDepth(101)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this.toggleBetDropdown());
+
+    btnX += spacing;
+
+    // Fair Verification (⚡)
+    this.scene.add.text(btnX, btnY, '⚡ FAIR', {
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: this.GOLD,
+    })
+      .setOrigin(0, 0.5)
       .setDepth(101)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.config.onFairVerify?.());
 
-    this.scene.add.text(btnX, btnY + 18, 'FAIR', {
+    btnX += spacing;
+
+    // Transaction History (📊)
+    this.scene.add.text(btnX, btnY, '📊 TXN', {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
-      fontSize: '10px',
+      fontSize: '11px',
       fontStyle: 'bold',
       color: this.GOLD,
     })
-      .setOrigin(0.5)
-      .setDepth(101);
-
-    btnX += btnSpacing;
-
-    // Transaction History Button (📊)
-    this.scene.add.text(btnX, btnY, '📊', {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '20px',
-    })
-      .setOrigin(0.5)
+      .setOrigin(0, 0.5)
       .setDepth(101)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.config.onTransactionHistory?.());
 
-    this.scene.add.text(btnX, btnY + 18, 'TXN', {
+    btnX += spacing + 10;
+
+    // Wallet State (🔗)
+    const walletStatus = this.config.walletConnected ? `${this.config.walletName}` : 'CONNECT';
+    const walletColor = this.config.walletConnected ? this.GOLD : '#ff6b6b';
+
+    this.walletText = this.scene.add.text(btnX, btnY, `🔗 ${walletStatus}`, {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
-      fontSize: '10px',
+      fontSize: '11px',
       fontStyle: 'bold',
-      color: this.GOLD,
+      color: walletColor,
     })
-      .setOrigin(0.5)
-      .setDepth(101);
-
-    btnX += btnSpacing;
-
-    // Wallet State Button (🔗)
-    this.scene.add.text(btnX, btnY, '🔗', {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '20px',
-    })
-      .setOrigin(0.5)
+      .setOrigin(0, 0.5)
       .setDepth(101)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.config.onWalletConnect?.());
 
-    const walletStatus = this.config.walletConnected ? `${this.config.walletName}` : 'Connect';
-    this.walletText = this.scene.add.text(btnX, btnY + 18, walletStatus, {
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
-      fontSize: '10px',
-      fontStyle: 'bold',
-      color: this.config.walletConnected ? this.GOLD : '#ff6b6b',
-    })
-      .setOrigin(0.5)
-      .setDepth(101);
-
-    btnX += btnSpacing;
-
-    // Network Indicator (no click, just display)
-    this.scene.add.text(btnX, btnY, '🌐', {
+    // Settings (right aligned)
+    this.scene.add.text(width - 20, btnY, '⚙️', {
       fontFamily: 'Arial, sans-serif',
-      fontSize: '20px',
+      fontSize: '18px',
     })
-      .setOrigin(0.5)
-      .setDepth(101);
-
-    this.scene.add.text(btnX, btnY + 18, this.config.networkName || 'DEVNET', {
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
-      fontSize: '10px',
-      fontStyle: 'bold',
-      color: '#888888',
-    })
-      .setOrigin(0.5)
-      .setDepth(101);
-
-    btnX += btnSpacing;
-
-    // Settings Button (⚙️)
-    this.scene.add.text(btnX, btnY, '⚙️', {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '20px',
-    })
-      .setOrigin(0.5)
+      .setOrigin(1, 0.5)
       .setDepth(101)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.config.onSettings?.());
+  }
 
-    this.scene.add.text(btnX, btnY + 18, 'SETTINGS', {
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
-      fontSize: '10px',
-      fontStyle: 'bold',
-      color: this.GOLD,
-    })
-      .setOrigin(0.5)
-      .setDepth(101);
+  private toggleBetDropdown(): void {
+    if (this.betDropdown) {
+      this.betDropdown.destroy();
+      this.betDropdown = null;
+      return;
+    }
+
+    const { height } = this.scene.scale;
+    const dropdownY = height - this.FOOTER_HEIGHT - 10;
+    const betOptions = this.config.betOptions || [10, 25, 50, 100];
+
+    this.betDropdown = this.scene.add.container(20, dropdownY).setDepth(102);
+
+    // Background
+    const bg = this.scene.add.graphics();
+    bg.fillStyle(0x1a1a1f, 0.95);
+    bg.fillRoundedRect(0, -betOptions.length * 32 - 8, 80, betOptions.length * 32 + 8, 6);
+    bg.lineStyle(2, 0xc9a84c, 0.8);
+    bg.strokeRoundedRect(0, -betOptions.length * 32 - 8, 80, betOptions.length * 32 + 8, 6);
+    this.betDropdown.add(bg);
+
+    // Options
+    betOptions.forEach((bet, idx) => {
+      const y = -betOptions.length * 32 + idx * 32 + 16;
+      const txt = this.scene.add.text(40, y, `${bet}`, {
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
+        fontSize: '12px',
+        fontStyle: 'bold',
+        color: bet === this.config.selectedBet ? '#c9a84c' : '#ffffff',
+      })
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => this.selectBet(bet));
+
+      this.betDropdown!.add(txt);
+    });
+  }
+
+  private selectBet(bet: number): void {
+    this.config.selectedBet = bet;
+    this.betButton.setText(`BET: ${bet}`);
+
+    if (this.betDropdown) {
+      this.betDropdown.destroy();
+      this.betDropdown = null;
+    }
+
+    if (this.config.onBetChange) {
+      this.config.onBetChange(bet);
+    }
   }
 
   public updateWalletState(connected: boolean, walletName?: string): void {
     this.config.walletConnected = connected;
     if (walletName) this.config.walletName = walletName;
 
-    const status = connected ? `${walletName || 'Connected'}` : 'Connect';
+    const status = connected ? `${walletName || 'CONNECTED'}` : 'CONNECT';
     const color = connected ? this.GOLD : '#ff6b6b';
 
-    this.walletText.setText(status);
+    this.walletText.setText(`🔗 ${status}`);
     this.walletText.setColor(color);
   }
 
@@ -177,5 +200,7 @@ export class GameFooter {
   public destroy(): void {
     this.footerBg.destroy();
     this.walletText.destroy();
+    this.betButton.destroy();
+    if (this.betDropdown) this.betDropdown.destroy();
   }
 }

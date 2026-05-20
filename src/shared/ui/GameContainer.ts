@@ -12,8 +12,7 @@ import type { GameFooterConfig } from './GameFooter';
 import { GameHeader } from './GameHeader';
 import { GameFooter } from './GameFooter';
 
-export interface GameContainerConfig extends Omit<GameHeaderConfig, 'scene'>, Omit<GameFooterConfig, 'scene'> {
-  scene: Phaser.Scene;
+export interface GameContainerConfig extends GameHeaderConfig, GameFooterConfig {
   gameKey: string;
 }
 
@@ -34,15 +33,12 @@ export class GameContainer {
     this.scene = config.scene;
     this.config = config;
 
-    // Create header
+    // Create header (minimal, like lobby)
     this.header = new GameHeader({
       scene: this.scene,
       title: config.title,
       balance: config.balance,
-      betOptions: config.betOptions,
-      selectedBet: config.selectedBet,
       onBack: config.onBack,
-      onBetChange: config.onBetChange,
     });
 
     // Create footer
