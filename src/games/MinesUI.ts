@@ -21,10 +21,10 @@ export class MinesUI {
   private cashOutLabel:   Phaser.GameObjects.Text | null = null;
 
   private bombSelectorObjs: Phaser.GameObjects.GameObject[] = [];
-
+  private startButton: HTMLElement | null = null;
 
   private readonly BET = 10;
-  private selectedBombs: BombCount = 5;
+  private selectedBombs: BombCount | null = null; // Force selection
 
   constructor(scene: Phaser.Scene, config: MinesConfig = {}) {
     this.scene  = scene;
@@ -56,23 +56,23 @@ export class MinesUI {
     titleDOM.setOrigin(0.5);
     this.bombSelectorObjs.push(titleDOM);
 
-    // Initialize state so we can build grid
-    this.state = createMinesState(this.BET, this.selectedBombs, this.config);
+    // Initialize state with default (will update when selected)
+    this.state = createMinesState(this.BET, 5, this.config);
     this.buildGrid();
 
-    // Show multiplier ABOVE grid (big gold bubble)
-    const multiplierY = SAFE_TOP + 60;
+    // Show multiplier ABOVE grid (big gold bubble at top)
+    const multiplierY = SAFE_TOP + 50;
     const multiplierValueDOM = this.scene.add.dom(width / 2, multiplierY, 'div', 'class="mines-multiplier-value"', `x${this.state.multiplier.toFixed(2)}`);
     multiplierValueDOM.setOrigin(0.5);
     this.bombSelectorObjs.push(multiplierValueDOM);
     this.multiplierText = multiplierValueDOM as any;
 
-    // Selector buttons BELOW grid (with proper spacing)
+    // Selector buttons BELOW grid
     const gridBottom = SAFE_TOP + 100 + (height - SAFE_TOP - 100 - (5 * 64 + 4 * 6) - 140) / 2 + (5 * 64 + 4 * 6);
-    const selectorY = gridBottom + 50; // More space between grid and buttons
+    const selectorY = gridBottom + 60;
 
     const options: BombCount[] = [3, 5, 10];
-    const btnW = 90, gap = 16;
+    const btnW = 85, gap = 12;
     const total = options.length * btnW + (options.length - 1) * gap;
     const startX = (width - total) / 2;
 
@@ -81,11 +81,13 @@ export class MinesUI {
       const count = options[i];
       const cx = startX + i * (btnW + gap) + btnW / 2;
 
-      const buttonDOM = this.scene.add.dom(cx, selectorY, 'button', 'class="mines-button ' + (count === this.selectedBombs ? 'selected' : '') + '"', `${count} 💣`);
+      const buttonDOM = this.scene.add.dom(cx, selectorY, 'button', 'class="mines-button"', `${count} 💣`);
       buttonDOM.setOrigin(0.5);
       
       buttonDOM.node.addEventListener('click', () => {
         this.selectedBombs = count;
+        // Recreate state with new bomb count
+        this.state = createMinesState(this.BET, count, this.config);
         // Update all button styles
         const buttons = document.querySelectorAll('.mines-button');
         buttons.forEach((btn, idx) => {
@@ -95,16 +97,30 @@ export class MinesUI {
             btn.classList.remove('selected');
           }
         });
+        // Enable START button
+        if (this.startButton) {
+          this.startButton.style.opacity = '1';
+          this.startButton.style.cursor = 'pointer';
+          (this.startButton as any).disabled = false;
+        }
       });
 
       this.bombSelectorObjs.push(buttonDOM);
     }
 
-    // Create HTML START button
-    const startButtonDOM = this.scene.add.dom(width / 2, selectorY + 70, 'button', 'class="mines-primary-button"', 'START');
+    // Create HTML START button (disabled until selection)
+    const startButtonDOM = this.scene.add.dom(width / 2, selectorY + 80, 'button', 'class="mines-primary-button"', 'SELECT MINES FIRST');
     startButtonDOM.setOrigin(0.5);
+    this.startButton = startButtonDOM.node;
+    (this.startButton as any).disabled = true;
+    this.startButton.style.opacity = '0.4';
+    this.startButton.style.cursor = 'not-allowed';
     
-    startButtonDOM.node.addEventListener('click', () => this.startGameAfterSelection());
+    this.startButton.addEventListener('click', () => {
+      if (this.selectedBombs) {
+        this.startGameAfterSelection();
+      }
+    });
     this.bombSelectorObjs.push(startButtonDOM);
   }
 
@@ -135,8 +151,8 @@ export class MinesUI {
         const bg = this.scene.add.graphics();
         this.paintTile(bg, cx, cy, tileW, tileH, 'hidden');
         
-        // Add gold outline to each tile
-        bg.lineStyle(2, 0xc9a84c, 0.6);
+        // Add crisp gold outline to each tile
+        bg.lineStyle(2.5, 0xc9a84c, 0.8);
         bg.strokeRoundedRect(cx - tileW / 2, cy - tileH / 2, tileW, tileH, 8);
 
         const icon = this.scene.add.text(cx, cy, '', {
