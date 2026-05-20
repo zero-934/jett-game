@@ -1,15 +1,13 @@
 /**
  * @file GameHeader.ts
- * @purpose HTML-based header matching Shuffle style: boxes, crisp text, professional layout
+ * @purpose HTML-based header matching Shuffle style: logo, balance, title
  * @author Agent 934
  * @date 2026-05-20
  * @license Proprietary
  */
 
-import * as Phaser from 'phaser';
-
 export interface GameHeaderConfig {
-  scene: Phaser.Scene;
+  scene: any; // Phaser.Scene (avoiding import for HTML-only component)
   title: string;
   balance: number;
   onBack: () => void;
@@ -20,12 +18,12 @@ export class GameHeader {
   private headerContainer: HTMLDivElement;
   private balanceText: HTMLElement;
 
-  private readonly HEADER_HEIGHT = 70;
+  private readonly HEADER_HEIGHT = 80;
 
   constructor(config: GameHeaderConfig) {
     this.config = config;
 
-    // Create HTML container for header
+    // Create header container
     this.headerContainer = document.createElement('div');
     this.headerContainer.style.cssText = `
       position: absolute;
@@ -33,7 +31,7 @@ export class GameHeader {
       left: 0;
       width: 100%;
       height: ${this.HEADER_HEIGHT}px;
-      background: linear-gradient(135deg, #050508 0%, #0a0a0f 100%);
+      background: #0a0a0f;
       border-bottom: 2px solid #c9a84c;
       display: flex;
       align-items: center;
@@ -44,55 +42,50 @@ export class GameHeader {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     `;
 
-    // Back button (left)
-    const backBtn = document.createElement('button');
-    backBtn.textContent = '← LOBBY';
-    backBtn.style.cssText = `
-      background: transparent;
-      border: 2px solid #c9a84c;
-      color: #c9a84c;
-      padding: 8px 14px;
-      border-radius: 20px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      font-size: 12px;
+    // Logo/Brand (left)
+    const logo = document.createElement('div');
+    logo.textContent = '✈️';
+    logo.style.cssText = `
+      font-size: 28px;
       font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s ease;
+      color: #c9a84c;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     `;
-    backBtn.onmouseover = () => {
-      backBtn.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-      backBtn.style.boxShadow = '0 0 12px rgba(201, 168, 76, 0.4)';
-    };
-    backBtn.onmouseout = () => {
-      backBtn.style.backgroundColor = 'transparent';
-      backBtn.style.boxShadow = 'none';
-    };
-    backBtn.onclick = () => this.config.onBack();
-    this.headerContainer.appendChild(backBtn);
+    this.headerContainer.appendChild(logo);
 
-    // Title (center)
+    // Title (center, LARGE and crisp)
     const title = document.createElement('div');
     title.textContent = this.config.title;
     title.style.cssText = `
-      font-size: 18px;
-      font-weight: 700;
+      font-size: 26px;
+      font-weight: 800;
       color: #c9a84c;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
       flex: 1;
       text-align: center;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
     `;
     this.headerContainer.appendChild(title);
 
-    // Balance (right, in box like Shuffle)
+    // Balance box (right, like Shuffle's dropdown)
     const balanceBox = document.createElement('div');
     balanceBox.style.cssText = `
-      border: 1px solid #444;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 12px;
-      padding: 8px 16px;
+      border: 1.5px solid #c9a84c;
+      background: rgba(201, 168, 76, 0.08);
+      border-radius: 10px;
+      padding: 10px 16px;
       display: flex;
       align-items: center;
       gap: 8px;
+      min-width: 140px;
+      flex-shrink: 0;
     `;
 
     const balanceIcon = document.createElement('span');
@@ -103,28 +96,47 @@ export class GameHeader {
     this.balanceText = document.createElement('span');
     this.balanceText.textContent = `${this.config.balance.toFixed(2)}`;
     this.balanceText.style.cssText = `
-      font-size: 13px;
-      font-weight: 700;
-      color: #c9a84c;
-    `;
-    balanceBox.appendChild(this.balanceText);
-
-    this.headerContainer.appendChild(balanceBox);
-
-    // Jett logo (right, like Shuffle branding)
-    const logo = document.createElement('div');
-    logo.textContent = '✈️ JETT';
-    logo.style.cssText = `
       font-size: 14px;
       font-weight: 700;
       color: #c9a84c;
-      letter-spacing: 0.5px;
-      margin-left: 16px;
-      white-space: nowrap;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     `;
-    this.headerContainer.appendChild(logo);
+    balanceBox.appendChild(this.balanceText);
 
-    // Attach to DOM (append to parent container)
+    // Back button (right, after balance)
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '← LOBBY';
+    backBtn.style.cssText = `
+      background: transparent;
+      border: 1.5px solid #c9a84c;
+      color: #c9a84c;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-left: 8px;
+      flex-shrink: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    `;
+    backBtn.onmouseover = () => {
+      backBtn.style.backgroundColor = 'rgba(201, 168, 76, 0.1)';
+      backBtn.style.boxShadow = '0 0 12px rgba(201, 168, 76, 0.3)';
+    };
+    backBtn.onmouseout = () => {
+      backBtn.style.backgroundColor = 'transparent';
+      backBtn.style.boxShadow = 'none';
+    };
+    backBtn.onclick = () => this.config.onBack();
+
+    this.headerContainer.appendChild(balanceBox);
+    this.headerContainer.appendChild(backBtn);
+
+    // Attach to DOM
     const appContainer = document.getElementById('app');
     if (appContainer) {
       appContainer.style.position = 'relative';
