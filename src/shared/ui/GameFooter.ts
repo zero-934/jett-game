@@ -49,8 +49,8 @@ export class GameFooter {
       left: 0;
       width: 100%;
       height: ${this.FOOTER_HEIGHT}px;
-      background: #050508;
-      border-top: 1px solid #c9a84c;
+      background: linear-gradient(135deg, #050508 0%, #0a0a0f 100%);
+      border-top: 2px solid #c9a84c;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -58,30 +58,40 @@ export class GameFooter {
       box-sizing: border-box;
       z-index: 1000;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      gap: 12px;
+      gap: 10px;
+    `;
+
+    // Helper for button styling
+    const buttonStyle = `
+      background: transparent;
+      border: 1.5px solid #666;
+      color: ${this.GOLD};
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
     `;
 
     // Bet selector
     const betBox = document.createElement('div');
     betBox.style.cssText = `
-      border: 1px solid #444;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 12px;
-      padding: 8px 12px;
       position: relative;
     `;
 
     this.betButton = document.createElement('button');
     this.betButton.textContent = `BET: ${this.config.selectedBet}`;
-    this.betButton.style.cssText = `
-      background: transparent;
-      border: none;
-      color: ${this.GOLD};
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-    `;
+    this.betButton.style.cssText = buttonStyle;
+    this.betButton.onmouseover = () => {
+      this.betButton.style.borderColor = this.GOLD;
+      this.betButton.style.boxShadow = '0 0 8px rgba(201, 168, 76, 0.2)';
+    };
+    this.betButton.onmouseout = () => {
+      this.betButton.style.borderColor = '#666';
+      this.betButton.style.boxShadow = 'none';
+    };
     this.betButton.onclick = () => this.toggleBetDropdown();
     betBox.appendChild(this.betButton);
     this.footerContainer.appendChild(betBox);
@@ -89,40 +99,30 @@ export class GameFooter {
     // Fair verification
     const fairBtn = document.createElement('button');
     fairBtn.textContent = '⚡ FAIR';
-    fairBtn.style.cssText = `
-      background: transparent;
-      border: 1px solid #444;
-      color: ${this.GOLD};
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.15s ease;
-    `;
-    fairBtn.onmouseover = () => fairBtn.style.borderColor = this.GOLD;
-    fairBtn.onmouseout = () => fairBtn.style.borderColor = '#444';
+    fairBtn.style.cssText = buttonStyle;
+    fairBtn.onmouseover = () => {
+      fairBtn.style.borderColor = this.GOLD;
+      fairBtn.style.boxShadow = '0 0 8px rgba(201, 168, 76, 0.2)';
+    };
+    fairBtn.onmouseout = () => {
+      fairBtn.style.borderColor = '#666';
+      fairBtn.style.boxShadow = 'none';
+    };
     fairBtn.onclick = () => this.config.onFairVerify?.();
     this.footerContainer.appendChild(fairBtn);
 
     // Transaction history
     const txnBtn = document.createElement('button');
     txnBtn.textContent = '📊 TXN';
-    txnBtn.style.cssText = `
-      background: transparent;
-      border: 1px solid #444;
-      color: ${this.GOLD};
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.15s ease;
-    `;
-    txnBtn.onmouseover = () => txnBtn.style.borderColor = this.GOLD;
-    txnBtn.onmouseout = () => txnBtn.style.borderColor = '#444';
+    txnBtn.style.cssText = buttonStyle;
+    txnBtn.onmouseover = () => {
+      txnBtn.style.borderColor = this.GOLD;
+      txnBtn.style.boxShadow = '0 0 8px rgba(201, 168, 76, 0.2)';
+    };
+    txnBtn.onmouseout = () => {
+      txnBtn.style.borderColor = '#666';
+      txnBtn.style.boxShadow = 'none';
+    };
     txnBtn.onclick = () => this.config.onTransactionHistory?.();
     this.footerContainer.appendChild(txnBtn);
 
@@ -134,7 +134,7 @@ export class GameFooter {
     this.walletText.textContent = `🔗 ${walletStatus}`;
     this.walletText.style.cssText = `
       background: transparent;
-      border: 1px solid #444;
+      border: 1.5px solid ${walletColor};
       color: ${walletColor};
       padding: 8px 12px;
       border-radius: 8px;
@@ -144,8 +144,12 @@ export class GameFooter {
       font-family: inherit;
       transition: all 0.15s ease;
     `;
-    this.walletText.onmouseover = () => this.walletText.style.borderColor = walletColor;
-    this.walletText.onmouseout = () => this.walletText.style.borderColor = '#444';
+    this.walletText.onmouseover = () => {
+      this.walletText.style.boxShadow = `0 0 8px ${walletColor}40`;
+    };
+    this.walletText.onmouseout = () => {
+      this.walletText.style.boxShadow = 'none';
+    };
     this.walletText.onclick = () => this.config.onWalletConnect?.();
     this.footerContainer.appendChild(this.walletText);
 
@@ -157,19 +161,15 @@ export class GameFooter {
     // Settings
     const settingsBtn = document.createElement('button');
     settingsBtn.textContent = '⚙️';
-    settingsBtn.style.cssText = `
-      background: transparent;
-      border: 1px solid #444;
-      color: ${this.GOLD};
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.15s ease;
-    `;
-    settingsBtn.onmouseover = () => settingsBtn.style.borderColor = this.GOLD;
-    settingsBtn.onmouseout = () => settingsBtn.style.borderColor = '#444';
+    settingsBtn.style.cssText = buttonStyle.replace('11px', '14px');
+    settingsBtn.onmouseover = () => {
+      settingsBtn.style.borderColor = this.GOLD;
+      settingsBtn.style.boxShadow = '0 0 8px rgba(201, 168, 76, 0.2)';
+    };
+    settingsBtn.onmouseout = () => {
+      settingsBtn.style.borderColor = '#666';
+      settingsBtn.style.boxShadow = 'none';
+    };
     settingsBtn.onclick = () => this.config.onSettings?.();
     this.footerContainer.appendChild(settingsBtn);
 

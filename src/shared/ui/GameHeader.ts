@@ -33,8 +33,8 @@ export class GameHeader {
       left: 0;
       width: 100%;
       height: ${this.HEADER_HEIGHT}px;
-      background: #050508;
-      border-bottom: 1px solid #c9a84c;
+      background: linear-gradient(135deg, #050508 0%, #0a0a0f 100%);
+      border-bottom: 2px solid #c9a84c;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -46,22 +46,22 @@ export class GameHeader {
 
     // Back button (left)
     const backBtn = document.createElement('button');
-    backBtn.textContent = '← BACK';
+    backBtn.textContent = '← LOBBY';
     backBtn.style.cssText = `
       background: transparent;
       border: 2px solid #c9a84c;
       color: #c9a84c;
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 20px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.15s ease;
     `;
     backBtn.onmouseover = () => {
-      backBtn.style.backgroundColor = 'rgba(201, 168, 76, 0.1)';
-      backBtn.style.boxShadow = '0 0 12px rgba(201, 168, 76, 0.3)';
+      backBtn.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+      backBtn.style.boxShadow = '0 0 12px rgba(201, 168, 76, 0.4)';
     };
     backBtn.onmouseout = () => {
       backBtn.style.backgroundColor = 'transparent';
@@ -110,6 +110,19 @@ export class GameHeader {
     balanceBox.appendChild(this.balanceText);
 
     this.headerContainer.appendChild(balanceBox);
+
+    // Jett logo (right, like Shuffle branding)
+    const logo = document.createElement('div');
+    logo.textContent = '✈️ JETT';
+    logo.style.cssText = `
+      font-size: 14px;
+      font-weight: 700;
+      color: #c9a84c;
+      letter-spacing: 0.5px;
+      margin-left: 16px;
+      white-space: nowrap;
+    `;
+    this.headerContainer.appendChild(logo);
 
     // Attach to DOM (append to parent container)
     const appContainer = document.getElementById('app');
