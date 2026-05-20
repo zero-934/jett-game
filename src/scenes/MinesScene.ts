@@ -1,49 +1,59 @@
 /**
  * @file MinesScene.ts
- * @purpose Phaser Scene for Mines — wires MinesUI together.
+ * @purpose Phaser Scene for Mines — uses GameContainer pattern
  * @author Agent 934
- * @date 2026-04-13
+ * @date 2026-05-20
  * @license Proprietary – available for licensing
  */
 
 import * as Phaser from 'phaser';
 import { MinesUI } from '../games/MinesUI';
+import { GameContainer } from '../shared/ui/GameContainer';
 
 export class MinesScene extends Phaser.Scene {
   private minesUI: MinesUI | null = null;
+  private gameContainer: GameContainer | null = null;
 
   constructor() { super({ key: 'MinesScene' }); }
 
   create(): void {
     const { width, height } = this.scale;
 
+    // Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x050508);
 
+    // Subtle grid pattern
     const grid = this.add.graphics();
     grid.lineStyle(0.3, 0x0d0d1a, 1);
     for (let x = 0; x <= width; x += 40) { grid.beginPath(); grid.moveTo(x, 0); grid.lineTo(x, height); grid.strokePath(); }
     for (let y = 0; y <= height; y += 40) { grid.beginPath(); grid.moveTo(0, y); grid.lineTo(width, y); grid.strokePath(); }
 
-    const bar = this.add.graphics();
-    bar.fillStyle(0xc9a84c, 1);
-    bar.fillRect(0, 0, width, 3);
-    // Nav bar first — always on top
-    const navBg = this.add.graphics().setDepth(50);
-    navBg.fillStyle(0x000000, 0.8);
-    navBg.fillRect(0, 0, width, 36);
-    this.add.text(18, 18, '‹', { fontFamily: 'Arial, sans-serif', fontSize: '22px', color: '#c9a84c' })
-      .setOrigin(0.5).setDepth(51).setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => window.location.href='https://zero-934.github.io/jett-landing/');
+    // Create game container (header + footer + game area)
+    this.gameContainer = new GameContainer({
+      scene: this,
+      gameKey: 'mines',
+      title: 'MINES',
+      balance: 100.50,
+      betOptions: [10, 25, 50, 100],
+      selectedBet: 10,
+      onBack: () => window.location.href = 'https://zero-934.github.io/jett-landing/',
+      onBetChange: (bet) => console.log('Bet changed to:', bet),
+      onFairVerify: () => console.log('Fair verification clicked'),
+      onTransactionHistory: () => console.log('Transaction history clicked'),
+      onWalletConnect: () => console.log('Wallet connect clicked'),
+      onSettings: () => console.log('Settings clicked'),
+      walletConnected: false,
+      walletName: 'Phantom',
+      networkName: 'DEVNET',
+    });
 
-    // Title below nav bar — handled by MinesUI now
-    // Removed instructional text overlay for cleaner UI
-
-    bar.fillStyle(0xc9a84c, 0.06);
-    bar.fillRect(0, 36, width, 54);
-
+    // Initialize Mines UI with game area bounds
     this.minesUI = new MinesUI(this, { houseEdge: 0.03 });
     this.minesUI.start();
   }
 
-  shutdown(): void { this.minesUI?.cleanup(); }
+  shutdown(): void {
+    this.minesUI?.cleanup();
+    this.gameContainer?.destroy();
+  }
 }
