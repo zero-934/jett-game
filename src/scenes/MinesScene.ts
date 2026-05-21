@@ -1,18 +1,18 @@
 /**
  * @file MinesScene.ts
- * @purpose Phaser Scene for Mines — uses GameContainer pattern
+ * @purpose Phaser Scene for Mines — uses exact lobby header/footer for seamless UX
  * @author Agent 934
- * @date 2026-05-20
+ * @date 2026-05-21
  * @license Proprietary – available for licensing
  */
 
 import * as Phaser from 'phaser';
 import { MinesUI } from '../games/MinesUI';
-import { GameContainer } from '../shared/ui/GameContainer';
+import { LobbyHeaderFooter } from '../shared/ui/LobbyHeaderFooter';
 
 export class MinesScene extends Phaser.Scene {
   private minesUI: MinesUI | null = null;
-  private gameContainer: GameContainer | null = null;
+  private lobbyHeaderFooter: LobbyHeaderFooter | null = null;
 
   constructor() { super({ key: 'MinesScene' }); }
 
@@ -28,32 +28,25 @@ export class MinesScene extends Phaser.Scene {
     for (let x = 0; x <= width; x += 40) { grid.beginPath(); grid.moveTo(x, 0); grid.lineTo(x, height); grid.strokePath(); }
     for (let y = 0; y <= height; y += 40) { grid.beginPath(); grid.moveTo(0, y); grid.lineTo(width, y); grid.strokePath(); }
 
-    // Create game container (header + footer + game area)
-    this.gameContainer = new GameContainer({
+    // Create exact lobby header/footer
+    this.lobbyHeaderFooter = new LobbyHeaderFooter({
       scene: this,
-      gameKey: 'mines',
-      title: 'MINES',
       balance: 100.50,
-      betOptions: [10, 25, 50, 100],
-      selectedBet: 10,
       onBack: () => window.location.href = 'https://zero-934.github.io/jett-landing/',
-      onBetChange: (bet) => console.log('Bet changed to:', bet),
-      onFairVerify: () => console.log('Fair verification clicked'),
-      onTransactionHistory: () => console.log('Transaction history clicked'),
-      onWalletConnect: () => console.log('Wallet connect clicked'),
-      onSettings: () => console.log('Settings clicked'),
-      walletConnected: false,
-      walletName: 'Phantom',
-      networkName: 'DEVNET',
+      onConnect: () => console.log('Connect wallet'),
+      onHome: () => window.location.href = 'https://zero-934.github.io/jett-landing/',
+      onGames: () => console.log('Games'),
+      onHistory: () => console.log('History'),
+      onRadio: () => console.log('Radio'),
     });
 
-    // Initialize Mines UI with game area bounds
+    // Initialize Mines UI (no GameContainer anymore, just Mines game logic)
     this.minesUI = new MinesUI(this, { houseEdge: 0.03 });
     this.minesUI.start();
   }
 
   shutdown(): void {
     this.minesUI?.cleanup();
-    this.gameContainer?.destroy();
+    this.lobbyHeaderFooter?.destroy();
   }
 }
