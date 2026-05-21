@@ -139,17 +139,18 @@ export class LobbyHeaderFooter {
   }
 
   private buildFooter(): void {
-    // Create footer container (exact jett-landing style)
-    const footerElement = document.createElement('footer');
+    // Create footer container (EXACT jett-landing style)
+    const footerElement = document.createElement('nav');
     footerElement.style.cssText = `
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
       z-index: 9999;
-      background: ${this.SURFACE};
+      background: rgba(8, 8, 8, 0.95);
+      backdrop-filter: blur(4px);
       border-top: 1px solid ${this.BORDER};
-      padding: 12px 0;
+      padding: 12px 16px;
       display: flex;
       justify-content: space-around;
       align-items: center;
@@ -171,12 +172,13 @@ export class LobbyHeaderFooter {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
         background: transparent;
         border: none;
         cursor: pointer;
-        padding: 0;
-        transition: opacity 0.15s ease;
+        padding: 8px;
+        margin: 0;
+        transition: all 0.15s ease;
       `;
       navBtn.onmouseover = () => {
         navBtn.style.opacity = '0.7';
@@ -186,21 +188,23 @@ export class LobbyHeaderFooter {
       };
       navBtn.onclick = () => item.onClick?.();
 
-      // Icon
+      // Icon (20px, exact size from jett-landing)
       const icon = document.createElement('span');
       icon.textContent = item.icon;
       icon.style.cssText = `
-        font-size: 24px;
+        font-size: 20px;
+        line-height: 1;
       `;
       navBtn.appendChild(icon);
 
-      // Label
+      // Label (10px, exact size and color from jett-landing)
       const label = document.createElement('span');
       label.textContent = item.label;
       label.style.cssText = `
-        font-size: 12px;
-        color: #666666;
+        font-size: 10px;
+        color: #444444;
         font-weight: 500;
+        letter-spacing: 0.5px;
       `;
       navBtn.appendChild(label);
 
