@@ -13,6 +13,10 @@ export interface LobbyHeaderFooterConfig {
   onBack?: () => void;
   onConnect?: () => void;
   balance?: number;
+  onHome?: () => void;
+  onGames?: () => void;
+  onHistory?: () => void;
+  onRadio?: () => void;
 }
 
 export class LobbyHeaderFooter {
@@ -51,8 +55,8 @@ export class LobbyHeaderFooter {
       height: ${this.HEADER_HEIGHT}px;
     `;
 
-    // Left side: "jett" text
-    const logoSpan = document.createElement('span');
+    // Left side: "jett" text (clickable → lobby)
+    const logoSpan = document.createElement('button');
     logoSpan.textContent = 'jett';
     logoSpan.style.cssText = `
       font-size: 20px;
@@ -60,7 +64,20 @@ export class LobbyHeaderFooter {
       color: ${this.FOREGROUND};
       letter-spacing: 2px;
       text-transform: uppercase;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+      transition: opacity 0.15s ease;
     `;
+    logoSpan.onmouseover = () => {
+      logoSpan.style.opacity = '0.7';
+    };
+    logoSpan.onmouseout = () => {
+      logoSpan.style.opacity = '1';
+    };
+    logoSpan.onclick = () => this.config.onBack?.();
     this.headerElement.appendChild(logoSpan);
 
     // Right side: Balance + Connect button
@@ -116,6 +133,81 @@ export class LobbyHeaderFooter {
 
     // Append to document body
     document.body.appendChild(this.headerElement);
+
+    // Build footer with nav bar (Home | Games | History | Radio)
+    this.buildFooter();
+  }
+
+  private buildFooter(): void {
+    // Create footer container (exact jett-landing style)
+    const footerElement = document.createElement('footer');
+    footerElement.style.cssText = `
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 9999;
+      background: ${this.SURFACE};
+      border-top: 1px solid ${this.BORDER};
+      padding: 12px 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      height: 70px;
+    `;
+
+    // Navigation items (Home, Games, History, Radio)
+    const navItems = [
+      { label: 'Home', icon: '🏠', onClick: this.config.onHome },
+      { label: 'Games', icon: '🎮', onClick: this.config.onGames },
+      { label: 'History', icon: '📊', onClick: this.config.onHistory },
+      { label: 'Radio', icon: '📻', onClick: this.config.onRadio },
+    ];
+
+    navItems.forEach((item) => {
+      const navBtn = document.createElement('button');
+      navBtn.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        transition: opacity 0.15s ease;
+      `;
+      navBtn.onmouseover = () => {
+        navBtn.style.opacity = '0.7';
+      };
+      navBtn.onmouseout = () => {
+        navBtn.style.opacity = '1';
+      };
+      navBtn.onclick = () => item.onClick?.();
+
+      // Icon
+      const icon = document.createElement('span');
+      icon.textContent = item.icon;
+      icon.style.cssText = `
+        font-size: 24px;
+      `;
+      navBtn.appendChild(icon);
+
+      // Label
+      const label = document.createElement('span');
+      label.textContent = item.label;
+      label.style.cssText = `
+        font-size: 12px;
+        color: #666666;
+        font-weight: 500;
+      `;
+      navBtn.appendChild(label);
+
+      footerElement.appendChild(navBtn);
+    });
+
+    document.body.appendChild(footerElement);
   }
 
   public updateBalance(amount: number): void {
