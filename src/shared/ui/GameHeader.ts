@@ -106,7 +106,33 @@ export class GameHeader {
     `;
     balanceBox.appendChild(this.balanceText);
 
+    // Back button (right side, rectangular style)
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '← LOBBY';
+    backBtn.style.cssText = `
+      background: transparent;
+      border: 1.5px solid #c9a84c;
+      color: #c9a84c;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-left: 12px;
+      flex-shrink: 0;
+    `;
+    backBtn.onmouseover = () => {
+      backBtn.style.backgroundColor = 'rgba(201, 168, 76, 0.1)';
+    };
+    backBtn.onmouseout = () => {
+      backBtn.style.backgroundColor = 'transparent';
+    };
+    backBtn.onclick = () => this.config.onBack();
+
     this.headerContainer.appendChild(balanceBox);
+    this.headerContainer.appendChild(backBtn);
 
     // Attach to DOM
     const appContainer = document.getElementById('app');

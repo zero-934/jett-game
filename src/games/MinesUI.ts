@@ -126,9 +126,15 @@ export class MinesUI {
   }
 
   private startGameAfterSelection(): void {
-    // Remove selector UI only, keep grid
+    // Remove selector UI (including multiplier)
     for (const o of this.bombSelectorObjs) (o as Phaser.GameObjects.GameObject & { destroy(): void }).destroy();
     this.bombSelectorObjs = [];
+    
+    // Also destroy multiplier text since it's no longer needed during gameplay
+    if (this.multiplierText) {
+      this.multiplierText.destroy();
+      this.multiplierText = null;
+    }
 
     // State already created, just show game UI
     this.buildCashOut();
@@ -153,9 +159,9 @@ export class MinesUI {
         this.paintTile(bg, cx, cy, tileW, tileH, 'hidden');
         bg.setDepth(2); // Ensure outline is visible
         
-        // Add BOLD gold outline to each tile (4px, crisp)
-        bg.lineStyle(4, 0xc9a84c, 1); // Full opacity, THICK line for clarity
-        bg.strokeRoundedRect(cx - tileW / 2, cy - tileH / 2, tileW, tileH, 10);
+        // Add CRISP gold outline to each tile (4px, straight corners for sharpness)
+        bg.lineStyle(4, 0xc9a84c, 1); // Full opacity, THICK line
+        bg.strokeRect(cx - tileW / 2, cy - tileH / 2, tileW, tileH); // Straight rect, not rounded
 
         const icon = this.scene.add.text(cx, cy, '', {
           ...TEXT_STYLE_SEMIBOLD,
