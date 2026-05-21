@@ -1,6 +1,6 @@
 /**
  * @file LobbyHeaderFooter.ts
- * @purpose Exact replica of lobby header/footer for seamless game transitions
+ * @purpose EXACT replica of jett-landing header — seamless game transitions
  * @author Agent 934
  * @date 2026-05-21
  * @license Proprietary
@@ -13,143 +13,133 @@ export interface LobbyHeaderFooterConfig {
   onBack?: () => void;
   onConnect?: () => void;
   balance?: number;
-  onHome?: () => void;
-  onGames?: () => void;
-  onHistory?: () => void;
-  onRadio?: () => void;
 }
 
 export class LobbyHeaderFooter {
   private scene: Phaser.Scene;
   private config: LobbyHeaderFooterConfig;
-  private headerBg: Phaser.GameObjects.Graphics | null = null;
-  private footerBg: Phaser.GameObjects.Graphics | null = null;
+  private headerElement: HTMLElement | null = null;
 
-  private readonly HEADER_HEIGHT = 60;
-  private readonly FOOTER_HEIGHT = 60;
-  private readonly GOLD = 0xc9a84c;
-  private readonly GOLD_STR = '#c9a84c';
+  private readonly HEADER_HEIGHT = 56; // py-3 (12px) + py-1.5 (6px) + text = ~56px
+  private readonly GOLD = '#c9a84c';
+  private readonly BACKGROUND = '#080808';
+  private readonly SURFACE = '#1a1a1a';
+  private readonly BORDER = '#222222';
+  private readonly FOREGROUND = '#f0f0f0';
 
   constructor(config: LobbyHeaderFooterConfig) {
     this.scene = config.scene;
     this.config = config;
     
     this.buildHeader();
-    this.buildFooter();
   }
 
   private buildHeader(): void {
     const { width } = this.scene.scale;
 
-    // Gold top accent bar
-    this.headerBg = this.scene.add.graphics().setDepth(100).setScrollFactor(0);
-    this.headerBg.fillStyle(this.GOLD, 1);
-    this.headerBg.fillRect(0, 0, width, 3);
-    
-    // Gradient bar below gold line (exact lobby style)
-    this.headerBg.fillGradientStyle(this.GOLD, this.GOLD, 0x050508, 0x050508, 0.15, 0.15, 0, 0);
-    this.headerBg.fillRect(0, 3, width, this.HEADER_HEIGHT - 3);
+    // Create header container (exact jett-landing style)
+    this.headerElement = document.createElement('header');
+    this.headerElement.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 9999;
+      background: rgba(8, 8, 8, 0.95);
+      backdrop-filter: blur(4px);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid ${this.BORDER};
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      height: ${this.HEADER_HEIGHT}px;
+    `;
 
-    // JETT logo (left side, exact position)
-    this.scene.add.text(20, this.HEADER_HEIGHT / 2, 'JETT', {
-      fontFamily: 'Fredoka One, sans-serif',
-      fontSize: '20px',
-      color: '#ffffff',
-      fontStyle: 'bold',
-    })
-      .setOrigin(0, 0.5)
-      .setDepth(101);
+    // Left side: "jett" text
+    const logoSpan = document.createElement('span');
+    logoSpan.textContent = 'jett';
+    logoSpan.style.cssText = `
+      font-size: 20px;
+      font-weight: 300;
+      color: ${this.FOREGROUND};
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    `;
+    this.headerElement.appendChild(logoSpan);
 
-    // Balance display (center-right, before Connect)
-    this.scene.add.text(width - 160, this.HEADER_HEIGHT / 2, `⊙ ${(this.config.balance || 0).toFixed(2)}`, {
-      fontFamily: 'Fredoka One, sans-serif',
-      fontSize: '15px',
-      color: this.GOLD_STR,
-      fontStyle: 'bold',
-    })
-      .setOrigin(1, 0.5)
-      .setDepth(101);
+    // Right side: Balance + Connect button
+    const rightContainer = document.createElement('div');
+    rightContainer.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    `;
 
-    // Connect button background (gold pill, far right)
-    const btnBg = this.scene.add.graphics().setDepth(100);
-    btnBg.fillStyle(this.GOLD, 1);
-    btnBg.fillRoundedRect(width - 135, this.HEADER_HEIGHT / 2 - 18, 120, 36, 18);
+    // Balance display (◎ 2.40 format)
+    const balanceBox = document.createElement('div');
+    balanceBox.style.cssText = `
+      background: ${this.SURFACE};
+      padding: 6px 12px;
+      border-radius: 9999px;
+      border: 1px solid ${this.BORDER};
+    `;
+    const balanceSpan = document.createElement('span');
+    balanceSpan.textContent = `◎ ${(this.config.balance || 0).toFixed(2)}`;
+    balanceSpan.style.cssText = `
+      color: ${this.GOLD};
+      font-size: 14px;
+      font-weight: 600;
+    `;
+    balanceBox.appendChild(balanceSpan);
+    rightContainer.appendChild(balanceBox);
 
-    // Connect button text
-    this.scene.add.text(width - 75, this.HEADER_HEIGHT / 2, 'Connect', {
-      fontFamily: 'Fredoka One, sans-serif',
-      fontSize: '13px',
-      color: '#000000',
-      fontStyle: 'bold',
-    })
-      .setOrigin(0.5, 0.5)
-      .setDepth(101)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.config.onConnect?.());
-  }
+    // Connect button (exact style: border, no fill)
+    const connectBtn = document.createElement('button');
+    connectBtn.textContent = 'Connect';
+    connectBtn.style.cssText = `
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid ${this.GOLD};
+      background: transparent;
+      color: ${this.GOLD};
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    `;
+    connectBtn.onmouseover = () => {
+      connectBtn.style.backgroundColor = 'rgba(201, 168, 76, 0.1)';
+    };
+    connectBtn.onmouseout = () => {
+      connectBtn.style.backgroundColor = 'transparent';
+    };
+    connectBtn.onclick = () => this.config.onConnect?.();
 
-  private buildFooter(): void {
-    const { width, height } = this.scene.scale;
-    const footerY = height - this.FOOTER_HEIGHT;
+    rightContainer.appendChild(connectBtn);
+    this.headerElement.appendChild(rightContainer);
 
-    // Footer background
-    this.footerBg = this.scene.add.graphics().setDepth(100).setScrollFactor(0);
-    this.footerBg.fillStyle(0x050508, 1);
-    this.footerBg.fillRect(0, footerY, width, this.FOOTER_HEIGHT);
-
-    // Gold line separator
-    this.footerBg.fillStyle(this.GOLD, 1);
-    this.footerBg.fillRect(0, footerY, width, 2);
-
-    // Navigation buttons
-    const navItems = [
-      { label: 'Home', icon: '🏠', onClick: this.config.onHome },
-      { label: 'Games', icon: '🎮', onClick: this.config.onGames },
-      { label: 'History', icon: '📊', onClick: this.config.onHistory },
-      { label: 'Radio', icon: '📻', onClick: this.config.onRadio },
-    ];
-
-    const spacing = width / navItems.length;
-
-    navItems.forEach((item, idx) => {
-      const x = spacing * idx + spacing / 2;
-
-      // Icon
-      this.scene.add.text(x, footerY + this.FOOTER_HEIGHT / 2 - 10, item.icon, {
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '20px',
-      })
-        .setOrigin(0.5)
-        .setDepth(101)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => item.onClick?.());
-
-      // Label
-      this.scene.add.text(x, footerY + this.FOOTER_HEIGHT / 2 + 12, item.label, {
-        fontFamily: 'Fredoka, sans-serif',
-        fontSize: '11px',
-        color: '#888888',
-      })
-        .setOrigin(0.5)
-        .setDepth(101);
-    });
+    // Append to document body
+    document.body.appendChild(this.headerElement);
   }
 
   public updateBalance(amount: number): void {
-    this.config.balance = amount;
-    // Would need to store text reference to update dynamically
+    if (this.headerElement) {
+      const balanceSpan = this.headerElement.querySelector('span');
+      if (balanceSpan) {
+        const spans = this.headerElement.querySelectorAll('span');
+        spans[spans.length - 2].textContent = `◎ ${amount.toFixed(2)}`; // Balance is second-to-last span
+      }
+    }
   }
 
   public getHeaderHeight(): number {
     return this.HEADER_HEIGHT;
   }
 
-  public getFooterHeight(): number {
-    return this.FOOTER_HEIGHT;
-  }
-
   public destroy(): void {
-    this.headerBg?.destroy();
-    this.footerBg?.destroy();
+    if (this.headerElement && this.headerElement.parentNode) {
+      this.headerElement.parentNode.removeChild(this.headerElement);
+    }
   }
 }
