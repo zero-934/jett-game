@@ -28,16 +28,12 @@ export class MinesScene extends Phaser.Scene {
     for (let x = 0; x <= width; x += 40) { grid.beginPath(); grid.moveTo(x, 0); grid.lineTo(x, height); grid.strokePath(); }
     for (let y = 0; y <= height; y += 40) { grid.beginPath(); grid.moveTo(0, y); grid.lineTo(width, y); grid.strokePath(); }
 
-    // Create exact lobby header/footer
+    // Create exact lobby header
     this.lobbyHeaderFooter = new LobbyHeaderFooter({
       scene: this,
       balance: 100.50,
       onBack: () => window.location.href = 'https://zero-934.github.io/jett-landing/',
       onConnect: () => console.log('Connect wallet'),
-      onHome: () => window.location.href = 'https://zero-934.github.io/jett-landing/',
-      onGames: () => console.log('Games'),
-      onHistory: () => console.log('History'),
-      onRadio: () => console.log('Radio'),
     });
 
     // Initialize Mines UI (no GameContainer anymore, just Mines game logic)
