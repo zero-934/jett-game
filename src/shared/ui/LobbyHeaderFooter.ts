@@ -158,28 +158,13 @@ export class LobbyHeaderFooter {
       height: 70px;
     `;
 
-    // Navigation items with SVG icons (EXACT lucide-react filled icons from jett-landing)
+    // Navigation items (EXACT from jett-landing: Home, Games, History, Radio)
+    // Uses lucide-react icons (Home, Gamepad2, History, Radio)
     const navItems = [
-      { 
-        label: 'Home', 
-        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-        onClick: this.config.onHome 
-      },
-      { 
-        label: 'Games', 
-        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 9c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V9z"/><circle cx="10" cy="13" r="1" fill="white"/><circle cx="14" cy="11" r="1" fill="white"/></svg>',
-        onClick: this.config.onGames 
-      },
-      { 
-        label: 'History', 
-        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14" stroke="white" stroke-width="2" fill="none"/></svg>',
-        onClick: this.config.onHistory 
-      },
-      { 
-        label: 'Radio', 
-        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="8" cy="12" r="1.5" fill="white"/><path d="M12 8v8M12 16a4 4 0 0 0-4-4" stroke="white" stroke-width="1.5" fill="none"/></svg>',
-        onClick: this.config.onRadio 
-      },
+      { label: 'Home', icon: 'home', onClick: this.config.onHome },
+      { label: 'Games', icon: 'gamepad2', onClick: this.config.onGames },
+      { label: 'History', icon: 'history', onClick: this.config.onHistory },
+      { label: 'Radio', icon: 'radio', onClick: this.config.onRadio },
     ];
 
     navItems.forEach((item) => {
@@ -188,48 +173,45 @@ export class LobbyHeaderFooter {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
         background: transparent;
         border: none;
         cursor: pointer;
         padding: 8px;
         margin: 0;
-        transition: opacity 0.15s ease;
+        transition: color 0.15s ease;
       `;
       navBtn.onmouseover = () => {
-        navBtn.style.opacity = '0.7';
+        navBtn.style.color = this.GOLD;
       };
       navBtn.onmouseout = () => {
-        navBtn.style.opacity = '1';
+        navBtn.style.color = '#444444';
       };
       navBtn.onclick = () => item.onClick?.();
 
-      // SVG Icon (24px, larger from jett-landing, filled)
+      // SVG Icon (w-5 h-5 = 20px, exact from jett-landing)
+      const iconSvg = this.getLucideIcon(item.icon);
       const iconContainer = document.createElement('div');
-      iconContainer.innerHTML = item.svg;
+      iconContainer.innerHTML = iconSvg;
       iconContainer.style.cssText = `
-        width: 24px;
-        height: 24px;
+        width: 20px;
+        height: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #666666;
+        color: #444444;
+        transition: color 0.15s ease;
       `;
-      const svg = iconContainer.querySelector('svg');
-      if (svg) {
-        svg.setAttribute('width', '24');
-        svg.setAttribute('height', '24');
-        svg.style.color = '#666666';
-      }
       navBtn.appendChild(iconContainer);
 
-      // Label (12px, exact size and color from jett-landing)
+      // Label (text-[10px] = 10px, exact from jett-landing)
       const label = document.createElement('span');
       label.textContent = item.label;
       label.style.cssText = `
-        font-size: 12px;
-        color: #666666;
+        font-size: 10px;
+        color: #444444;
         font-weight: 400;
+        transition: color 0.15s ease;
       `;
       navBtn.appendChild(label);
 
@@ -251,6 +233,17 @@ export class LobbyHeaderFooter {
 
   public getHeaderHeight(): number {
     return this.HEADER_HEIGHT;
+  }
+
+  private getLucideIcon(name: string): string {
+    // Exact lucide-react icons from jett-landing
+    const icons: Record<string, string> = {
+      home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+      gamepad2: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="9" x2="6" y2="20"/><line x1="6" y1="9" x2="14" y2="5"/><line x1="6" y1="20" x2="20" y2="20"/><polyline points="14 5 14 12 20 12 20 20"/></svg>',
+      history: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>',
+      radio: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 1v6h-6"/></svg>',
+    };
+    return icons[name] || icons.home;
   }
 
   public destroy(): void {
