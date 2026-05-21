@@ -46,43 +46,43 @@ export class LobbyHeaderFooter {
     this.headerBg.fillStyle(this.GOLD, 1);
     this.headerBg.fillRect(0, 0, width, 3);
     
-    // Gradient bar below gold line
+    // Gradient bar below gold line (exact lobby style)
     this.headerBg.fillGradientStyle(this.GOLD, this.GOLD, 0x050508, 0x050508, 0.15, 0.15, 0, 0);
     this.headerBg.fillRect(0, 3, width, this.HEADER_HEIGHT - 3);
 
-    // JETT logo (left side)
-    this.scene.add.text(20, this.HEADER_HEIGHT / 2, '✈️ JETT', {
+    // JETT logo (left side, exact position)
+    this.scene.add.text(20, this.HEADER_HEIGHT / 2, 'JETT', {
       fontFamily: 'Fredoka One, sans-serif',
-      fontSize: '18px',
+      fontSize: '20px',
       color: '#ffffff',
       fontStyle: 'bold',
     })
       .setOrigin(0, 0.5)
       .setDepth(101);
 
-    // Balance (right side, before Connect button)
-    this.scene.add.text(width - 180, this.HEADER_HEIGHT / 2, `⊙ ${(this.config.balance || 0).toFixed(2)}`, {
+    // Balance display (center-right, before Connect)
+    this.scene.add.text(width - 160, this.HEADER_HEIGHT / 2, `⊙ ${(this.config.balance || 0).toFixed(2)}`, {
       fontFamily: 'Fredoka One, sans-serif',
-      fontSize: '14px',
+      fontSize: '15px',
       color: this.GOLD_STR,
       fontStyle: 'bold',
     })
       .setOrigin(1, 0.5)
       .setDepth(101);
 
-    // Draw button background (gold pill)
+    // Connect button background (gold pill, far right)
     const btnBg = this.scene.add.graphics().setDepth(100);
     btnBg.fillStyle(this.GOLD, 1);
-    btnBg.fillRoundedRect(width - 150, this.HEADER_HEIGHT / 2 - 16, 130, 32, 16);
+    btnBg.fillRoundedRect(width - 135, this.HEADER_HEIGHT / 2 - 18, 120, 36, 18);
 
-    // Connect button text (far right)
-    this.scene.add.text(width - 20, this.HEADER_HEIGHT / 2, 'Connect', {
+    // Connect button text
+    this.scene.add.text(width - 75, this.HEADER_HEIGHT / 2, 'Connect', {
       fontFamily: 'Fredoka One, sans-serif',
-      fontSize: '12px',
+      fontSize: '13px',
       color: '#000000',
       fontStyle: 'bold',
     })
-      .setOrigin(1, 0.5)
+      .setOrigin(0.5, 0.5)
       .setDepth(101)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.config.onConnect?.());
