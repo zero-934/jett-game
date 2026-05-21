@@ -22,7 +22,6 @@ export class LobbyHeaderFooter {
 
   private readonly HEADER_HEIGHT = 56; // py-3 (12px) + py-1.5 (6px) + text = ~56px
   private readonly GOLD = '#c9a84c';
-  private readonly BACKGROUND = '#080808';
   private readonly SURFACE = '#1a1a1a';
   private readonly BORDER = '#222222';
   private readonly FOREGROUND = '#f0f0f0';
