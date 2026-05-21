@@ -158,26 +158,26 @@ export class LobbyHeaderFooter {
       height: 70px;
     `;
 
-    // Navigation items with SVG icons (exact lucide-react icons from jett-landing)
+    // Navigation items with SVG icons (EXACT lucide-react filled icons from jett-landing)
     const navItems = [
       { 
         label: 'Home', 
-        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
         onClick: this.config.onHome 
       },
       { 
         label: 'Games', 
-        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="9" x2="6" y2="20"/><line x1="6" y1="9" x2="14" y2="5"/><line x1="6" y1="20" x2="20" y2="20"/><polyline points="14 5 14 12 20 12 20 20"/></svg>',
+        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 9c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V9z"/><circle cx="10" cy="13" r="1" fill="white"/><circle cx="14" cy="11" r="1" fill="white"/></svg>',
         onClick: this.config.onGames 
       },
       { 
         label: 'History', 
-        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>',
+        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14" stroke="white" stroke-width="2" fill="none"/></svg>',
         onClick: this.config.onHistory 
       },
       { 
         label: 'Radio', 
-        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 1v6h-6"/></svg>',
+        svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="8" cy="12" r="1.5" fill="white"/><path d="M12 8v8M12 16a4 4 0 0 0-4-4" stroke="white" stroke-width="1.5" fill="none"/></svg>',
         onClick: this.config.onRadio 
       },
     ];
@@ -188,14 +188,13 @@ export class LobbyHeaderFooter {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
         background: transparent;
         border: none;
         cursor: pointer;
         padding: 8px;
         margin: 0;
-        transition: all 0.15s ease;
-        color: #444444;
+        transition: opacity 0.15s ease;
       `;
       navBtn.onmouseover = () => {
         navBtn.style.opacity = '0.7';
@@ -205,27 +204,32 @@ export class LobbyHeaderFooter {
       };
       navBtn.onclick = () => item.onClick?.();
 
-      // SVG Icon (20px, exact size from jett-landing)
+      // SVG Icon (24px, larger from jett-landing, filled)
       const iconContainer = document.createElement('div');
       iconContainer.innerHTML = item.svg;
       iconContainer.style.cssText = `
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #444444;
+        color: #666666;
       `;
+      const svg = iconContainer.querySelector('svg');
+      if (svg) {
+        svg.setAttribute('width', '24');
+        svg.setAttribute('height', '24');
+        svg.style.color = '#666666';
+      }
       navBtn.appendChild(iconContainer);
 
-      // Label (10px, exact size and color from jett-landing)
+      // Label (12px, exact size and color from jett-landing)
       const label = document.createElement('span');
       label.textContent = item.label;
       label.style.cssText = `
-        font-size: 10px;
-        color: #444444;
-        font-weight: 500;
-        letter-spacing: 0.5px;
+        font-size: 12px;
+        color: #666666;
+        font-weight: 400;
       `;
       navBtn.appendChild(label);
 
