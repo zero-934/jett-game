@@ -501,3 +501,30 @@ git checkout main && git pull
 
 **Blocking issue:** Game is unpolished without early coin spawn. Coins at 800m feels too late for engagement.
 
+---
+
+## 🚨 REPOSITORY STRUCTURE — DO NOT CONFUSE
+
+**You have THREE separate repos on this machine:**
+
+1. **jett-game** (THIS REPO — Phaser game)
+   - All game scenes (HomeScene, MinesScene, JettScene, etc.)
+   - TypeScript/Vite build
+   - Live at: https://zero-934.github.io/jett-game/
+
+2. **jett-landing** (SEPARATE REPO — React/Next.js landing page)
+   - The actual lobby/landing site
+   - Has the **clean minimal header**: "JETT" (left) | "⊙ balance" (right) | "Connect" button
+   - This is what the Mines game should match
+   - NOT in jett-game repo
+
+3. **volt-casino-backup** (Old backup — ignore)
+
+**WHEN ASKED TO MATCH THE "LOBBY HEADER":**
+- DO NOT look in jett-game/src/scenes/HomeScene.ts
+- DO ask the user which header: jett-landing or HomeScene?
+- jett-landing = clean React header (no gold bar, just JETT + balance + Connect)
+- HomeScene = scrollable Phaser header with jetpack icon + "JETT.GAME" + tagline
+
+This mistake burned tokens on May 21, 2026. Don't repeat it.
+
