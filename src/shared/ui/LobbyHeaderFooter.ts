@@ -35,7 +35,6 @@ export class LobbyHeaderFooter {
   }
 
   private buildHeader(): void {
-    const { width } = this.scene.scale;
 
     // Create header container (exact jett-landing style)
     this.headerElement = document.createElement('header');
