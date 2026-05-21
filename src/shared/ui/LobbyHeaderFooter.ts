@@ -16,7 +16,6 @@ export interface LobbyHeaderFooterConfig {
 }
 
 export class LobbyHeaderFooter {
-  private scene: Phaser.Scene;
   private config: LobbyHeaderFooterConfig;
   private headerElement: HTMLElement | null = null;
 
@@ -27,9 +26,7 @@ export class LobbyHeaderFooter {
   private readonly FOREGROUND = '#f0f0f0';
 
   constructor(config: LobbyHeaderFooterConfig) {
-    this.scene = config.scene;
     this.config = config;
-    
     this.buildHeader();
   }
 
