@@ -1,681 +1,559 @@
+/**
+ * @file JettUI.ts
+ * @purpose Phaser rendering + input for Jett (polish-003 pilot segment, revision 004 "restrained
+ *          orbital adventure"): navy sky with a sparse cached star field, one cropped banded
+ *          planet, one cosmetic satellite, two low horizon silhouettes with slow parallax, pooled
+ *          slate asteroids, gold coins and the unchanged pilot study.
+ *          Simulation runs only in the shared fixed-step runner (JettLogic round controller); this
+ *          file renders once per frame with interpolation and turns input into tick-stamped
+ *          actions. The 390×844 world is fitted uniformly into the stage (no crop, no stretch).
+ * @author Agent 934
+ * @date 2026-04-12 (polish-003 rewrite: 2026-11-05)
+ * @license Proprietary – available for licensing
+ */
 import * as Phaser from 'phaser';
-import type { JettConfig } from './JettLogic';
-import { createJettState, tickJett, cashOutJett } from './JettLogic';
-import { createRNG } from '../shared/rng/ProvablyFairRNG';
-import { CasinoAudioManager } from '../shared/audio/CasinoAudioManager';
-import {
-  COLOR_BG,
-  COLOR_SURFACE,
-  COLOR_BORDER,
-  COLOR_GOLD,
-  STR_DANGER,
-  FONT_SIZE_XL,
-  FONT_SIZE_2XL,
-  TEXT_STYLE_LABEL,
-  TEXT_STYLE_SEMIBOLD,
-  TEXT_STYLE_GOLD_SEMIBOLD,
-  TEXT_STYLE_WIN,
-  SAFE_TOP,
-  drawButton
-} from '../shared/ui/UITheme';
+import type { JettConfig, JettRound, JettSettlement } from './JettLogic';
+import { createJettRound, stepJettRound, canCashOutJett, JETT_SIM_VERSION, JETT_PLAYER_HIT_FRACTION, JETT_ASTEROID_HIT_FRACTION } from './JettLogic';
+import { FixedStepRunner } from '../shared/sim/FixedStepRunner';
+import { getPageLedger, nextRoundId, toHundredths, formatCredits } from '../shared/sim/DemoLedger';
+import { createSeedString, RNG_ALGORITHM_V2 } from '../shared/rng/ProvablyFairRNG';
+import { SoftDepthShell } from '../shared/ui/SoftDepthShell';
+import type { ShellKey, StagePointer } from '../shared/ui/SoftDepthShell';
+import { hexToInt } from '../shared/ui/SoftDepthTheme';
+import { AudioService } from '../shared/audio/AudioService';
 
+// ─── World fit ───────────────────────────────────────────────────────────────
+const STAGE = { x: 16, y: 136, width: 358, height: 544 };
+const WORLD_W = 390;
+const WORLD_H = 844;
+const K = Math.min(STAGE.width / WORLD_W, STAGE.height / WORLD_H);
+const ORIGIN_X = STAGE.x + (STAGE.width - WORLD_W * K) / 2;
+const ORIGIN_Y = STAGE.y;
+/** Player's fixed screen row in world units (unchanged from the original UI: 62% of 844). */
+const PLAYER_SCREEN_WORLD_Y = WORLD_H * 0.62;
+
+// ─── Art (revision 004) ───────────────────────────────────────────────────────
+const SKY_TOP = 0x0f1a33;
+const SKY_BOTTOM = 0x1b2b4d;
+const PLANET = 0x3f74b6;
+const PLANET_BAND = 0x5b8fcf;
+const PLANET_SHADE = 0x2d5a92;
+const HORIZON_FAR = 0x2a4472;
+const HORIZON_NEAR = 0x223a63;
+const ROCK_BODY = 0x6f7a8c;
+const ROCK_SHADE = 0x4c5566;
+const ROCK_RIM = 0xbcc6d6;
+const ROCK_CRATER = 0x555f71;
+const COIN = 0xf2c14e;
+const COIN_RIM = 0xc58b1f;
+const COIN_SHINE = 0xfff1b8;
+const FLAME_OUTER = 0xff9a3c;
+const FLAME_INNER = 0xffe08a;
+const PILOT_TEXTURE = 'jett-pilot';
+const ROCK_KEYS = ['jett-rock-0', 'jett-rock-1', 'jett-rock-2', 'jett-rock-3'];
+const COIN_KEY = 'jett-coin';
+const STARS_KEY = 'jett-stars';
+const ROCK_TEX = 96;
+const COIN_TEX = 32;
+const PILOT_DISPLAY_WORLD_H = 62;   // ≈40 screen px tall at k=0.645 (spec: 34–46)
+const ASTEROID_VISUAL_SCALE = 0.92; // drawn silhouette mean ≈ 0.85 r hitbox
+const STAR_PARALLAX = 0.02;
+const HORIZON_FAR_PARALLAX = 0.04;
+const HORIZON_NEAR_PARALLAX = 0.1;
+const SATELLITE_DRIFT_PER_MS = 0.0015;
+const SPARKLE_COUNT = 7;
+const SPARKLE_MS = 240;
+const BONUS_TEXT_MS = 700;
+const CRASH_SHAKE_MS = 140;
+const CRASH_SHAKE_INTENSITY = 0.003;
+const KEY_STEER_WORLD_PER_FRAME = 5;
+const GUTTER_DIM_ALPHA = 0.28;
+const DEPTH = { sky: 1, planet: 2, horizon: 3, coins: 5, rocks: 6, flame: 7, pilot: 8, fx: 9, hint: 9, gutter: 10, debug: 30 } as const;
+
+function wx(x: number): number { return ORIGIN_X + x * K; }
+/** Screen Y for a world-altitude object, given the camera altitude. */
+function sy(worldY: number, altitude: number): number { return ORIGIN_Y + (PLAYER_SCREEN_WORLD_Y - (worldY - altitude)) * K; }
+
+/** Review/QA only: `?seed=abc` fixes round seeds (abc-1, abc-2, …) for reproducible captures. */
+let reviewSeedCounter = 0;
+function reviewSeed(): string | null {
+  if (typeof window === 'undefined') return null;
+  const base = new URLSearchParams(window.location.search).get('seed');
+  return base ? `${base}-${++reviewSeedCounter}` : null;
+}
+
+type UIPhase = 'ready' | 'playing' | 'paused' | 'settled';
+
+/**
+ * Jett renderer/controller.
+ * @example
+ * const ui = new JettUI(scene, config); ui.start(10);
+ */
 export class JettUI {
-  private scene:  Phaser.Scene;
+  private scene: Phaser.Scene;
   private config: JettConfig;
+  private shell: SoftDepthShell | null = null;
+  private round: JettRound | null = null;
+  private runner: FixedStepRunner | null = null;
+  private roundId = '';
+  private seed = '';
+  private betHundredths = 1000;
+  private phase: UIPhase = 'ready';
+  private heldDir = 0;
+  private keyTargetX = WORLD_W / 2;
 
-  // Player parts (screen-space, fixed Y)
-  private playerHead: Phaser.GameObjects.Arc       | null = null;
-  private playerBody: Phaser.GameObjects.Rectangle | null = null;
-  private playerPack: Phaser.GameObjects.Rectangle | null = null;
-  private playerScreenY = 0;
+  // Interpolation snapshots
+  private prevAltitude = 0;
+  private prevPlayerX = WORLD_W / 2;
+  private prevRockX = new Map<number, number>();
+  private lastCoins = 0;
 
-  // Background
-  private bgGraphics: Phaser.GameObjects.Graphics | null = null;
-  private stars: { x: number; y: number; r: number; phase: number }[] = [];
-  private bgPlanetGraphics:  Phaser.GameObjects.Graphics | null = null;
-  private bgPlanet2Graphics: Phaser.GameObjects.Graphics | null = null;
+  // Display
+  private sky: Phaser.GameObjects.Graphics | null = null;
+  private stars: Phaser.GameObjects.TileSprite | null = null;
+  private planet: Phaser.GameObjects.Graphics | null = null;
+  private satellite: Phaser.GameObjects.Graphics | null = null;
+  private horizonFar: Phaser.GameObjects.Graphics | null = null;
+  private horizonNear: Phaser.GameObjects.Graphics | null = null;
+  private gutters: Phaser.GameObjects.Graphics | null = null;
+  private pilot: Phaser.GameObjects.Image | null = null;
+  private flame: Phaser.GameObjects.Graphics | null = null;
+  private hint: Phaser.GameObjects.Text | null = null;
+  private debug: Phaser.GameObjects.Graphics | null = null;
+  private rockPool: Phaser.GameObjects.Image[] = [];
+  private rockById = new Map<number, Phaser.GameObjects.Image>();
+  private coinPool: Phaser.GameObjects.Image[] = [];
+  private coinById = new Map<number, Phaser.GameObjects.Image>();
+  private sparkles: Phaser.GameObjects.Arc[] = [];
+  private bonusText: Phaser.GameObjects.Text | null = null;
+  private readonly debugEnabled: boolean;
+  private readonly onFrameBound = (_t: number, delta: number) => this.onFrame(delta);
+  private started = false;
 
-  // Asteroid graphics pool — keyed by asteroid id
-  private asteroidGraphics: Map<number, Phaser.GameObjects.Graphics> = new Map();
-
-  // Coin graphics pool — keyed by coin id
-  private coinGraphics: Map<number, Phaser.GameObjects.Graphics> = new Map();
-
-  // Flame
-  private flameGraphics: Phaser.GameObjects.Graphics | null = null;
-
-  // HUD
-  private multiplierText: Phaser.GameObjects.Text | null = null;
-  private altitudeText:   Phaser.GameObjects.Text | null = null;
-  private coinsText:      Phaser.GameObjects.Text | null = null;
-  private coinBonusText:  Phaser.GameObjects.Text | null = null;
-  private statusText:     Phaser.GameObjects.Text | null = null;
-  private cashOutButtonBg: Phaser.GameObjects.Graphics | null = null; // Use Graphics for themed button
-  private cashOutLabel:   Phaser.GameObjects.Text | null = null;
-  private playAgainButtonBg: Phaser.GameObjects.Graphics | null = null;
-  private playAgainLabel: Phaser.GameObjects.Text | null = null;
-
-
-  private pointerX  = 0;
-  private lastCoinsCollected = 0;  // Track coins for sound effect
-  private audioManager = new CasinoAudioManager();
-  private tickTimer: Phaser.Time.TimerEvent | null = null;
-  private state: ReturnType<typeof createJettState> | null = null;
-  private lastAltitudeFlash = 0;  // Track last altitude milestone flash for UI feedback
-  private startScreenObjects: Phaser.GameObjects.GameObject[] = [];  // Objects to clean up before game starts
-  private rng: ReturnType<typeof createRNG> | null = null;  // Persistent RNG for the session
-
+  /**
+   * @param scene - Owning scene.
+   * @param config - Gameplay config (unchanged production values).
+   */
   constructor(scene: Phaser.Scene, config: JettConfig) {
-    this.scene   = scene;
-    this.config  = config;
-    this.pointerX     = config.worldWidth / 2;
-    this.playerScreenY = config.screenHeight * 0.62;
+    this.scene = scene;
+    this.config = { ...config };
+    this.debugEnabled = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1';
   }
 
+  /**
+   * Loads the pilot texture (call from Scene.preload).
+   * @param scene - Scene.
+   * @returns void
+   * @example
+   * JettUI.preload(this);
+   */
+  static preload(scene: Phaser.Scene): void {
+    if (!scene.textures.exists(PILOT_TEXTURE)) scene.load.image(PILOT_TEXTURE, `${import.meta.env.BASE_URL}assets/polish-003/jett-pilot.png`);
+  }
+
+  /**
+   * Builds the scene and a fresh ready round.
+   * @param bet - Stake in credits.
+   * @returns void
+   */
   public start(bet: number): void {
     this.cleanup();
-    this.rng = createRNG();  // Create RNG once per game session
-    this.state = createJettState(bet, this.config);
-    this.state.rng = this.rng.random.bind(this.rng);  // Pass RNG function to state
-    this.buildBackground();
-    this.buildPlayer();
-    this.buildHUD();
-    this.buildStartScreen();
-    this.registerInput();
-    // Tick timer starts when player taps "GO" in buildStartScreen()
+    this.betHundredths = toHundredths(bet);
+    this.shell = new SoftDepthShell(this.scene, {
+      title: 'Jett',
+      onBack: () => { window.location.href = 'https://zero-934.github.io/jett-landing/'; },
+      onPrimary: () => this.onPrimary(),
+      onStageDown: (p) => this.onSteer(p),
+      onStageMove: (p) => this.onSteer(p),
+      onKey: (k) => this.onKey(k),
+      onSettingsOpen: (open) => { if (open) this.pause('settings'); else if (this.phase === 'paused') this.shell?.setPaused('Paused\nTap or press Space to resume'); },
+      onSettingsChanged: () => { this.buildWorld(); this.refreshUi(); },
+      onVisibilityLost: (reason) => { this.heldDir = 0; this.pause(reason); },
+    });
+    this.shell.setBalance(getPageLedger().balanceHundredths);
+    this.makeTextures();
+    this.buildWorld();
+    this.newRound();
+    this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.onFrameBound);
+    this.started = true;
   }
 
+  /** Releases everything this UI registered. Idempotent. */
   public cleanup(): void {
-    this.tickTimer?.remove();
-    this.tickTimer = null;
-    this.playerHead?.destroy();
-    this.playerBody?.destroy();
-    this.playerPack?.destroy();
-    this.bgGraphics?.destroy();
-    this.bgPlanetGraphics?.destroy();
-    this.bgPlanet2Graphics?.destroy();
-    this.flameGraphics?.destroy();
-    for (const g of this.asteroidGraphics.values()) g.destroy();
-    this.asteroidGraphics.clear();
-    for (const g of this.coinGraphics.values()) g.destroy();
-    this.coinGraphics.clear();
-    this.multiplierText?.destroy();
-    this.altitudeText?.destroy();
-    this.coinsText?.destroy();
-    this.coinBonusText?.destroy();
-    this.statusText?.destroy();
-    this.cashOutButtonBg?.destroy();
-    this.cashOutLabel?.destroy();
-    this.playAgainButtonBg?.destroy();
-    this.playAgainLabel?.destroy();
-    for (const obj of this.startScreenObjects) {
-      if (obj && !obj.isDestroyed) (obj as any).destroy();
-    }
-    this.startScreenObjects = [];
-    this.state = null;
+    if (this.started) this.scene.events.off(Phaser.Scenes.Events.UPDATE, this.onFrameBound);
+    this.started = false;
+    this.destroyWorld();
+    this.shell?.destroy();
+    this.shell = null;
+    this.round = null;
+    this.runner = null;
   }
 
-  // ─── Build ────────────────────────────────────────────────────────────────
+  private destroyWorld(): void {
+    for (const o of [this.sky, this.stars, this.planet, this.satellite, this.horizonFar, this.horizonNear, this.gutters, this.pilot, this.flame, this.hint, this.debug, this.bonusText]) o?.destroy();
+    for (const o of [...this.rockPool, ...this.coinPool, ...this.sparkles]) o.destroy();
+    this.rockPool = []; this.coinPool = []; this.sparkles = [];
+    this.rockById.clear(); this.coinById.clear();
+    this.sky = this.planet = this.satellite = this.horizonFar = this.horizonNear = this.gutters = this.flame = this.debug = null;
+    this.stars = null; this.pilot = null; this.hint = null; this.bonusText = null;
+  }
 
-  private buildStartScreen(): void {
-    const { worldWidth, screenHeight } = this.config;
+  // ─── Round lifecycle ──────────────────────────────────────────────────────
 
-    // Semi-transparent overlay
-    const overlay = this.scene.add.rectangle(
-      worldWidth / 2, screenHeight / 2,
-      worldWidth, screenHeight,
-      0x000000, 0.6
-    ).setDepth(100);
-    this.startScreenObjects.push(overlay);
+  private newRound(): void {
+    this.seed = reviewSeed() ?? createSeedString();
+    this.roundId = nextRoundId('jett');
+    this.round = createJettRound(this.seed, this.betHundredths / 100, this.config);
+    const round = this.round;
+    this.runner = new FixedStepRunner((_tick, actions) => { this.snapshot(); return stepJettRound(round, actions); });
+    this.phase = 'ready';
+    this.heldDir = 0;
+    this.keyTargetX = round.state.playerX;
+    this.prevAltitude = 0;
+    this.prevPlayerX = round.state.playerX;
+    this.prevRockX.clear();
+    this.lastCoins = 0;
+    for (const img of this.rockById.values()) { img.setVisible(false); this.rockPool.push(img); }
+    for (const img of this.coinById.values()) { img.setVisible(false); this.coinPool.push(img); }
+    this.rockById.clear(); this.coinById.clear();
+    this.pilot?.clearTint().setVisible(true).setAlpha(1);
+    this.shell?.hideResult();
+    this.shell?.setPaused(null);
+    this.refreshUi();
+    this.render(1);
+  }
 
-    // "TAP TO START" text
-    const title = this.scene.add.text(
-      worldWidth / 2, screenHeight / 2 - 80,
-      'TAP TO START',
-      {
-        fontFamily: '"Fredoka One", sans-serif',
-        fontSize: '32px',
-        color: '#c9a84c',
-        letterSpacing: 2,
+  private snapshot(): void {
+    const st = this.round?.state; if (!st) return;
+    this.prevAltitude = st.altitude;
+    this.prevPlayerX = st.playerX;
+    this.prevRockX.clear();
+    for (const a of st.asteroids) this.prevRockX.set(a.id, a.x);
+  }
+
+  private launch(): void {
+    if (this.phase !== 'ready' || !this.runner) return;
+    if (!getPageLedger().start(this.roundId, this.betHundredths)) return;
+    this.shell?.setBalance(getPageLedger().balanceHundredths);
+    this.runner.begin();
+    this.phase = 'playing';
+    this.shell?.announce(`Launched. Stake ${formatCredits(this.betHundredths)} demo credits. Drag or use arrow keys to steer.`);
+    this.refreshUi();
+  }
+
+  private onPrimary(): void {
+    if (this.phase === 'ready') { this.launch(); return; }
+    if (this.phase === 'playing' && this.round && canCashOutJett(this.round)) { this.runner?.queue('cashOut'); return; }
+    if (this.phase === 'settled') this.newRound();
+  }
+
+  private onSteer(p: StagePointer): void {
+    if (this.phase === 'paused') { this.resume(); return; }
+    if (this.phase !== 'playing') return;
+    const worldX = Math.round((p.x - ORIGIN_X) / K); // logic clamps to the world
+    this.keyTargetX = worldX;
+    this.runner?.queue('steer', worldX);
+  }
+
+  private onKey(k: ShellKey): void {
+    const dir = k.code === 'ArrowLeft' ? -1 : k.code === 'ArrowRight' ? 1 : 0;
+    if (dir !== 0) {
+      if (k.type === 'down') this.heldDir = dir;
+      else if (this.heldDir === dir) this.heldDir = 0;
+      return;
+    }
+    if (k.type !== 'down' || k.repeat) return;
+    if (k.code === 'Space' || k.code === 'Enter') {
+      if (this.phase === 'paused') this.resume();
+      else if (this.phase === 'ready') this.launch();
+    }
+  }
+
+  private pause(reason: 'settings' | 'hidden' | 'blur'): void {
+    if (this.phase !== 'playing') return;
+    this.runner?.pause(reason);
+    this.phase = 'paused';
+    this.shell?.setPaused(reason === 'settings' ? null : 'Paused\nTap or press Space to resume');
+  }
+
+  private resume(): void {
+    if (this.phase !== 'paused' || this.shell?.settingsOpen) return;
+    this.runner?.resume();
+    this.phase = 'playing';
+    this.shell?.setPaused(null);
+  }
+
+  private onSettled(s: JettSettlement): void {
+    this.phase = 'settled';
+    this.runner?.finishSettlement();
+    this.heldDir = 0;
+    const record = getPageLedger().settle(this.roundId, s.returnHundredths, s.reason);
+    this.shell?.setBalance(getPageLedger().balanceHundredths);
+    const ret = record?.returnHundredths ?? s.returnHundredths;
+    AudioService.settle(ret, this.betHundredths);
+    if (s.reason !== 'cashout') this.crashFx(s.reason === 'combust');
+    const title = s.reason === 'cashout' ? 'Cashed out' : s.reason === 'combust' ? 'Jetpack failed' : 'Asteroid hit';
+    this.shell?.showResult({ title, returnHundredths: ret, stakeHundredths: this.betHundredths, tone: ret > this.betHundredths ? 'success' : ret === 0 ? 'loss' : 'neutral' });
+    this.refreshUi();
+  }
+
+  // ─── Frame loop ───────────────────────────────────────────────────────────
+
+  private onFrame(_smoothed: number): void {
+    const round = this.round; const runner = this.runner;
+    if (!round || !runner) return;
+    if (this.phase === 'playing') {
+      if (this.heldDir !== 0) {
+        this.keyTargetX = Phaser.Math.Clamp(this.keyTargetX + this.heldDir * KEY_STEER_WORLD_PER_FRAME, 0, WORLD_W);
+        runner.queue('steer', Math.round(this.keyTargetX));
       }
-    ).setOrigin(0.5).setDepth(101);
-    this.startScreenObjects.push(title);
-
-    // Start button
-    const { bg: startBg, text: startLabel } = drawButton(
-      this.scene,
-      worldWidth / 2,
-      screenHeight / 2 + 40,
-      180,
-      56,
-      'GO',
-      'primary',
-      101
-    );
-    startBg.setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this.handleStartGame());
-    this.startScreenObjects.push(startBg, startLabel);
-  }
-
-  private handleStartGame(): void {
-    // Remove start screen
-    for (const obj of this.startScreenObjects) {
-      if (obj && !obj.isDestroyed) (obj as any).destroy();
+      const ran = runner.advance(this.scene.game.loop.rawDelta);
+      if (runner.paused === 'hitch') { this.phase = 'paused'; this.shell?.setPaused('Paused after a long frame\nTap or press Space to resume'); }
+      if (round.state.coinsCollected > this.lastCoins) { this.lastCoins = round.state.coinsCollected; this.coinFx(); }
+      if (round.settlement && this.phase === 'playing') this.onSettled(round.settlement);
+      else if (ran > 0) this.refreshUi();
     }
-    this.startScreenObjects = [];
-
-    // Start the game tick loop
-    this.tickTimer = this.scene.time.addEvent({
-      delay: 16,
-      loop: true,
-      callback: this.onTick,
-      callbackScope: this,
-    });
+    this.render(this.phase === 'playing' ? runner.alpha : 1);
   }
 
-  private buildBackground(): void {
-    const { worldWidth, screenHeight } = this.config;
-    this.bgGraphics = this.scene.add.graphics();
+  // ─── Textures & world ─────────────────────────────────────────────────────
 
-    for (let i = 0; i < 130; i++) {
-      this.stars.push({
-        x:     Math.random() * worldWidth,
-        y:     Math.random() * screenHeight,
-        r:     Math.random() < 0.15 ? 1.8 : 0.8,
-        phase: Math.random() * Math.PI * 2,
+  private makeTextures(): void {
+    const scene = this.scene;
+    if (!scene.textures.exists(ROCK_KEYS[0])) {
+      ROCK_KEYS.forEach((key, variant) => {
+        const g = scene.make.graphics({ x: 0, y: 0 }, false);
+        const c = ROCK_TEX / 2; const r = ROCK_TEX / 2 - 3;
+        const pts: Phaser.Math.Vector2[] = [];
+        const n = 9 + variant;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2;
+          const rr = r * (0.82 + 0.18 * Math.abs(Math.sin(i * (1.7 + variant * 0.6) + variant)));
+          pts.push(new Phaser.Math.Vector2(c + Math.cos(a) * rr, c + Math.sin(a) * rr));
+        }
+        g.fillStyle(ROCK_SHADE, 1).fillPoints(pts.map((p) => new Phaser.Math.Vector2(p.x + 2, p.y + 3)), true);
+        g.fillStyle(ROCK_BODY, 1).fillPoints(pts, true);
+        g.fillStyle(ROCK_CRATER, 1);
+        g.fillCircle(c - r * 0.25, c + r * 0.1, r * 0.17);
+        g.fillCircle(c + r * 0.28, c - r * 0.2, r * 0.11);
+        g.fillCircle(c + r * 0.05, c + r * 0.42, r * 0.08);
+        // One pale upper-left rim.
+        g.lineStyle(3, ROCK_RIM, 0.85);
+        g.beginPath();
+        const start = Math.floor(n * 0.55); const end = Math.floor(n * 0.85);
+        g.moveTo(pts[start].x, pts[start].y);
+        for (let i = start + 1; i <= end; i++) g.lineTo(pts[i % n].x, pts[i % n].y);
+        g.strokePath();
+        g.generateTexture(key, ROCK_TEX, ROCK_TEX);
+        g.destroy();
       });
     }
-
-    // Planet 1 (Cartoon Earth - simple and clean) — static background decoration
-    this.bgPlanetGraphics = this.scene.add.graphics().setDepth(1);
-    const p1x = worldWidth * 0.78;
-    const p1y = screenHeight * 0.18;
-    const p1r = 42;
-    
-    // Ocean base (light blue)
-    this.bgPlanetGraphics.fillStyle(0x5ba3d0, 0.95);
-    this.bgPlanetGraphics.fillCircle(p1x, p1y, p1r);
-    
-    // Continents (bright green, simple shapes)
-    this.bgPlanetGraphics.fillStyle(0x5dd95d, 0.85);
-    // Large landmass (top-right)
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.25, p1y - p1r * 0.3, p1r * 0.28);
-    // Large landmass (bottom-left)
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.3, p1y + p1r * 0.25, p1r * 0.22);
-    // Small island (right)
-    this.bgPlanetGraphics.fillCircle(p1x + p1r * 0.5, p1y + p1r * 0.1, p1r * 0.1);
-    
-    // Highlight (white shine)
-    this.bgPlanetGraphics.fillStyle(0xffffff, 0.5);
-    this.bgPlanetGraphics.fillCircle(p1x - p1r * 0.35, p1y - p1r * 0.35, p1r * 0.18);
-    
-    // Simple outline
-    this.bgPlanetGraphics.lineStyle(3, 0x4a8cb0, 1);
-    this.bgPlanetGraphics.strokeCircle(p1x, p1y, p1r);
-
-    // Moon (grey with heavy cratering) — static background decoration
-    this.bgPlanet2Graphics = this.scene.add.graphics().setDepth(1);
-    const p2x = worldWidth * 0.14;
-    const p2y = screenHeight * 0.38;
-    const p2r = 22;
-    
-    // Main body (light grey lunar surface)
-    this.bgPlanet2Graphics.fillStyle(0xbbbbbb, 0.95);
-    this.bgPlanet2Graphics.fillCircle(p2x, p2y, p2r);
-    
-    // Large impact crater (very dark)
-    this.bgPlanet2Graphics.fillStyle(0x444444, 0.8);
-    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.4, p2y - p2r * 0.28, p2r * 0.2);
-    
-    // Large crater rim (lighter)
-    this.bgPlanet2Graphics.fillStyle(0x999999, 0.5);
-    this.bgPlanet2Graphics.strokeCircle(p2x - p2r * 0.4, p2y - p2r * 0.28, p2r * 0.21);
-    
-    // Medium crater
-    this.bgPlanet2Graphics.fillStyle(0x555555, 0.7);
-    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.42, p2y + p2r * 0.22, p2r * 0.15);
-    
-    // Medium crater rim
-    this.bgPlanet2Graphics.fillStyle(0x999999, 0.4);
-    this.bgPlanet2Graphics.strokeCircle(p2x + p2r * 0.42, p2y + p2r * 0.22, p2r * 0.16);
-    
-    // Small crater
-    this.bgPlanet2Graphics.fillStyle(0x666666, 0.6);
-    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.1, p2y - p2r * 0.5, p2r * 0.12);
-    
-    // Tiny craters scattered
-    this.bgPlanet2Graphics.fillStyle(0x777777, 0.5);
-    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.15, p2y + p2r * 0.48, p2r * 0.07);
-    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.3, p2y - p2r * 0.15, p2r * 0.06);
-    this.bgPlanet2Graphics.fillCircle(p2x - p2r * 0.5, p2y + p2r * 0.1, p2r * 0.05);
-    
-    // Bright lunar highlands
-    this.bgPlanet2Graphics.fillStyle(0xdddddd, 0.4);
-    this.bgPlanet2Graphics.fillCircle(p2x + p2r * 0.25, p2y + p2r * 0.4, p2r * 0.15);
-    
-    // Thick outline
-    this.bgPlanet2Graphics.lineStyle(3, 0x666666, 1);
-    this.bgPlanet2Graphics.strokeCircle(p2x, p2y, p2r);
-  }
-
-  private buildPlayer(): void {
-    const x = this.config.worldWidth / 2;
-    const y = this.playerScreenY;
-    this.playerPack = this.scene.add.rectangle(x + 8, y + 2, 10, 22, 0x4455aa).setDepth(5);
-    this.playerBody = this.scene.add.rectangle(x, y,      8, 22, COLOR_GOLD).setDepth(5);
-    this.playerHead = this.scene.add.arc(x, y - 17, 7, 0, 360, false, COLOR_GOLD).setDepth(5);
-    this.flameGraphics = this.scene.add.graphics().setDepth(4);
-  }
-
-  private buildHUD(): void {
-    const { worldWidth } = this.config;
-
-    this.multiplierText = this.scene.add
-      .text(16, SAFE_TOP + 10, 'x1.00', TEXT_STYLE_GOLD_SEMIBOLD)
-      .setFontSize(FONT_SIZE_2XL) // Adjust for prominence
-      .setDepth(10);
-
-    this.altitudeText = this.scene.add
-      .text(16, SAFE_TOP + 45, 'ALT: 0m', TEXT_STYLE_LABEL)
-      .setDepth(10);
-
-    this.coinsText = this.scene.add
-      .text(16, SAFE_TOP + 65, '🪙 0', { fontFamily: '"Fredoka One", sans-serif', fontSize: '14px', color: '#ffd700' })
-      .setDepth(10);
-
-    this.coinBonusText = this.scene.add
-      .text(16, SAFE_TOP + 85, '+0.00x', { fontFamily: '"Fredoka One", sans-serif', fontSize: '14px', color: '#ffd700' })
-      .setDepth(10);
-
-    this.statusText = this.scene.add
-      .text(worldWidth / 2, this.config.screenHeight * 0.35, '', TEXT_STYLE_SEMIBOLD)
-      .setOrigin(0.5).setDepth(10)
-      .setFontSize(FONT_SIZE_XL);
-
-    const btnWidth = 124;
-    const btnHeight = 44;
-    const { bg, text } = drawButton(this.scene, worldWidth - btnWidth/2 - 10, SAFE_TOP + btnHeight/2, btnWidth, btnHeight, 'CASH OUT', 'primary');
-    this.cashOutButtonBg = bg;
-    this.cashOutLabel = text;
-    this.cashOutButtonBg.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.handleCashOut());
-  }
-
-  private registerInput(): void {
-    this.scene.input.on('pointermove', (p: Phaser.Input.Pointer) => { this.pointerX = p.x; });
-    this.scene.input.on('pointerdown', (p: Phaser.Input.Pointer) => { this.pointerX = p.x; });
-  }
-
-  // ─── Tick ─────────────────────────────────────────────────────────────────
-
-  private onTick(): void {
-    if (!this.state) return;
-
-    if (this.state.isAlive && !this.state.cashedOut) {
-      tickJett(this.state, this.pointerX, this.config);
+    if (!scene.textures.exists(COIN_KEY)) {
+      const g = scene.make.graphics({ x: 0, y: 0 }, false);
+      const c = COIN_TEX / 2;
+      g.fillStyle(COIN_RIM, 1).fillCircle(c, c, c - 1);
+      g.fillStyle(COIN, 1).fillCircle(c, c, c - 4);
+      g.lineStyle(2, COIN_RIM, 0.8).strokeCircle(c, c, c - 8);
+      g.fillStyle(COIN_SHINE, 0.85).fillCircle(c - 4, c - 5, 3);
+      g.generateTexture(COIN_KEY, COIN_TEX, COIN_TEX);
+      g.destroy();
     }
-
-    // Check for altitude milestone and trigger visual feedback
-    if (this.state.lastMilestoneAltitude > this.lastAltitudeFlash) {
-      this.lastAltitudeFlash = this.state.lastMilestoneAltitude;
-      this.triggerAltitudeMilestoneFlash();
-    }
-
-    this.renderBackground();
-    this.renderAsteroids();
-    this.renderCoins();
-    this.renderPlayer();
-    this.renderFlame();
-    this.updateHUD();
-
-    if (!this.state.isAlive) {
-      this.tickTimer?.remove();
-      this.tickTimer = null;
-      this.state.combusted ? this.triggerCombustion() : this.showCrash();
-    }
-  }
-
-  // ─── Render ───────────────────────────────────────────────────────────────
-
-  private renderBackground(): void {
-    const { worldWidth, screenHeight } = this.config;
-    const altitude = this.state?.altitude ?? 0;
-    const t = this.scene.time.now / 1000;
-
-    if (!this.bgGraphics) return;
-    this.bgGraphics.clear();
-
-    // Deep space gradient
-    this.bgGraphics.fillGradientStyle(COLOR_BG, COLOR_BG, COLOR_SURFACE, COLOR_SURFACE, 1);
-    this.bgGraphics.fillRect(0, 0, worldWidth, screenHeight);
-
-    // Twinkling stars with parallax
-    for (const star of this.stars) {
-      const alpha  = 0.35 + 0.45 * Math.sin(star.phase + t * 1.1);
-      const parallaxY = ((star.y - altitude * 0.04) % screenHeight + screenHeight) % screenHeight;
-      this.bgGraphics.fillStyle(0xffffff, alpha);
-      this.bgGraphics.fillCircle(star.x, parallaxY, star.r);
-    }
-
-    // Subtle grid
-    this.bgGraphics.lineStyle(0.4, COLOR_BORDER, 0.35); // Using theme border color
-    const gridSize = 70;
-    const gridOff  = (altitude * 0.25) % gridSize;
-    for (let gy = -gridOff; gy < screenHeight + gridSize; gy += gridSize) {
-      this.bgGraphics.beginPath();
-      this.bgGraphics.moveTo(0, gy);
-      this.bgGraphics.lineTo(worldWidth, gy);
-      this.bgGraphics.strokePath();
-    }
-    for (let gx = 0; gx < worldWidth + gridSize; gx += gridSize) {
-      this.bgGraphics.beginPath();
-      this.bgGraphics.moveTo(gx, 0);
-      this.bgGraphics.lineTo(gx, screenHeight);
-      this.bgGraphics.strokePath();
-    }
-
-    // Planets are static background elements (no parallax scrolling)
-  }
-
-  private renderAsteroids(): void {
-    if (!this.state) return;
-    const altitude     = this.state.altitude;
-    const screenHeight = this.config.screenHeight;
-
-    // Remove stale graphics
-    const activeIds = new Set(this.state.asteroids.map(a => a.id));
-    for (const [id, g] of this.asteroidGraphics) {
-      if (!activeIds.has(id)) { g.destroy(); this.asteroidGraphics.delete(id); }
-    }
-
-    for (const ast of this.state.asteroids) {
-      // World → screen Y: player is at playerScreenY at altitude `altitude`
-      const screenY = this.playerScreenY - (ast.worldY - altitude);
-      if (screenY < -50 || screenY > screenHeight + 50) continue;
-
-      let g = this.asteroidGraphics.get(ast.id);
-      if (!g) {
-        g = this.scene.add.graphics().setDepth(3);
-        this.asteroidGraphics.set(ast.id, g);
+    if (!scene.textures.exists(STARS_KEY)) {
+      const g = scene.make.graphics({ x: 0, y: 0 }, false);
+      for (let i = 0; i < 46; i++) {
+        const x = (i * 131) % STAGE.width; const y = (i * 197) % STAGE.height;
+        g.fillStyle(0xe3ebf7, 0.25 + (i % 5) * 0.1).fillCircle(x, y, i % 9 === 0 ? 1.3 : 0.8);
       }
-
-      this.drawAsteroid(g, ast.x, screenY, ast.radius, ast.rotationAngle);
+      g.generateTexture(STARS_KEY, STAGE.width, STAGE.height);
+      g.destroy();
     }
   }
 
-  private drawAsteroid(
-    g: Phaser.GameObjects.Graphics,
-    cx: number, cy: number,
-    radius: number,
-    angleDeg: number
-  ): void {
-    g.clear();
-    const angleRad = (angleDeg * Math.PI) / 180;
-    const points   = 8;
-    const verts: { x: number; y: number }[] = [];
+  private buildWorld(): void {
+    this.destroyWorld();
+    const scene = this.scene; const S = STAGE;
+    const tokens = this.shell?.tokens;
+    const sky = scene.add.graphics().setDepth(DEPTH.sky);
+    sky.fillGradientStyle(SKY_TOP, SKY_TOP, SKY_BOTTOM, SKY_BOTTOM, 1).fillRect(S.x, S.y, S.width, S.height);
+    this.sky = sky;
+    this.stars = scene.add.tileSprite(S.x, S.y, S.width, S.height, STARS_KEY).setOrigin(0).setDepth(DEPTH.sky);
 
-    // Irregular rock polygon
-    for (let i = 0; i < points; i++) {
-      const a   = angleRad + (i / points) * Math.PI * 2;
-      // Vary radius per vertex for rocky look (seeded by i for stable shape)
-      const r   = radius * (0.72 + 0.28 * Math.sin(i * 2.3 + angleDeg * 0.01));
-      verts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
-    }
+    // One small cropped planet top-right with broad bands (non-colliding, subdued).
+    const pl = scene.add.graphics().setDepth(DEPTH.planet);
+    const px = S.x + S.width + 6; const py = S.y + 44; const pr = 78;
+    pl.fillStyle(PLANET, 1).fillCircle(px, py, pr);
+    pl.fillStyle(PLANET_BAND, 0.6).fillEllipse(px - 8, py - 26, pr * 2.1, 16);
+    pl.fillStyle(PLANET_BAND, 0.45).fillEllipse(px - 14, py + 14, pr * 2.1, 12);
+    pl.fillStyle(PLANET_SHADE, 0.55).fillCircle(px + 24, py + 18, pr * 0.92);
+    this.planet = pl;
 
-    // Shadow / depth fill
-    g.fillStyle(0x221100, 1);
+    // Satellite silhouette (cosmetic only, slow drift).
+    const sat = scene.add.graphics().setDepth(DEPTH.planet);
+    sat.fillStyle(0x8fa6c8, 0.9).fillRect(-5, -4, 10, 8);
+    sat.fillStyle(0x5f7fb0, 0.9).fillRect(-19, -3, 12, 6).fillRect(7, -3, 12, 6);
+    sat.lineStyle(1, 0xb9c8e0, 0.8).lineBetween(-7, 0, -5, 0).lineBetween(5, 0, 7, 0);
+    sat.setPosition(S.x + 54, S.y + 64).setAngle(-24);
+    this.satellite = sat;
+
+    this.horizonFar = scene.add.graphics().setDepth(DEPTH.horizon);
+    this.horizonNear = scene.add.graphics().setDepth(DEPTH.horizon);
+    this.drawHorizon(this.horizonFar, HORIZON_FAR, 70, 0.55);
+    this.drawHorizon(this.horizonNear, HORIZON_NEAR, 34, 0.38);
+
+    const g = scene.add.graphics().setDepth(DEPTH.gutter);
+    g.fillStyle(hexToInt(tokens?.background ?? '#0d121a'), GUTTER_DIM_ALPHA);
+    g.fillRect(S.x, S.y, ORIGIN_X - S.x, S.height);
+    g.fillRect(wx(WORLD_W), S.y, S.x + S.width - wx(WORLD_W), S.height);
+    g.lineStyle(1, 0x8fa3c4, 0.18).lineBetween(ORIGIN_X, S.y, ORIGIN_X, S.y + S.height).lineBetween(wx(WORLD_W), S.y, wx(WORLD_W), S.y + S.height);
+    this.gutters = g;
+
+    this.flame = scene.add.graphics().setDepth(DEPTH.flame);
+    const tex = scene.textures.exists(PILOT_TEXTURE) ? scene.textures.get(PILOT_TEXTURE).getSourceImage() : { height: 196 };
+    this.pilot = scene.add.image(0, 0, PILOT_TEXTURE).setScale((PILOT_DISPLAY_WORLD_H * K) / tex.height).setDepth(DEPTH.pilot);
+    this.hint = scene.add.text(S.x + S.width / 2, S.y + S.height - 26, 'DRAG TO STEER', { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '12px', color: '#e8edf4', fontStyle: 'bold' })
+      .setOrigin(0.5).setDepth(DEPTH.hint).setLetterSpacing(1.6).setResolution(Math.min(3, window.devicePixelRatio || 1));
+    this.bonusText = scene.add.text(0, 0, '+0.03×', { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '13px', color: '#f2c14e', fontStyle: 'bold' })
+      .setOrigin(0.5).setDepth(DEPTH.fx).setVisible(false).setResolution(Math.min(3, window.devicePixelRatio || 1));
+    this.debug = this.debugEnabled ? scene.add.graphics().setDepth(DEPTH.debug) : null;
+  }
+
+  private drawHorizon(g: Phaser.GameObjects.Graphics, color: number, baseH: number, bulge: number): void {
+    const S = STAGE; const bottom = S.y + S.height;
+    g.fillStyle(color, 1);
     g.beginPath();
-    g.moveTo(verts[0].x + 2, verts[0].y + 2);
-    for (let i = 1; i < verts.length; i++) g.lineTo(verts[i].x + 2, verts[i].y + 2);
+    g.moveTo(S.x, bottom);
+    for (let i = 0; i <= 24; i++) {
+      const x = S.x + (S.width * i) / 24;
+      const u = i / 24 - 0.5;
+      g.lineTo(x, bottom - baseH - (1 - 4 * u * u) * baseH * bulge);
+    }
+    g.lineTo(S.x + S.width, bottom);
     g.closePath();
     g.fillPath();
-
-    // Main rock fill
-    g.fillStyle(0x887755, 1);
-    g.beginPath();
-    g.moveTo(verts[0].x, verts[0].y);
-    for (let i = 1; i < verts.length; i++) g.lineTo(verts[i].x, verts[i].y);
-    g.closePath();
-    g.fillPath();
-
-    // Highlight face
-    g.fillStyle(0xbbaa88, 0.55);
-    g.beginPath();
-    g.moveTo(verts[0].x, verts[0].y);
-    for (let i = 1; i < Math.floor(points / 2); i++) g.lineTo(verts[i].x, verts[i].y);
-    g.closePath();
-    g.fillPath();
-
-    // Outline
-    g.lineStyle(1, 0x554433, 1);
-    g.beginPath();
-    g.moveTo(verts[0].x, verts[0].y);
-    for (let i = 1; i < verts.length; i++) g.lineTo(verts[i].x, verts[i].y);
-    g.closePath();
-    g.strokePath();
-
-    // Small crater detail
-    g.fillStyle(0x554433, 0.7);
-    g.fillCircle(cx - radius * 0.25, cy - radius * 0.15, radius * 0.18);
-    g.fillCircle(cx + radius * 0.3,  cy + radius * 0.2,  radius * 0.12);
   }
 
-  private renderCoins(): void {
-    if (!this.state) return;
-    const altitude     = this.state.altitude;
-    const screenHeight = this.config.screenHeight;
+  // ─── Rendering ────────────────────────────────────────────────────────────
 
-    // Remove stale graphics
-    const activeIds = new Set(this.state.coins.filter(c => !c.collected).map(c => c.id));
-    for (const [id, g] of this.coinGraphics) {
-      if (!activeIds.has(id)) { g.destroy(); this.coinGraphics.delete(id); }
-    }
+  private render(alpha: number): void {
+    const round = this.round; if (!round || !this.pilot) return;
+    const st = round.state;
+    const alt = this.prevAltitude + (st.altitude - this.prevAltitude) * alpha;
+    const playerX = this.prevPlayerX + (st.playerX - this.prevPlayerX) * alpha;
 
-    for (const coin of this.state.coins) {
-      if (coin.collected) continue;
+    if (this.stars) this.stars.tilePositionY = -alt * STAR_PARALLAX;
+    this.horizonFar?.setY(alt * HORIZON_FAR_PARALLAX);
+    this.horizonNear?.setY(alt * HORIZON_NEAR_PARALLAX);
+    if (this.satellite) this.satellite.x = STAGE.x + 54 + ((this.scene.time.now * SATELLITE_DRIFT_PER_MS) % 30);
 
-      // World → screen Y
-      const screenY = this.playerScreenY - (coin.worldY - altitude);
-      if (screenY < -50 || screenY > screenHeight + 50) continue;
-
-      let g = this.coinGraphics.get(coin.id);
-      if (!g) {
-        g = this.scene.add.graphics().setDepth(4);
-        this.coinGraphics.set(coin.id, g);
+    // Asteroids: pooled images keyed by logic id.
+    const live = new Set<number>();
+    for (const a of st.asteroids) {
+      live.add(a.id);
+      let img = this.rockById.get(a.id);
+      if (!img) {
+        img = this.rockPool.pop() ?? this.scene.add.image(0, 0, ROCK_KEYS[0]).setDepth(DEPTH.rocks);
+        img.setTexture(ROCK_KEYS[a.id % ROCK_KEYS.length]).setVisible(true);
+        this.rockById.set(a.id, img);
       }
-
-      this.drawCoin(g, coin.x, screenY, coin.radius, coin.animPhase);
+      const ax = (this.prevRockX.get(a.id) ?? a.x) + (a.x - (this.prevRockX.get(a.id) ?? a.x)) * alpha;
+      const d = a.radius * 2 * ASTEROID_VISUAL_SCALE * K;
+      img.setPosition(wx(ax), sy(a.worldY, alt)).setDisplaySize(d, d).setAngle(a.rotationAngle);
     }
-  }
+    for (const [id, img] of this.rockById) if (!live.has(id)) { img.setVisible(false); this.rockPool.push(img); this.rockById.delete(id); }
 
-  private drawCoin(
-    g: Phaser.GameObjects.Graphics,
-    cx: number, cy: number,
-    radius: number,
-    animPhase: number
-  ): void {
-    g.clear();
-    
-    // Pulse effect based on animation phase
-    const pulseScale = 0.85 + 0.15 * Math.sin(animPhase * Math.PI * 2);
-    const r = radius * pulseScale;
-    
-    // Gold coin with shine
-    g.fillStyle(0xffd700, 1); // Bright gold
-    g.fillCircle(cx, cy, r);
-    
-    // Darker gold edge for depth
-    g.lineStyle(2, 0xcc9900, 1);
-    g.strokeCircleShape(new Phaser.Geom.Circle(cx, cy, r));
-    
-    // Shine highlight (top-left)
-    g.fillStyle(0xffff99, 0.6);
-    g.fillCircle(cx - r * 0.3, cy - r * 0.3, r * 0.3);
-  }
-
-  private renderPlayer(): void {
-    if (!this.state) return;
-    const { worldWidth } = this.config;
-    const screenX = this.config.worldWidth / 2 + (this.state.playerX - worldWidth / 2);
-    const tilt    = Phaser.Math.Clamp((this.state.playerX - worldWidth / 2) / 80, -15, 15);
-
-    this.playerBody?.setPosition(screenX, this.playerScreenY).setAngle(tilt);
-    this.playerHead?.setPosition(screenX, this.playerScreenY - 17).setAngle(tilt);
-    this.playerPack?.setPosition(screenX + 8, this.playerScreenY + 2).setAngle(tilt);
-  }
-
-  private renderFlame(): void {
-    if (!this.state || !this.flameGraphics) return;
-    this.flameGraphics.clear();
-    if (!this.state.isAlive) return;
-
-    const { worldWidth } = this.config;
-    const screenX = this.config.worldWidth / 2 + (this.state.playerX - worldWidth / 2);
-    const t       = this.scene.time.now;
-    const flameH  = 12 + Math.sin(t / 55) * 6;
-    const flameW  = 5  + Math.sin(t / 35) * 2;
-    const baseY   = this.playerScreenY + 13;
-
-    // Outer flame
-    this.flameGraphics.fillStyle(0xff6600, 0.9);
-    this.flameGraphics.fillTriangle(
-      screenX + 8 - flameW, baseY,
-      screenX + 8 + flameW, baseY,
-      screenX + 8,           baseY + flameH
-    );
-    // Inner flame
-    this.flameGraphics.fillStyle(0xffdd00, 0.95);
-    this.flameGraphics.fillTriangle(
-      screenX + 8 - flameW * 0.5, baseY,
-      screenX + 8 + flameW * 0.5, baseY,
-      screenX + 8,                  baseY + flameH * 0.55
-    );
-  }
-
-  private updateHUD(): void {
-    if (!this.state) return;
-    this.multiplierText?.setText(`x${this.state.multiplier.toFixed(2)}`);
-    this.altitudeText?.setText(`ALT: ${Math.floor(this.state.altitude)}m`);
-    this.coinsText?.setText(`🪙 ${this.state.coinsCollected}`);
-    const coinBonus = this.state.coinsCollected * 0.03;
-    this.coinBonusText?.setText(`+${coinBonus.toFixed(2)}x`);
-    
-    // Play coin sound when a new coin is collected
-    if (this.state.coinsCollected > this.lastCoinsCollected) {
-      this.lastCoinsCollected = this.state.coinsCollected;
-      this.audioManager.playCoinCollect();
+    const liveCoins = new Set<number>();
+    for (const c of st.coins) {
+      if (c.collected) continue;
+      liveCoins.add(c.id);
+      let img = this.coinById.get(c.id);
+      if (!img) { img = this.coinPool.pop() ?? this.scene.add.image(0, 0, COIN_KEY).setDepth(DEPTH.coins); img.setVisible(true); this.coinById.set(c.id, img); }
+      const d = c.radius * 2 * K * (0.92 + 0.08 * Math.sin(c.animPhase * Math.PI * 2));
+      img.setPosition(wx(c.x), sy(c.worldY, alt)).setDisplaySize(d, d);
     }
-  }
+    for (const [id, img] of this.coinById) if (!liveCoins.has(id)) { img.setVisible(false); this.coinPool.push(img); this.coinById.delete(id); }
 
-  // ─── Actions ──────────────────────────────────────────────────────────────
-
-  private handleCashOut(): void {
-    if (!this.state) return;
-    const payout = cashOutJett(this.state);
-    this.tickTimer?.remove();
-    this.tickTimer = null;
-    if (this.statusText) {
-      this.statusText.setText(`PAID OUT\n${payout.toFixed(2)} credits`);
-      this.statusText.setStyle(TEXT_STYLE_WIN); // Use win style for payout
-    }
-    this.cashOutButtonBg?.disableInteractive();
-    this.scene.time.delayedCall(600, () => this.showPlayAgain());
-  }
-
-  private showPlayAgain(): void {
-    const { worldWidth, screenHeight } = this.config;
-    const btnWidth = 180;
-    const btnHeight = 50;
-
-    const { bg, text } = drawButton(this.scene, worldWidth / 2, screenHeight * 0.55, btnWidth, btnHeight, 'PLAY AGAIN', 'primary', 20);
-    this.playAgainButtonBg = bg;
-    this.playAgainLabel = text;
-
-    this.playAgainButtonBg.setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.cleanup(); this.scene.scene.restart(); });
-  }
-
-  private showCrash(): void {
-    if (this.statusText) {
-      this.statusText.setText('ASTEROID HIT!\nGAME OVER');
-      this.statusText.setStyle({ ...TEXT_STYLE_SEMIBOLD, color: STR_DANGER }); // Use danger color
-    }
-    this.cashOutButtonBg?.disableInteractive();
-    this.scene.time.delayedCall(600, () => this.showPlayAgain());
-  }
-
-  private triggerAltitudeMilestoneFlash(): void {
-    // Altitude text and multiplier pulse when reaching every 100 altitude milestone
-    // Creates psychological reward moment for progression (like "ding" in Flap Fortune)
-    if (this.altitudeText) {
-      this.scene.tweens.add({
-        targets: this.altitudeText,
-        scaleX: 1.25,
-        scaleY: 1.25,
-        duration: 150,
-        yoyo: true,
-        ease: 'Quad.easeInOut',
-      });
-    }
-    
-    if (this.multiplierText) {
-      this.scene.tweens.add({
-        targets: this.multiplierText,
-        scaleX: 1.2,
-        scaleY: 1.2,
-        duration: 150,
-        yoyo: true,
-        ease: 'Quad.easeInOut',
-      });
-    }
-    
-    // Optional: Add a quick "flash" to the background for more impact
-    if (this.bgGraphics) {
-      this.bgGraphics.fillStyle(0xc9a84c, 0.1);
-      this.bgGraphics.fillRect(0, 0, this.config.worldWidth, this.config.screenHeight);
-    }
-  }
-
-  private triggerCombustion(): void {
-    if (!this.state) return;
-    const { worldWidth } = this.config;
-    const sx = this.config.worldWidth / 2 + (this.state.playerX - worldWidth / 2);
-    const sy = this.playerScreenY;
-
-    for (let ring = 0; ring < 3; ring++) {
-      const circle = this.scene.add.arc(sx, sy, 10, 0, 360, false, 0xff6600, 0.85).setDepth(8);
-      this.scene.tweens.add({
-        targets: circle,
-        scaleX: (ring + 1) * 3.5,
-        scaleY: (ring + 1) * 3.5,
-        alpha: 0,
-        duration: 500 + ring * 140,
-        delay: ring * 75,
-        onComplete: () => circle.destroy(),
-      });
-    }
-
-    for (let i = 0; i < 18; i++) {
-      const angle = (i / 18) * Math.PI * 2;
-      const spark = this.scene.add.rectangle(sx, sy, 4, 4, 0xffaa00).setDepth(8);
-      this.scene.tweens.add({
-        targets: spark,
-        x: sx + Math.cos(angle) * Phaser.Math.Between(40, 110),
-        y: sy + Math.sin(angle) * Phaser.Math.Between(40, 110),
-        alpha: 0,
-        duration: Phaser.Math.Between(400, 750),
-        onComplete: () => spark.destroy(),
-      });
-    }
-
-    if (this.playerBody) this.playerBody.fillColor = 0xff4400;
-    if (this.playerHead) this.playerHead.fillColor = 0xff4400;
-
-    this.scene.time.delayedCall(300, () => {
-      if (this.statusText) {
-        this.statusText.setText('COMBUSTION!\nJETPACK FAILED');
-        this.statusText.setStyle({ ...TEXT_STYLE_SEMIBOLD, color: STR_DANGER });
+    const px = wx(playerX); const py = ORIGIN_Y + PLAYER_SCREEN_WORLD_Y * K;
+    const tilt = Phaser.Math.Clamp((st.playerX - playerX) * 3, -12, 12);
+    this.pilot.setPosition(px, py - 4).setAngle(tilt);
+    if (this.flame) {
+      this.flame.clear();
+      if (st.isAlive && this.phase !== 'settled') {
+        const frame = Math.floor(this.scene.time.now / 70) % 3; // 3 short flame frames
+        const h = [9, 12, 10][frame]; const fx = px + 5; const fy = py + 14;
+        this.flame.fillStyle(FLAME_OUTER, 0.95).fillTriangle(fx - 4, fy, fx + 4, fy, fx, fy + h);
+        this.flame.fillStyle(FLAME_INNER, 1).fillTriangle(fx - 2, fy, fx + 2, fy, fx, fy + h * 0.55);
       }
-      this.cashOutButtonBg?.disableInteractive();
-      this.scene.time.delayedCall(600, () => this.showPlayAgain());
-    });
+    }
+    if (this.debug) {
+      this.debug.clear().lineStyle(1, 0xff4d6d, 1);
+      this.debug.strokeCircle(px, py, st.playerRadius * JETT_PLAYER_HIT_FRACTION * K);
+      for (const a of st.asteroids) this.debug.strokeCircle(wx(a.x), sy(a.worldY, alt), a.radius * JETT_ASTEROID_HIT_FRACTION * K);
+      this.debug.lineStyle(1, 0x75d6b1, 1);
+      for (const c of st.coins) if (!c.collected) this.debug.strokeCircle(wx(c.x), sy(c.worldY, alt), (c.radius + st.playerRadius) * K);
+    }
+  }
+
+  private coinFx(): void {
+    AudioService.cue('coin');
+    this.shell?.haptic(15);
+    if (!this.pilot || !this.bonusText) return;
+    const x = this.pilot.x; const y = this.pilot.y - 24;
+    const reduced = this.shell?.settings.reducedMotion;
+    this.bonusText.setPosition(x + 22, y).setAlpha(1).setVisible(true);
+    this.scene.tweens.add({ targets: this.bonusText, y: y - (reduced ? 0 : 18), alpha: 0, duration: BONUS_TEXT_MS, onComplete: () => this.bonusText?.setVisible(false) });
+    if (reduced) return;
+    for (let i = 0; i < SPARKLE_COUNT; i++) {
+      const s = this.sparkles.find((p) => !p.visible) ?? this.scene.add.arc(0, 0, 1.8, 0, 360, false, COIN_SHINE, 1).setDepth(DEPTH.fx);
+      if (!this.sparkles.includes(s)) this.sparkles.push(s);
+      const a = (i / SPARKLE_COUNT) * Math.PI * 2;
+      s.setPosition(x, y + 10).setAlpha(1).setVisible(true);
+      this.scene.tweens.add({ targets: s, x: x + Math.cos(a) * 14, y: y + 10 + Math.sin(a) * 14, alpha: 0, duration: SPARKLE_MS, onComplete: () => s.setVisible(false) });
+    }
+  }
+
+  private crashFx(combust: boolean): void {
+    AudioService.cue('crash');
+    this.shell?.haptic(40);
+    this.pilot?.setTint(combust ? 0xffb38a : 0xb4bccb);
+    if (this.shell?.settings.reducedMotion) return;
+    this.scene.cameras.main.shake(CRASH_SHAKE_MS, CRASH_SHAKE_INTENSITY);
+  }
+
+  // ─── HUD / footer ─────────────────────────────────────────────────────────
+
+  private refreshUi(): void {
+    const shell = this.shell; const round = this.round; if (!shell || !round) return;
+    const st = round.state;
+    const progress = `${Math.floor(st.altitude)} m altitude · ${st.coinsCollected} ${st.coinsCollected === 1 ? 'coin' : 'coins'}`;
+    if (this.phase === 'settled' && round.settlement) {
+      const s = round.settlement; const ret = s.returnHundredths;
+      shell.setHud({ phaseLabel: ret > 0 ? 'Round complete' : 'Round ended', multiplier: `${s.multiplier.toFixed(2)}×`, progress, tone: ret > this.betHundredths ? 'success' : ret === 0 ? 'loss' : 'muted' });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Demo mode', rightValue: ret > 0 ? 'Settled once' : 'No return', ctaLabel: `PLAY AGAIN · ${formatCredits(this.betHundredths)}`, ctaEnabled: true });
+    } else if (this.phase === 'ready') {
+      shell.setHud({ phaseLabel: 'Ready', multiplier: '1.00×', progress: 'Launch, then drag or use ← → to steer', tone: 'muted' });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightValue: '—', ctaLabel: `LAUNCH · ${formatCredits(this.betHundredths)}`, ctaEnabled: true, ctaAria: `Launch, stake ${formatCredits(this.betHundredths)} demo credits` });
+    } else {
+      const ret = toHundredths(parseFloat((st.bet * st.multiplier).toFixed(2)));
+      shell.setHud({ phaseLabel: 'Current multiplier', multiplier: `${st.multiplier.toFixed(2)}×`, progress, tone: 'accent' });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightValue: `${formatCredits(ret)} credits`, ctaLabel: 'CASH OUT', ctaEnabled: this.phase === 'playing' && canCashOutJett(round), ctaAria: `Cash out ${formatCredits(ret)} demo credits` });
+    }
+    this.hint?.setVisible(this.phase !== 'settled' && (this.phase === 'ready' || st.altitude < 120));
+    shell.setStageActions([]);
+  }
+
+  // ─── Test/diagnostic hooks (read-only) ───────────────────────────────────
+
+  /** @returns Snapshot for browser tests. */
+  public debugSnapshot(): Record<string, unknown> {
+    const st = this.round?.state;
+    return {
+      phase: this.phase, roundId: this.roundId, seed: this.seed, simVersion: JETT_SIM_VERSION, rngAlgorithm: RNG_ALGORITHM_V2,
+      tick: this.round?.tick ?? 0, settlement: this.round?.settlement ?? null, targetX: this.round?.targetX,
+      playerX: st?.playerX, altitude: st?.altitude, multiplier: st?.multiplier, coins: st?.coinsCollected,
+      asteroids: st?.asteroids.map((a) => ({ id: a.id, x: a.x, y: a.worldY, r: a.radius })),
+      coinList: st?.coins.filter((c) => !c.collected).map((c) => ({ id: c.id, x: c.x, y: c.worldY })),
+      balance: getPageLedger().balanceHundredths, runnerPaused: this.runner?.paused ?? null,
+      pooled: { rocks: this.rockPool.length + this.rockById.size, coins: this.coinPool.length + this.coinById.size },
+    };
   }
 }

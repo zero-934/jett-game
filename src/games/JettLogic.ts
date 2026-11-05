@@ -1,4 +1,5 @@
-import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
+import { ProvablyFairRNG, RNG_ALGORITHM_V2 } from '../shared/rng/ProvablyFairRNG';
+import type { RNGStateSnapshot } from '../shared/rng/ProvablyFairRNG';
 
 /**
  * @file JettLogic.ts
@@ -69,6 +70,8 @@ export interface JettConfig {
   playerRadius?: number;
   houseEdge?: number;
   combustionChancePerTick?: number;
+  /** Minimum per-tick combustion probability. Default 0.0008 (unchanged; previously hard-coded). */
+  combustionFloorPerTick?: number;
   rng?: () => number;
 }
 
@@ -77,6 +80,23 @@ const DEFAULT_COMBUSTION_CHANCE   = 0.0003;  // Base combustion per tick (matche
 const MULTIPLIER_PER_100_ALTITUDE = 1.10;    // Reduced from 1.12 — slower multiplier growth for natural pacing
 const BASE_SPEED                  = 1.2;     // Increased from 0.8 — faster initial climb feels snappier
 const MAX_SPEED                   = 3.0;     // Increased from 2.5 — allows acceleration to higher speeds
+const DEFAULT_COMBUSTION_FLOOR    = 0.0008;
+/** Player hitbox fraction of playerRadius (unchanged forgiveness). */
+export const JETT_PLAYER_HIT_FRACTION = 0.8;
+/** Asteroid hitbox fraction of radius (unchanged forgiveness). */
+export const JETT_ASTEROID_HIT_FRACTION = 0.85;
+/**
+ * Contact policy (D-4): a hit when the closest approach distance <= combined radius + epsilon.
+ * Exact tangency counts as a hit; the epsilon absorbs float rounding so the rule is stable.
+ */
+export const JETT_COLLISION_EPSILON = 1e-6;
+
+let fallbackInstance: ProvablyFairRNG | null = null;
+/** Single fallback generator when none is injected (previously two were built per tick). */
+function fallbackRandom(): number {
+  if (!fallbackInstance) fallbackInstance = new ProvablyFairRNG();
+  return fallbackInstance.random();
+}
 
 /** How many asteroid "slots" exist per spawn wave. Increases with altitude. */
 function asteroidsPerWave(altitude: number): number {
@@ -156,9 +176,15 @@ export function tickJett(
   const houseEdge        = config.houseEdge               ?? DEFAULT_HOUSE_EDGE;
   const combustionChance = config.combustionChancePerTick  ?? DEFAULT_COMBUSTION_CHANCE;
   // Use persistent RNG from state if available, otherwise create new one
-  const rng              = state.rng ?? config.rng ?? new ProvablyFairRNG().random.bind(new ProvablyFairRNG());
+  const rng              = state.rng ?? config.rng ?? fallbackRandom;
 
   state.tickCount++;
+
+  // Positions at tick start (for swept collision).
+  const startX = state.playerX;
+  const startY = state.playerWorldY;
+  const asteroidStart = new Map<number, number>();
+  for (const ast of state.asteroids) asteroidStart.set(ast.id, ast.x);
 
   // Clamp player X
   const pr = state.playerRadius;
@@ -205,7 +231,7 @@ export function tickJett(
   const COIN_SPAWN_INTERVAL = 300; // altitude units between coin spawns
   if (state.altitude - state.lastCoinSpawnAltitude >= COIN_SPAWN_INTERVAL) {
     state.lastCoinSpawnAltitude = state.altitude;
-    const coinX = Math.random() * (config.worldWidth - 40) + 20; // Keep within bounds
+    const coinX = rng() * (config.worldWidth - 40) + 20; // seeded (was Math.random, R-DET-1)
     const coin: JettCoin = {
       id: state.nextCoinId++,
       x: coinX,
@@ -241,8 +267,8 @@ export function tickJett(
   // Update multiplier (accounts for coin boosts)
   state.multiplier = computeMultiplier(state.altitude, houseEdge) + (state.coinsCollected * 0.03);
 
-  // Collision check
-  if (checkAsteroidCollision(state)) {
+  // Collision check: swept along this tick's motion (no tunnelling through asteroids).
+  if (checkSweptAsteroidCollision(state, startX, startY, asteroidStart)) {
     state.isAlive = false;
     state.payout  = 0;
     return state;
@@ -254,7 +280,7 @@ export function tickJett(
   // This ensures: (a) house edge is always present, (b) occasional instant failures
   // create psychological tension without feeling random, (c) skill dominates early, risk compounds late.
   // Matches Flap Fortune psychology: BASE_COMBUSTION * (1 + progress_metric * scaling_factor)
-  const BASE_COMBUSTION = 0.0008;  // 1 in 1250, ~20s average trigger @ 60 FPS
+  const BASE_COMBUSTION = config.combustionFloorPerTick ?? DEFAULT_COMBUSTION_FLOOR;  // 1 in 1250, ~20s average @ 62.5 Hz
   const scaledChance = Math.max(BASE_COMBUSTION, combustionChance * (1 + state.altitude / 5000));
   const rngValue = rng();
   
@@ -292,7 +318,7 @@ export function spawnAsteroidWave(
   count: number,
   worldWidth: number,
   startId: number,
-  rng: () => number = new ProvablyFairRNG().random.bind(new ProvablyFairRNG())
+  rng: () => number = fallbackRandom
 ): JettAsteroid[] {
   const asteroids: JettAsteroid[] = [];
   const margin = 30;
@@ -346,6 +372,46 @@ export function checkAsteroidCollision(state: JettState): boolean {
 }
 
 /**
+ * Swept circle collision for one tick: the player moves from (startX, startY) to its current
+ * position while each asteroid moves from its start X to its current X. Uses relative motion
+ * and the closest approach on that segment. Contact (distance == combined radius) is a hit.
+ *
+ * @param state - State after this tick's movement.
+ * @param startX - Player X at tick start.
+ * @param startY - Player world Y at tick start.
+ * @param asteroidStartX - Asteroid X at tick start, by id (missing ids = newly spawned, static).
+ * @returns True if any asteroid is touched during the tick.
+ *
+ * @example
+ * checkSweptAsteroidCollision(state, prevX, prevY, new Map());
+ */
+export function checkSweptAsteroidCollision(
+  state: JettState,
+  startX: number,
+  startY: number,
+  asteroidStartX: ReadonlyMap<number, number>
+): boolean {
+  const pr = state.playerRadius * JETT_PLAYER_HIT_FRACTION;
+  for (const ast of state.asteroids) {
+    const ax0 = asteroidStartX.get(ast.id) ?? ast.x;
+    // Relative position of the player w.r.t. the asteroid at tick start and end.
+    const rx0 = startX - ax0;
+    const ry0 = startY - ast.worldY;
+    const rx1 = state.playerX - ast.x;
+    const ry1 = state.playerWorldY - ast.worldY;
+    const dx = rx1 - rx0;
+    const dy = ry1 - ry0;
+    const lenSq = dx * dx + dy * dy;
+    const t = lenSq > 0 ? Math.max(0, Math.min(1, -(rx0 * dx + ry0 * dy) / lenSq)) : 0;
+    const cx = rx0 + dx * t;
+    const cy = ry0 + dy * t;
+    const reach = pr + ast.radius * JETT_ASTEROID_HIT_FRACTION + JETT_COLLISION_EPSILON;
+    if (cx * cx + cy * cy <= reach * reach) return true;
+  }
+  return false;
+}
+
+/**
  * Computes the payout multiplier based on altitude.
  *
  * @param altitude - Current altitude in world units.
@@ -375,4 +441,136 @@ export function cashOutJett(state: JettState): number {
   state.cashedOut = true;
   state.payout    = parseFloat((state.bet * state.multiplier).toFixed(2));
   return state.payout;
+}
+
+
+// ─── polish-003: deterministic round controller ─────────────────────────────
+
+/** Bump whenever an outcome-affecting rule in the round controller changes. */
+export const JETT_SIM_VERSION = 2;
+
+/** Why a Jett round ended. */
+export type JettSettlementReason = 'cashout' | 'crash' | 'combust';
+
+/** Immutable settlement result. */
+export interface JettSettlement {
+  reason: JettSettlementReason;
+  tick: number;
+  multiplier: number;
+  payout: number;
+  returnHundredths: number;
+  altitude: number;
+  coins: number;
+}
+
+/** Tick action: 'steer' (value = integer target world X) or 'cashOut'. */
+export interface JettAction { type: string; value?: number; }
+
+/** A deterministic Jett round. */
+export interface JettRound {
+  readonly seed: string;
+  readonly config: JettConfig;
+  readonly rng: ProvablyFairRNG;
+  state: JettState;
+  /** Last accepted steering target (world X). Held between steer actions. */
+  targetX: number;
+  tick: number;
+  settlement: JettSettlement | null;
+}
+
+/**
+ * Creates a seeded round. Gameplay randomness comes only from this round's RNG; the state
+ * stays JSON-safe (no function fields).
+ * @param seed - Round seed.
+ * @param bet - Stake in credits.
+ * @param config - Gameplay config (its rng is replaced).
+ * @returns Round.
+ * @example
+ * const round = createJettRound('seed', 10, { worldWidth: 390, screenHeight: 844 });
+ */
+export function createJettRound(seed: string, bet: number, config: JettConfig): JettRound {
+  const rng = new ProvablyFairRNG(seed, { algorithm: RNG_ALGORITHM_V2 });
+  const boundConfig: JettConfig = { ...config, rng: () => rng.random() };
+  const state = createJettState(bet, boundConfig);
+  return { seed, config: boundConfig, rng, state, targetX: state.playerX, tick: 0, settlement: null };
+}
+
+/**
+ * @param round - Round.
+ * @returns Whether a cash-out is accepted now (alive, unsettled).
+ * @example
+ * canCashOutJett(round);
+ */
+export function canCashOutJett(round: JettRound): boolean {
+  return !round.settlement && round.state.isAlive && !round.state.cashedOut;
+}
+
+function settleJett(round: JettRound, reason: JettSettlementReason, payout: number): void {
+  const st = round.state;
+  round.settlement = { reason, tick: round.tick, multiplier: st.multiplier, payout, returnHundredths: Math.round(payout * 100), altitude: st.altitude, coins: st.coinsCollected };
+}
+
+/**
+ * Advances one tick. Order: valid cash-out at tick start settles before hazards move (D-6);
+ * otherwise the latest steer target applies and the unchanged tickJett runs.
+ * @param round - Round (mutated).
+ * @param actions - Actions for this tick.
+ * @returns Whether the round is settled.
+ * @example
+ * stepJettRound(round, [{ type: 'steer', value: 200 }]);
+ */
+export function stepJettRound(round: JettRound, actions: readonly JettAction[]): { settled: boolean } {
+  if (round.settlement) return { settled: true };
+  if (actions.some((a) => a.type === 'cashOut') && canCashOutJett(round)) {
+    settleJett(round, 'cashout', cashOutJett(round.state));
+    return { settled: true };
+  }
+  for (const a of actions) if (a.type === 'steer' && typeof a.value === 'number' && Number.isFinite(a.value)) round.targetX = Math.round(a.value);
+  tickJett(round.state, round.targetX, round.config);
+  round.tick++;
+  if (!round.state.isAlive) {
+    settleJett(round, round.state.combusted ? 'combust' : 'crash', 0);
+    return { settled: true };
+  }
+  return { settled: false };
+}
+
+/** JSON-safe checkpoint. */
+export interface JettCheckpoint {
+  simVersion: number;
+  seed: string;
+  tick: number;
+  targetX: number;
+  state: JettState;
+  rng: RNGStateSnapshot;
+  settlement: JettSettlement | null;
+}
+
+/**
+ * @param round - Round.
+ * @returns Checkpoint.
+ * @example
+ * checkpointJettRound(round);
+ */
+export function checkpointJettRound(round: JettRound): JettCheckpoint {
+  return JSON.parse(JSON.stringify({ simVersion: JETT_SIM_VERSION, seed: round.seed, tick: round.tick, targetX: round.targetX, state: round.state, rng: round.rng.getState(), settlement: round.settlement })) as JettCheckpoint;
+}
+
+/**
+ * @param cp - Checkpoint.
+ * @param config - Original gameplay config.
+ * @returns Restored round.
+ * @throws On simVersion mismatch.
+ * @example
+ * restoreJettRound(cp, config);
+ */
+export function restoreJettRound(cp: JettCheckpoint, config: JettConfig): JettRound {
+  if (cp.simVersion !== JETT_SIM_VERSION) throw new Error(`Jett checkpoint simVersion ${cp.simVersion} != ${JETT_SIM_VERSION}`);
+  const round = createJettRound(cp.seed, cp.state.bet, config);
+  round.rng.setState(cp.rng);
+  round.state = JSON.parse(JSON.stringify(cp.state)) as JettState;
+  round.targetX = cp.targetX;
+  round.tick = cp.tick;
+  round.settlement = cp.settlement ? { ...cp.settlement } : null;
+  return round;
 }

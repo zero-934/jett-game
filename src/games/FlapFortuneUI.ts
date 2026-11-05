@@ -65,6 +65,14 @@ function wx(x: number): number { return ORIGIN_X + x * K; }
 function wy(y: number): number { return ORIGIN_Y + y * K; }
 
 /** Phase of this UI's round. 'armed' = stake debited, waiting for the first flap. */
+/** Review/QA only: `?seed=abc` fixes round seeds (abc-1, abc-2, …) for reproducible captures. */
+let reviewSeedCounter = 0;
+function reviewSeed(): string | null {
+  if (typeof window === 'undefined') return null;
+  const base = new URLSearchParams(window.location.search).get('seed');
+  return base ? `${base}-${++reviewSeedCounter}` : null;
+}
+
 type UIPhase = 'ready' | 'armed' | 'playing' | 'paused' | 'settled';
 
 /**
@@ -171,7 +179,7 @@ export class FlapFortuneUI {
   // ─── Round lifecycle ──────────────────────────────────────────────────────
 
   private newRound(): void {
-    this.seed = createSeedString();
+    this.seed = reviewSeed() ?? createSeedString();
     this.roundId = nextRoundId('flap');
     this.round = createFlapRound(this.seed, this.betHundredths / 100, this.config);
     const round = this.round;

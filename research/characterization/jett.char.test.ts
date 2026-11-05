@@ -50,21 +50,20 @@ describe('Jett characterization', () => {
     expect(st.altitude).toBeLessThan(700);
   });
 
-  test('[CURRENT-DEFECT] coin X uses Math.random(), bypassing injected RNG — same seed, different state', () => {
+  test('[FIXED in polish-003] coin X uses the injected RNG — same seed, same coins', () => {
     const run = () => {
       const base = seeded('fixed');
       const s = createJettState(10, CONFIG); s.rng = () => 0.001 + 0.998 * base(); // seeded, never below combustion floor
-      s.playerRadius = -1000; // harness: disable collisions so the run reaches coin spawns
-      for (let i = 0; i < 600; i++) tickJett(s, 195, CONFIG);
+      for (let i = 0; i < 600 && s.isAlive; i++) tickJett(s, 20 + ((i * 7) % 350), CONFIG);
       return s.coins.map((c) => c.x);
     };
     const spy = jest.spyOn(Math, 'random');
     const a = run();
-    expect(spy).toHaveBeenCalled();
+    expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
     const b = run();
-    expect(a.length).toBeGreaterThan(1);
-    expect(a.slice(1)).not.toEqual(b.slice(1)); // coin 0 is centered; later coins differ
+    expect(a.length).toBeGreaterThanOrEqual(1);
+    expect(a).toEqual(b);
   });
 
   test('[CURRENT-DEFECT] combustion floor: configured chance 0 still combusts at 0.0008/tick', () => {
@@ -90,10 +89,10 @@ describe('Jett characterization', () => {
     for (let seed = 0; seed < 50; seed++) {
       const s = createJettState(10, CONFIG); s.rng = seeded(`s${seed}`);
       const seen = new Map<number, number>();
-      for (let t = 0; t < 1500 && s.isAlive; t++) {
+      for (let t = 0; t < 1500; t++) {
         const before = s.nextAsteroidId;
-        s.playerRadius = -1000; // harness: disable collision to observe spawning only
         tickJett(s, 195, CONFIG);
+        s.isAlive = true; s.combusted = false; // harness: keep spawning after a hit to observe bands only
         if (s.nextAsteroidId > before) {
           waves++;
           const band = Math.round(s.asteroids[s.asteroids.length - 1].worldY / 10);
@@ -109,12 +108,12 @@ describe('Jett characterization', () => {
     expect(waves).toBeGreaterThan(0);
   });
 
-  test('[CURRENT-DEFECT] horizontal teleport tunnels through an asteroid (no swept collision)', () => {
+  test('[FIXED in polish-003] horizontal teleport through an asteroid is now a hit (swept collision)', () => {
     const s = createJettState(10, CONFIG); s.rng = NO_COMBUST;
     s.playerX = 30;
     s.asteroids = [{ id: 99, x: 195, worldY: 1.2, radius: 40, driftX: 0, rotationAngle: 0, rotationSpeed: 0 }];
     tickJett(s, 360, CONFIG); // jump from x=30 to x=360 through the asteroid at x=195 in one tick
-    expect(s.isAlive).toBe(true);
+    expect(s.isAlive).toBe(false);
   });
 
   test('[CURRENT-DEFECT] state is not JSON-serializable for checkpoints (rng is a function)', () => {
