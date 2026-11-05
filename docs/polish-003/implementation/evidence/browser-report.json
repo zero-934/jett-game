@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-11-05T18:45:53.882Z",
+    "date": "2026-11-05T18:57:17.147Z",
     "chromium": "153.0.8010.12",
     "base": "http://localhost:5199/jett-game",
     "sections": [
@@ -16,16 +16,16 @@
       "captures"
     ],
     "note": "Headless Chromium on SwiftShader (software WebGL). Performance figures are relative to this environment only, not mobile measurements.",
-    "pacingSeconds": 47.861,
-    "inputSeconds": 2.604,
-    "isolationSeconds": 2.987,
-    "shatterSeconds": 30.929,
-    "restartsSeconds": 21.366,
-    "a11ySeconds": 1.444,
-    "layoutSeconds": 16.637,
-    "perfSeconds": 69.892,
-    "smokeSeconds": 26.062,
-    "capturesSeconds": 10.752
+    "pacingSeconds": 48.762,
+    "inputSeconds": 2.497,
+    "isolationSeconds": 3.08,
+    "shatterSeconds": 30.876,
+    "restartsSeconds": 21.071,
+    "a11ySeconds": 1.372,
+    "layoutSeconds": 16.339,
+    "perfSeconds": 70.091,
+    "smokeSeconds": 26.216,
+    "capturesSeconds": 10.951
   },
   "results": {
     "pacing": [
@@ -414,7 +414,7 @@
         "name": "jett: heap after forced GC within +3 MB",
         "ok": true,
         "detail": {
-          "deltaMB": 2.16
+          "deltaMB": 2.17
         }
       },
       {
@@ -431,7 +431,7 @@
             "shutdownListeners": 14,
             "timers": 0,
             "tweens": 0,
-            "displayList": 26,
+            "displayList": 27,
             "a11yRoots": 1,
             "domButtons": 4,
             "audioContexts": 1
@@ -441,7 +441,7 @@
             "shutdownListeners": 14,
             "timers": 0,
             "tweens": 0,
-            "displayList": 26,
+            "displayList": 27,
             "a11yRoots": 1,
             "domButtons": 4,
             "audioContexts": 1
@@ -474,7 +474,7 @@
         "name": "flap: heap after forced GC within +3 MB",
         "ok": true,
         "detail": {
-          "deltaMB": 2.35
+          "deltaMB": 2.29
         }
       },
       {
@@ -732,7 +732,7 @@
           ],
           "cta": [
             41,
-            507,
+            520,
             236,
             35
           ],
@@ -756,7 +756,7 @@
           ],
           "cta": [
             20,
-            754,
+            772,
             350,
             52
           ],
@@ -780,7 +780,7 @@
           ],
           "cta": [
             22,
-            832,
+            852,
             386,
             57
           ],
@@ -804,7 +804,7 @@
           ],
           "cta": [
             340,
-            348,
+            357,
             162,
             24
           ],
@@ -828,7 +828,7 @@
           ],
           "cta": [
             218,
-            286,
+            293,
             133,
             20
           ],
@@ -967,40 +967,40 @@
         "cpuThrottle": 1,
         "environment": "on",
         "idleStepMs": {
-          "n": 120,
-          "p50": 0.7,
+          "n": 121,
+          "p50": 0.6,
           "p95": 1,
-          "p99": 1.2,
-          "max": 1.7,
+          "p99": 1.3,
+          "max": 2.1,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 120,
+          "n": 121,
           "p50": 16.7,
-          "p95": 17,
-          "p99": 19.1,
+          "p95": 17.1,
+          "p99": 18.8,
           "max": 21,
           "over33": 0,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 232,
-          "p50": 1.3,
-          "p95": 2.1,
-          "p99": 3.5,
-          "max": 4.6,
+          "n": 235,
+          "p50": 1.1,
+          "p95": 1.5,
+          "p99": 3.2,
+          "max": 3.6,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 232,
+          "n": 235,
           "p50": 16.7,
-          "p95": 20.6,
-          "p99": 50.5,
-          "max": 52.6,
+          "p95": 17.1,
+          "p99": 49.1,
+          "max": 53.3,
           "over33": 3,
-          "over50": 3
+          "over50": 1
         },
         "endedPhase": "playing"
       },
@@ -1009,40 +1009,40 @@
         "cpuThrottle": 1,
         "environment": "off",
         "idleStepMs": {
-          "n": 120,
+          "n": 119,
           "p50": 0.5,
-          "p95": 1,
-          "p99": 1.3,
-          "max": 2,
+          "p95": 0.9,
+          "p99": 1.1,
+          "max": 1.1,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 120,
+          "n": 119,
           "p50": 16.7,
           "p95": 17,
-          "p99": 18.2,
-          "max": 41.4,
+          "p99": 17.2,
+          "max": 36.9,
           "over33": 1,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 236,
-          "p50": 1.2,
-          "p95": 1.7,
-          "p99": 2.6,
-          "max": 3.5,
+          "n": 237,
+          "p50": 1,
+          "p95": 1.5,
+          "p99": 2.5,
+          "max": 2.8,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 236,
+          "n": 237,
           "p50": 16.7,
-          "p95": 17,
-          "p99": 39.9,
-          "max": 46.3,
+          "p95": 16.9,
+          "p99": 39.7,
+          "max": 51,
           "over33": 3,
-          "over50": 0
+          "over50": 1
         },
         "endedPhase": "playing"
       },
@@ -1053,36 +1053,36 @@
         "idleStepMs": {
           "n": 121,
           "p50": 0.9,
-          "p95": 1.4,
-          "p99": 1.9,
-          "max": 2.5,
+          "p95": 1.5,
+          "p99": 1.7,
+          "max": 1.8,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
           "n": 121,
-          "p50": 16.6,
-          "p95": 17,
-          "p99": 17.3,
-          "max": 23.7,
+          "p50": 16.7,
+          "p95": 16.9,
+          "p99": 17,
+          "max": 20.7,
           "over33": 0,
           "over50": 0
         },
         "activeStepMs": {
           "n": 238,
           "p50": 1.1,
-          "p95": 2.1,
-          "p99": 3.4,
-          "max": 8,
+          "p95": 1.7,
+          "p99": 3.3,
+          "max": 6.6,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
           "n": 238,
-          "p50": 16.7,
-          "p95": 18.4,
-          "p99": 22,
-          "max": 56.3,
+          "p50": 16.6,
+          "p95": 18.3,
+          "p99": 21.7,
+          "max": 64.7,
           "over33": 1,
           "over50": 1
         },
@@ -1093,29 +1093,29 @@
         "cpuThrottle": 1,
         "environment": "off",
         "idleStepMs": {
-          "n": 119,
+          "n": 120,
           "p50": 0.5,
           "p95": 0.8,
           "p99": 1,
-          "max": 1.2,
+          "max": 1.1,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 119,
+          "n": 120,
           "p50": 16.7,
           "p95": 16.9,
-          "p99": 17.1,
-          "max": 50.8,
+          "p99": 17.9,
+          "max": 43.2,
           "over33": 1,
-          "over50": 1
+          "over50": 0
         },
         "activeStepMs": {
           "n": 239,
           "p50": 0.8,
-          "p95": 1.3,
-          "p99": 2.9,
-          "max": 6,
+          "p95": 1.2,
+          "p99": 1.8,
+          "max": 5.9,
           "over33": 0,
           "over50": 0
         },
@@ -1123,10 +1123,10 @@
           "n": 239,
           "p50": 16.7,
           "p95": 16.9,
-          "p99": 19,
-          "max": 47.5,
+          "p99": 18.8,
+          "max": 53.5,
           "over33": 1,
-          "over50": 0
+          "over50": 1
         },
         "endedPhase": "playing"
       },
@@ -1138,35 +1138,35 @@
           "n": 120,
           "p50": 0.6,
           "p95": 1.2,
-          "p99": 1.6,
-          "max": 1.7,
+          "p99": 1.7,
+          "max": 1.9,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
           "n": 120,
           "p50": 16.7,
-          "p95": 18.6,
-          "p99": 21.6,
-          "max": 24.3,
+          "p95": 17.3,
+          "p99": 19.3,
+          "max": 19.3,
           "over33": 0,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 47,
-          "p50": 0.9,
-          "p95": 3.6,
-          "p99": 12.9,
-          "max": 12.9,
+          "n": 48,
+          "p50": 0.8,
+          "p95": 6.6,
+          "p99": 14.1,
+          "max": 14.1,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 47,
-          "p50": 16.7,
-          "p95": 23.7,
-          "p99": 86.8,
-          "max": 86.8,
+          "n": 48,
+          "p50": 16.6,
+          "p95": 23.6,
+          "p99": 88.5,
+          "max": 88.5,
           "over33": 2,
           "over50": 2
         },
@@ -1177,40 +1177,40 @@
         "cpuThrottle": 1,
         "environment": "off",
         "idleStepMs": {
-          "n": 121,
+          "n": 120,
           "p50": 0.6,
-          "p95": 0.9,
-          "p99": 1.4,
-          "max": 2,
+          "p95": 1.1,
+          "p99": 1.5,
+          "max": 4.4,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 121,
+          "n": 120,
           "p50": 16.7,
-          "p95": 17,
-          "p99": 20.2,
-          "max": 22.7,
+          "p95": 17.1,
+          "p99": 20.3,
+          "max": 23.3,
           "over33": 0,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 49,
+          "n": 50,
           "p50": 0.8,
-          "p95": 3.5,
-          "p99": 12.8,
-          "max": 12.8,
+          "p95": 2.8,
+          "p99": 13,
+          "max": 13,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 49,
+          "n": 50,
           "p50": 16.6,
-          "p95": 27.5,
-          "p99": 87.5,
-          "max": 87.5,
+          "p95": 21.5,
+          "p99": 82.1,
+          "max": 82.1,
           "over33": 2,
-          "over50": 2
+          "over50": 1
         },
         "endedPhase": "settled"
       },
@@ -1219,39 +1219,39 @@
         "cpuThrottle": 4,
         "environment": "on",
         "idleStepMs": {
-          "n": 78,
-          "p50": 3.7,
-          "p95": 6.6,
-          "p99": 9.4,
-          "max": 9.4,
+          "n": 85,
+          "p50": 3.3,
+          "p95": 6.2,
+          "p99": 9.2,
+          "max": 9.2,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 78,
-          "p50": 25.3,
-          "p95": 31.6,
-          "p99": 36.6,
-          "max": 36.6,
-          "over33": 1,
+          "n": 85,
+          "p50": 23.6,
+          "p95": 28.8,
+          "p99": 41.9,
+          "max": 41.9,
+          "over33": 2,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 129,
-          "p50": 7,
-          "p95": 11.4,
-          "p99": 19.9,
-          "max": 31,
+          "n": 139,
+          "p50": 6.1,
+          "p95": 9.2,
+          "p99": 17.1,
+          "max": 20.4,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 129,
-          "p50": 29.5,
-          "p95": 38,
-          "p99": 91,
-          "max": 94.2,
-          "over33": 21,
+          "n": 139,
+          "p50": 27.7,
+          "p95": 34.3,
+          "p99": 83.7,
+          "max": 93.2,
+          "over33": 7,
           "over50": 3
         },
         "endedPhase": "playing"
@@ -1261,165 +1261,165 @@
         "cpuThrottle": 4,
         "environment": "off",
         "idleStepMs": {
-          "n": 110,
-          "p50": 2.4,
-          "p95": 5.4,
-          "p99": 8.6,
-          "max": 8.8,
+          "n": 117,
+          "p50": 2,
+          "p95": 4.2,
+          "p99": 7.2,
+          "max": 9.9,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 110,
-          "p50": 17.5,
-          "p95": 23,
-          "p99": 38.3,
-          "max": 53.5,
-          "over33": 2,
-          "over50": 1
-        },
-        "activeStepMs": {
-          "n": 179,
-          "p50": 5.4,
-          "p95": 9,
-          "p99": 14.6,
-          "max": 14.6,
-          "over33": 0,
-          "over50": 0
-        },
-        "activeFrameIntervalMs": {
-          "n": 179,
-          "p50": 21.3,
-          "p95": 27.7,
-          "p99": 58.4,
-          "max": 64.6,
-          "over33": 3,
-          "over50": 2
-        },
-        "endedPhase": "playing"
-      },
-      {
-        "game": "flap",
-        "cpuThrottle": 4,
-        "environment": "on",
-        "idleStepMs": {
-          "n": 85,
-          "p50": 4.2,
-          "p95": 8,
-          "p99": 10.2,
-          "max": 10.2,
-          "over33": 0,
-          "over50": 0
-        },
-        "idleFrameIntervalMs": {
-          "n": 85,
-          "p50": 23.2,
-          "p95": 32.3,
-          "p99": 35.1,
-          "max": 35.1,
-          "over33": 2,
-          "over50": 0
-        },
-        "activeStepMs": {
-          "n": 139,
-          "p50": 5.9,
-          "p95": 10.6,
-          "p99": 26.1,
-          "max": 33,
-          "over33": 0,
-          "over50": 0
-        },
-        "activeFrameIntervalMs": {
-          "n": 139,
-          "p50": 27.5,
-          "p95": 36.6,
-          "p99": 53.1,
-          "max": 86.6,
-          "over33": 15,
-          "over50": 2
-        },
-        "endedPhase": "playing"
-      },
-      {
-        "game": "flap",
-        "cpuThrottle": 4,
-        "environment": "off",
-        "idleStepMs": {
-          "n": 113,
-          "p50": 2.4,
-          "p95": 4.3,
-          "p99": 5.2,
-          "max": 6.3,
-          "over33": 0,
-          "over50": 0
-        },
-        "idleFrameIntervalMs": {
-          "n": 113,
-          "p50": 17.3,
-          "p95": 21.6,
-          "p99": 23.5,
-          "max": 45.2,
+          "n": 117,
+          "p50": 16.6,
+          "p95": 20.9,
+          "p99": 23.8,
+          "max": 42.8,
           "over33": 1,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 194,
-          "p50": 3.6,
-          "p95": 6.6,
-          "p99": 17.3,
-          "max": 21.7,
-          "over33": 0,
-          "over50": 0
-        },
-        "activeFrameIntervalMs": {
-          "n": 194,
-          "p50": 19.8,
-          "p95": 25.7,
-          "p99": 42,
-          "max": 73.4,
-          "over33": 4,
-          "over50": 1
-        },
-        "endedPhase": "playing"
-      },
-      {
-        "game": "shatter",
-        "cpuThrottle": 4,
-        "environment": "on",
-        "idleStepMs": {
-          "n": 84,
-          "p50": 2.8,
-          "p95": 5.2,
-          "p99": 8.2,
-          "max": 8.2,
-          "over33": 0,
-          "over50": 0
-        },
-        "idleFrameIntervalMs": {
-          "n": 84,
-          "p50": 23.3,
-          "p95": 29.5,
-          "p99": 32.5,
-          "max": 32.5,
-          "over33": 0,
-          "over50": 0
-        },
-        "activeStepMs": {
-          "n": 29,
+          "n": 193,
           "p50": 4.7,
-          "p95": 20.7,
-          "p99": 34.1,
-          "max": 34.1,
+          "p95": 8.8,
+          "p99": 14.7,
+          "max": 15.8,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 193,
+          "p50": 19.6,
+          "p95": 26.2,
+          "p99": 58.4,
+          "max": 60.2,
+          "over33": 4,
+          "over50": 2
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "flap",
+        "cpuThrottle": 4,
+        "environment": "on",
+        "idleStepMs": {
+          "n": 87,
+          "p50": 3.9,
+          "p95": 6.5,
+          "p99": 10.5,
+          "max": 10.5,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 87,
+          "p50": 22.7,
+          "p95": 29.1,
+          "p99": 34.9,
+          "max": 34.9,
+          "over33": 1,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 148,
+          "p50": 5.5,
+          "p95": 8.5,
+          "p99": 15.2,
+          "max": 26.3,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 148,
+          "p50": 26.3,
+          "p95": 32.8,
+          "p99": 36.4,
+          "max": 79.7,
+          "over33": 7,
+          "over50": 1
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "flap",
+        "cpuThrottle": 4,
+        "environment": "off",
+        "idleStepMs": {
+          "n": 114,
+          "p50": 2.2,
+          "p95": 4.5,
+          "p99": 5,
+          "max": 5.6,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 114,
+          "p50": 16.8,
+          "p95": 22,
+          "p99": 34.4,
+          "max": 43.7,
+          "over33": 2,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 194,
+          "p50": 3.5,
+          "p95": 6,
+          "p99": 19.4,
+          "max": 39.3,
           "over33": 1,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 29,
-          "p50": 26,
-          "p95": 74,
-          "p99": 104.9,
-          "max": 104.9,
+          "n": 194,
+          "p50": 19.5,
+          "p95": 27.6,
+          "p99": 59.2,
+          "max": 72.3,
           "over33": 4,
+          "over50": 2
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "shatter",
+        "cpuThrottle": 4,
+        "environment": "on",
+        "idleStepMs": {
+          "n": 94,
+          "p50": 2.4,
+          "p95": 4.1,
+          "p99": 7.2,
+          "max": 7.2,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 94,
+          "p50": 20.9,
+          "p95": 24.8,
+          "p99": 30.9,
+          "max": 30.9,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 27,
+          "p50": 5,
+          "p95": 24.3,
+          "p99": 37.1,
+          "max": 37.1,
+          "over33": 1,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 27,
+          "p50": 26.7,
+          "p95": 66.9,
+          "p99": 114.7,
+          "max": 114.7,
+          "over33": 5,
           "over50": 3
         },
         "endedPhase": "settled"
@@ -1429,40 +1429,40 @@
         "cpuThrottle": 4,
         "environment": "off",
         "idleStepMs": {
-          "n": 90,
-          "p50": 2.8,
-          "p95": 4.7,
-          "p99": 6.7,
-          "max": 6.7,
+          "n": 94,
+          "p50": 2.6,
+          "p95": 7.3,
+          "p99": 16,
+          "max": 16,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 90,
-          "p50": 21.7,
-          "p95": 29.5,
-          "p99": 32.5,
-          "max": 32.5,
-          "over33": 0,
+          "n": 94,
+          "p50": 20.2,
+          "p95": 31.9,
+          "p99": 42.5,
+          "max": 42.5,
+          "over33": 2,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 28,
-          "p50": 4.4,
-          "p95": 31.5,
-          "p99": 37.9,
-          "max": 37.9,
+          "n": 30,
+          "p50": 4.5,
+          "p95": 29.5,
+          "p99": 37.2,
+          "max": 37.2,
           "over33": 1,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 28,
-          "p50": 27.3,
-          "p95": 63.9,
-          "p99": 119.7,
-          "max": 119.7,
-          "over33": 6,
-          "over50": 3
+          "n": 30,
+          "p50": 24.6,
+          "p95": 61.2,
+          "p99": 102.9,
+          "max": 102.9,
+          "over33": 5,
+          "over50": 4
         },
         "endedPhase": "settled"
       }

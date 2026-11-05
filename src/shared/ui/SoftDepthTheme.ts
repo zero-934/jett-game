@@ -133,5 +133,52 @@ export const SHELL = {
   fontPx: { title: 14, label: 11, progress: 12, multiplier: 37, stake: 19, cta: 14, demoLabel: 11 },
 } as const;
 
+/** Shell layout variant. */
+export interface ShellLayout {
+  name: 'standard' | 'immersive';
+  stage: { x: number; y: number; width: number; height: number; radius: number };
+  /** HUD text drawn over the top of the stage (with a scrim) instead of in its own band. */
+  hudOverlay: boolean;
+  hudY: { phase: number; multiplier: number; progress: number };
+  multiplierPx: number;
+  controlsTop: number;
+  footerLabelY: number;
+  footerValueY: number;
+  cta: { x: number; y: number; width: number; height: number };
+  demoLabelY: number;
+}
+
+/** Original layout (ART_AND_LAYOUT.md). */
+export const LAYOUT_STANDARD: ShellLayout = {
+  name: 'standard', stage: SHELL.stage, hudOverlay: false,
+  hudY: { phase: 72, multiplier: 101, progress: 127 }, multiplierPx: SHELL.fontPx.multiplier,
+  controlsTop: SHELL.controlsTop, footerLabelY: 710, footerValueY: 734, cta: SHELL.cta, demoLabelY: 824,
+};
+
+/**
+ * Larger playfield for games whose full world must stay visible (Flap): the HUD sits over the
+ * top of the stage, side margins shrink to 8 px and the footer is compacted. Same CTA size
+ * (350×52), same minimum text sizes, same 44 px targets.
+ */
+export const LAYOUT_IMMERSIVE: ShellLayout = {
+  name: 'immersive', stage: { x: 8, y: 56, width: 374, height: 664, radius: 14 }, hudOverlay: true,
+  hudY: { phase: 70, multiplier: 95, progress: 119 }, multiplierPx: 34,
+  controlsTop: 720, footerLabelY: 732, footerValueY: 752, cta: { x: 20, y: 772, width: 350, height: 52 }, demoLabelY: 836,
+};
+
+/**
+ * Uniform fit of a game world into a stage (no crop, no stretch).
+ * @param stage - Stage rect.
+ * @param worldW - World width.
+ * @param worldH - World height.
+ * @returns Scale and origin of the world inside the stage.
+ * @example
+ * fitWorld(LAYOUT_IMMERSIVE.stage, 390, 844); // { k: 0.7867…, originX: 41.6…, originY: 56 }
+ */
+export function fitWorld(stage: { x: number; y: number; width: number; height: number }, worldW: number, worldH: number): { k: number; originX: number; originY: number } {
+  const k = Math.min(stage.width / worldW, stage.height / worldH);
+  return { k, originX: stage.x + (stage.width - worldW * k) / 2, originY: stage.y + (stage.height - worldH * k) / 2 };
+}
+
 /** Persistent no-cash-value copy. */
 export const DEMO_CREDITS_LABEL = 'Demo credits have no cash value';

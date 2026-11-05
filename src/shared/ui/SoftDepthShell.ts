@@ -22,8 +22,8 @@
  */
 import * as Phaser from 'phaser';
 import { drawButton } from './UITheme';
-import { SHELL, DEMO_CREDITS_LABEL, resolveTheme, hexToInt, THEME_NAMES } from './SoftDepthTheme';
-import type { SoftDepthTokens, ThemeName } from './SoftDepthTheme';
+import { SHELL, DEMO_CREDITS_LABEL, resolveTheme, hexToInt, THEME_NAMES, LAYOUT_STANDARD } from './SoftDepthTheme';
+import type { SoftDepthTokens, ThemeName, ShellLayout } from './SoftDepthTheme';
 import { loadSettings, saveSettings } from './DemoSettings';
 import type { DemoSettings, SettingsStorage } from './DemoSettings';
 import { AudioService } from '../audio/AudioService';
@@ -32,7 +32,7 @@ import { formatCredits } from '../sim/DemoLedger';
 /** Font stack. Inter is preferred when available; self-hosting it is a follow-up. */
 export const SHELL_FONT = '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
 
-const DEPTH = { stageInput: 38, fillet: 40, panel: 41, panelContent: 42, cta: 44, result: 60, pause: 58, settings: 80 } as const;
+const DEPTH = { stageInput: 38, hudScrim: 39, fillet: 40, panel: 41, panelContent: 42, cta: 44, result: 60, pause: 58, settings: 80 } as const;
 const RESULT_FADE_MS = 160;
 const LETTER_SPACING_CAPS = 1.6;
 const STAGE_POINTERS = 2;
@@ -108,6 +108,8 @@ export interface ShellOptions {
   onVisibilityLost?: (reason: 'hidden' | 'blur') => void;
   /** Override storage (tests). */
   storage?: SettingsStorage | null;
+  /** Layout variant. Defaults to the standard art-spec layout. */
+  layout?: ShellLayout;
 }
 
 function css(hex: string, alpha = 1): string {
@@ -123,12 +125,14 @@ function css(hex: string, alpha = 1): string {
  */
 export class SoftDepthShell {
   readonly scene: Phaser.Scene;
-  readonly stage = SHELL.stage;
+  readonly layout: ShellLayout;
+  readonly stage: ShellLayout['stage'];
   settings: DemoSettings;
   tokens: SoftDepthTokens;
 
   private readonly opts: ShellOptions;
   private chrome: Phaser.GameObjects.Graphics;
+  private hudScrim: Phaser.GameObjects.Graphics | null = null;
   private texts: Record<string, Phaser.GameObjects.Text> = {};
   private cta: { bg: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text } | null = null;
   private stageZone: Phaser.GameObjects.Zone;
@@ -157,6 +161,8 @@ export class SoftDepthShell {
   constructor(scene: Phaser.Scene, opts: ShellOptions) {
     this.scene = scene;
     this.opts = opts;
+    this.layout = opts.layout ?? LAYOUT_STANDARD;
+    this.stage = this.layout.stage;
     const storage = opts.storage !== undefined ? opts.storage : SoftDepthShell.defaultStorage();
     const prm = typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.settings = loadSettings(storage, prm);
@@ -165,6 +171,7 @@ export class SoftDepthShell {
 
     scene.input.addPointer(STAGE_POINTERS - 1);
     this.chrome = scene.add.graphics().setDepth(DEPTH.panel);
+    this.hudScrim = this.layout.hudOverlay ? scene.add.graphics().setDepth(DEPTH.hudScrim) : null;
     this.stageZone = scene.add.zone(this.stage.x, this.stage.y, this.stage.width, this.stage.height).setOrigin(0).setDepth(DEPTH.stageInput).setInteractive();
     this.wireStageZone();
     this.buildStaticText();
@@ -360,14 +367,15 @@ export class SoftDepthShell {
     this.texts.title = this.text(48, 28, this.opts.title.toUpperCase(), f.title, t.text, 'bold').setOrigin(0, 0.5).setDepth(d).setLetterSpacing(0.6);
     this.texts.balanceLabel = this.text(W - 66, 19, 'DEMO CREDITS', f.label, t.muted).setOrigin(1, 0.5).setDepth(d).setLetterSpacing(1);
     this.texts.balance = this.text(W - 66, 37, '0.00', 15, t.text, 'bold').setOrigin(1, 0.5).setDepth(d);
-    this.texts.phase = this.text(W / 2, 72, '', f.label, t.muted, 'bold').setOrigin(0.5).setDepth(d).setLetterSpacing(LETTER_SPACING_CAPS);
-    this.texts.multiplier = this.text(W / 2, 101, '', f.multiplier, t.accent, 'bold').setOrigin(0.5).setDepth(d);
-    this.texts.progress = this.text(W / 2, 127, '', f.progress, t.text).setOrigin(0.5).setDepth(d);
-    this.texts.stakeLabel = this.text(22, 710, 'DEMO STAKE', f.label, t.muted, 'bold').setOrigin(0, 0.5).setDepth(d).setLetterSpacing(1);
-    this.texts.stake = this.text(22, 734, '', f.stake, t.text, 'bold').setOrigin(0, 0.5).setDepth(d);
-    this.texts.rightLabel = this.text(W - 22, 710, '', f.label, t.muted, 'bold').setOrigin(1, 0.5).setDepth(d).setLetterSpacing(1);
-    this.texts.rightValue = this.text(W - 22, 734, '', 16, t.text, 'bold').setOrigin(1, 0.5).setDepth(d);
-    this.texts.demo = this.text(W / 2, 824, DEMO_CREDITS_LABEL.toUpperCase(), f.demoLabel, t.muted, 'bold').setOrigin(0.5).setDepth(d).setLetterSpacing(1);
+    const L = this.layout;
+    this.texts.phase = this.text(W / 2, L.hudY.phase, '', f.label, t.muted, 'bold').setOrigin(0.5).setDepth(d).setLetterSpacing(LETTER_SPACING_CAPS);
+    this.texts.multiplier = this.text(W / 2, L.hudY.multiplier, '', L.multiplierPx, t.accent, 'bold').setOrigin(0.5).setDepth(d);
+    this.texts.progress = this.text(W / 2, L.hudY.progress, '', f.progress, t.text).setOrigin(0.5).setDepth(d);
+    this.texts.stakeLabel = this.text(22, L.footerLabelY, 'DEMO STAKE', f.label, t.muted, 'bold').setOrigin(0, 0.5).setDepth(d).setLetterSpacing(1);
+    this.texts.stake = this.text(22, L.footerValueY, '', f.stake, t.text, 'bold').setOrigin(0, 0.5).setDepth(d);
+    this.texts.rightLabel = this.text(W - 22, L.footerLabelY, '', f.label, t.muted, 'bold').setOrigin(1, 0.5).setDepth(d).setLetterSpacing(1);
+    this.texts.rightValue = this.text(W - 22, L.footerValueY, '', 16, t.text, 'bold').setOrigin(1, 0.5).setDepth(d);
+    this.texts.demo = this.text(W / 2, L.demoLabelY, DEMO_CREDITS_LABEL.toUpperCase(), f.demoLabel, t.muted, 'bold').setOrigin(0.5).setDepth(d).setLetterSpacing(1);
   }
 
   /** Repaints panels, icons and theme-dependent text colours. */
@@ -381,10 +389,17 @@ export class SoftDepthShell {
     g.fillRect(0, s.y, s.x, s.height);
     g.fillRect(s.x + s.width, s.y, W - s.x - s.width, s.height);
     g.fillStyle(hexToInt(t.surface), 1).fillRect(0, 0, W, SHELL.headerBottom);
-    g.fillStyle(hexToInt(t.surface), 1).fillRect(0, SHELL.controlsTop, W, H - SHELL.controlsTop);
+    const ct = this.layout.controlsTop;
+    g.fillStyle(hexToInt(t.surface), 1).fillRect(0, ct, W, H - ct);
     g.lineStyle(1, hexToInt(t.line), 1);
     g.lineBetween(0, SHELL.headerBottom, W, SHELL.headerBottom);
-    g.lineBetween(0, SHELL.controlsTop, W, SHELL.controlsTop);
+    g.lineBetween(0, ct, W, ct);
+    if (this.hudScrim) {
+      // Legibility scrim behind the overlaid HUD; fades out well above the play area's centre.
+      const sc = this.hudScrim; sc.clear();
+      const bg = hexToInt(t.background);
+      sc.fillGradientStyle(bg, bg, bg, bg, 0.62, 0.62, 0, 0).fillRect(s.x, s.y, s.width, 84);
+    }
     // Rounded stage corners: fillets in the background colour over the stage content.
     const r = s.radius;
     g.fillStyle(hexToInt(t.background), 1);
@@ -426,7 +441,7 @@ export class SoftDepthShell {
     this.cta?.bg.destroy();
     this.cta?.text.destroy();
     const f = this.footer; if (!f) return;
-    const c = SHELL.cta; const t = this.tokens;
+    const c = this.layout.cta; const t = this.tokens;
     const colors = f.ctaEnabled
       ? { fill: hexToInt(t.cta), text: t.ctaText, fontFamily: SHELL_FONT, fontSize: `${SHELL.fontPx.cta}px` }
       : { fill: hexToInt(t.surfaceRaised), text: t.muted, stroke: hexToInt(t.line), fontFamily: SHELL_FONT, fontSize: `${SHELL.fontPx.cta}px` };
@@ -568,7 +583,7 @@ export class SoftDepthShell {
     document.body.appendChild(root);
     this.makeDomButton('back', 'Back to lobby', { x: 2, y: 6, width: 44, height: 44 }, () => this.opts.onBack());
     this.makeDomButton('settings', 'Settings', { x: SHELL.width - 52, y: 6, width: 44, height: 44 }, () => this.toggleSettings());
-    this.makeDomButton('cta', 'Start', SHELL.cta, () => { AudioService.unlock(); if (this.footer?.ctaEnabled && !this.settingsOpenValue) this.opts.onPrimary(); });
+    this.makeDomButton('cta', 'Start', this.layout.cta, () => { AudioService.unlock(); if (this.footer?.ctaEnabled && !this.settingsOpenValue) this.opts.onPrimary(); });
     const live = document.createElement('div');
     live.className = 'sd-live';
     live.setAttribute('aria-live', 'polite');

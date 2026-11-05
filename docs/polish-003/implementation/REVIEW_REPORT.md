@@ -117,6 +117,17 @@ Glass-break timeline (rAF sampling, `evidence/shatter-break-timeline.json`): pic
   - Character studies are the unchanged supplied PNGs (downsampled). No new character art.
 - **Gaps:** single wizard pose (tilt + specks stand in for the 3 flap poses); simple code-drawn skyline and rocks rather than authored atlases; Inter not self-hosted (system fallback).
 
+## 6a. Flap scale fix (owner request, `opus/polish-003-flap-scale`)
+
+The owner asked for Flap's scale to look more like the approved reference. Done **without** changing gameplay, collision, world size or pipe spacing:
+- New shared `LAYOUT_IMMERSIVE` shell variant: stage 374×664 at y 56 (was 358×544 at y 136). The HUD is overlaid at the top of the stage over a gradient scrim; the footer is compacted to y 720–844 with the same 350×52 CTA (now at y 772).
+- World fit k = 0.787 (was 0.645), +22 %. The full 390×844 world, including the lethal ceiling and floor, stays visible and uniformly fitted.
+- Wizard art enlarged from 42 to 56 world px (hat to broom). At this size the robed body ≈ the 28×28 hitbox (it was drawn smaller than the hitbox before). On screen it is ≈ 44 px tall (was ≈ 27).
+- Pipes are ≈ 24 px wide on screen (was 19). Art still exactly inside the 30 px hitbox (`segments/flap-playing-debug.jpg`).
+- Jett and Shatter keep the standard layout (unchanged).
+
+Remaining difference from the concept: the concept draws pipes wider and closer together than the real world geometry. Matching that exactly needs either a camera that does not show the whole world height or a different world/pipe geometry, both of which change gameplay and need owner approval.
+
 ## 7. Unresolved risks
 
 1. **Economics/trust:** D-2 (Shatter paytable), D-3 (skill returns), D-4 coin/hazard asymmetry, D-5 bands — owner decisions.

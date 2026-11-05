@@ -19,16 +19,20 @@ import { getPageLedger, nextRoundId, toHundredths, formatCredits } from '../shar
 import { createSeedString, RNG_ALGORITHM_V2 } from '../shared/rng/ProvablyFairRNG';
 import { SoftDepthShell } from '../shared/ui/SoftDepthShell';
 import type { ShellKey } from '../shared/ui/SoftDepthShell';
-import { hexToInt } from '../shared/ui/SoftDepthTheme';
+import { hexToInt, fitWorld, LAYOUT_IMMERSIVE } from '../shared/ui/SoftDepthTheme';
 import { AudioService } from '../shared/audio/AudioService';
 
 // ─── World fit (docs/polish-003/ART_AND_LAYOUT.md "Preserving Flap and Jett worlds") ──
-const STAGE = { x: 16, y: 136, width: 358, height: 544 };
+// polish-003 scale fix: Flap uses the immersive shell layout (stage 374×664 at y 56), so the
+// unchanged 390×844 world fits at k ≈ 0.787 instead of 0.645 (+22 %), with ceiling and floor
+// still fully visible. World geometry, hitboxes and pipe spacing are unchanged.
 const WORLD_W = 390;
 const WORLD_H = 844;
-const K = Math.min(STAGE.width / WORLD_W, STAGE.height / WORLD_H); // 0.644549763…
-const ORIGIN_X = STAGE.x + (STAGE.width - WORLD_W * K) / 2;          // 69.3128…
-const ORIGIN_Y = STAGE.y;
+const FIT = fitWorld(LAYOUT_IMMERSIVE.stage, WORLD_W, WORLD_H);
+const STAGE = LAYOUT_IMMERSIVE.stage;
+const K = FIT.k;             // 0.78672…
+const ORIGIN_X = FIT.originX; // 41.59…
+const ORIGIN_Y = FIT.originY; // 56
 
 // ─── Art (revision 004) ───────────────────────────────────────────────────────
 const SKY_TOP = 0x16223d;
@@ -46,7 +50,7 @@ const PIPE_BAND = 0xc9a24f;
 const PIPE_BAND_DARK = 0x8f7234;
 const GUTTER_DIM_ALPHA = 0.28;
 const PIPE_BAND_WORLD_H = 16;
-const WIZARD_DISPLAY_WORLD_H = 42; // hat-to-broom; body stays near the 28×28 collision box
+const WIZARD_DISPLAY_WORLD_H = 56; // hat-to-broom; at this size the robed body ≈ the 28×28 collision box (verified with ?debug=1)
 const WIZARD_TEXTURE = 'flap-wizard';
 const SKYLINE_FAR_KEY = 'flap-skyline-far';
 const SKYLINE_NEAR_KEY = 'flap-skyline-near';
@@ -145,6 +149,7 @@ export class FlapFortuneUI {
     this.betHundredths = toHundredths(bet);
     this.shell = new SoftDepthShell(this.scene, {
       title: 'Flap Fortune',
+      layout: LAYOUT_IMMERSIVE,
       onBack: () => { window.location.href = 'https://zero-934.github.io/jett-landing/'; },
       onPrimary: () => this.onPrimary(),
       onStageDown: () => this.onPress(),
@@ -294,10 +299,10 @@ export class FlapFortuneUI {
       const sx = S.x + ((i * 97) % S.width); const sy = S.y + 8 + ((i * 53) % 240);
       sky.fillStyle(0xdfe7f5, 0.18 + (i % 4) * 0.08).fillCircle(sx, sy, i % 6 === 0 ? 1.2 : 0.8);
     }
-    const mx = S.x + S.width * 0.66; const my = S.y + 84;
-    sky.fillStyle(MOON, 1).fillCircle(mx, my, 15);
-    sky.fillStyle(MOON_CUT, 1).fillCircle(mx + 7, my - 5, 13);
-    for (const [cx, cy, w] of [[S.x + 62, S.y + 150, 64], [S.x + S.width - 54, S.y + 214, 56]] as const) {
+    const mx = S.x + S.width * 0.66; const my = S.y + 150;
+    sky.fillStyle(MOON, 1).fillCircle(mx, my, 18);
+    sky.fillStyle(MOON_CUT, 1).fillCircle(mx + 8, my - 6, 15.5);
+    for (const [cx, cy, w] of [[S.x + 66, S.y + 214, 70], [S.x + S.width - 58, S.y + 290, 60]] as const) {
       sky.fillStyle(CLOUD, 1);
       sky.fillRoundedRect(cx - w / 2, cy, w, 14, 7);
       sky.fillCircle(cx - w * 0.12, cy + 2, 11);
@@ -308,8 +313,8 @@ export class FlapFortuneUI {
     // Skyline layers: seamless tiles generated once, scrolled cosmetically.
     this.makeSkylineTexture(SKYLINE_FAR_KEY, FAR_SKYLINE, 120, false);
     this.makeSkylineTexture(SKYLINE_NEAR_KEY, NEAR_SKYLINE, 86, true);
-    this.farLayer = scene.add.tileSprite(S.x, S.y + S.height - 170, S.width, 170, SKYLINE_FAR_KEY).setOrigin(0).setDepth(DEPTH.far);
-    this.nearLayer = scene.add.tileSprite(S.x, S.y + S.height - 120, S.width, 120, SKYLINE_NEAR_KEY).setOrigin(0).setDepth(DEPTH.near);
+    this.farLayer = scene.add.tileSprite(S.x, S.y + S.height - 200, S.width, 170, SKYLINE_FAR_KEY).setScale(1, 200 / 170).setOrigin(0).setDepth(DEPTH.far);
+    this.nearLayer = scene.add.tileSprite(S.x, S.y + S.height - 140, S.width, 120, SKYLINE_NEAR_KEY).setScale(1, 140 / 120).setOrigin(0).setDepth(DEPTH.near);
 
     // Gutters outside the fitted world are dimmed so the lethal playfield reads clearly.
     const g = scene.add.graphics().setDepth(DEPTH.gutter);
@@ -329,9 +334,9 @@ export class FlapFortuneUI {
 
     const scale = (WIZARD_DISPLAY_WORLD_H * K) / (scene.textures.exists(WIZARD_TEXTURE) ? scene.textures.get(WIZARD_TEXTURE).getSourceImage().height : 164);
     this.wizard = scene.add.image(wx(FLAP_PLAYER_X), wy(WORLD_H / 2), WIZARD_TEXTURE).setScale(scale).setDepth(DEPTH.wizard);
-    const hintStyle = { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '12px', color: '#e8edf4', fontStyle: 'bold' };
+    const hintStyle = { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '14px', color: '#e8edf4', fontStyle: 'bold' };
     this.hint = scene.add.text(S.x + S.width / 2, S.y + S.height - 30, 'TAP THE SKY TO FLAP', hintStyle).setOrigin(0.5).setDepth(DEPTH.hint).setLetterSpacing(1.6);
-    this.exitHint = scene.add.text(S.x + S.width / 2, S.y + S.height - 50, 'DIVE TO CASH OUT · AFTER FIRST GATE', { ...hintStyle, fontSize: '11px', color: '#c8d3e2' }).setOrigin(0.5).setDepth(DEPTH.hint).setLetterSpacing(1.2);
+    this.exitHint = scene.add.text(S.x + S.width / 2, S.y + S.height - 50, 'DIVE TO CASH OUT · AFTER FIRST GATE', { ...hintStyle, fontSize: '12px', color: '#c8d3e2' }).setOrigin(0.5).setDepth(DEPTH.hint).setLetterSpacing(1.2);
     for (const t of [this.hint, this.exitHint]) t.setResolution(Math.min(3, window.devicePixelRatio || 1));
     this.debug = this.debugEnabled ? scene.add.graphics().setDepth(DEPTH.debug) : null;
     this.render(1);
