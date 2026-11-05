@@ -1,0 +1,115 @@
+{
+  "sourceRoot": "/home/user/inferno-baseline",
+  "probes": {
+    "allWild": {
+      "clusters": 0,
+      "win": 0,
+      "comparisonOneEmberEightWild": {
+        "clusters": 1,
+        "win": 200
+      }
+    },
+    "scatterWithoutCluster": {
+      "scatterCount": 3,
+      "clusters": 0,
+      "freeSpinsAfter": 0,
+      "complete": true
+    },
+    "survivorOrder": {
+      "before": {
+        "col0": [
+          "COAL",
+          "EMBER",
+          "FLAME"
+        ],
+        "col1": [
+          "SMOKE",
+          "EMBER",
+          "ASH"
+        ],
+        "col2": [
+          "ASH",
+          "EMBER",
+          "SMOKE"
+        ]
+      },
+      "after": {
+        "col0": [
+          "COAL",
+          "FLAME",
+          "COAL"
+        ],
+        "col1": [
+          "SCATTER",
+          "ASH",
+          "SMOKE"
+        ],
+        "col2": [
+          "FLAME",
+          "SMOKE",
+          "ASH"
+        ]
+      },
+      "expectedGravityRows1and2": {
+        "col0": [
+          "COAL",
+          "FLAME"
+        ],
+        "col1": [
+          "SMOKE",
+          "ASH"
+        ],
+        "col2": [
+          "ASH",
+          "SMOKE"
+        ]
+      },
+      "reversed": true
+    },
+    "simulatorCarry": {
+      "rounds": 3000,
+      "simulateInfernoRTP": 0.9656833333333386,
+      "freshStateRunner": 0.9656833333333386,
+      "identical": true,
+      "infernoSpinsObserved": 0,
+      "maxHeatWithinOneSpin": 5
+    },
+    "repeatedEvaluate": {
+      "firstTotal": 8,
+      "secondTotal": 16
+    },
+    "wildOverlap": {
+      "clusters": [
+        {
+          "symbol": "EMBER",
+          "size": 3,
+          "payout": 8
+        },
+        {
+          "symbol": "FLAME",
+          "size": 3,
+          "payout": 5
+        }
+      ],
+      "total": 13
+    },
+    "cascadeDefaultRng": {
+      "refillA": [
+        "SMOKE",
+        "FLAME",
+        "WILD"
+      ],
+      "refillB": [
+        "SMOKE",
+        "FLAME",
+        "WILD"
+      ],
+      "identical": true
+    },
+    "rounding": {
+      "bet": 3,
+      "coal3Payout": 1.0499999999999998,
+      "isExactCents": false
+    }
+  }
+}

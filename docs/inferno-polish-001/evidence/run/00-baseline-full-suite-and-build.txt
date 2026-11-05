@@ -1,0 +1,80 @@
+
+Test Suites: 15 passed, 15 total
+Tests:       240 passed, 240 total
+Snapshots:   0 total
+Time:        516.454 s
+Ran all test suites.
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.11s
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Research Harness (not production)</title>
+  <style>* { margin:0; padding:0; box-sizing:border-box } body { background:#000; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden }
+  #app { display:flex; justify-content:center; align-items:center; width:100%; height:100% }
+  #app canvas { display:block; margin:0 auto; image-rendering: crisp-edges; image-rendering: pixelated; }</style>
+</head>
+<body><div id="app"></div><script type="module" src="./harness-main.ts"></script></body>
+</html>
+/**
+ * @file harness-main.ts
+ * @purpose RESEARCH HARNESS ONLY — never imported by production. Boots the unmodified production
+ *          scenes with the same game config as src/main.ts, skips LockScene, and exposes the
+ *          Phaser.Game plus resource counters on window for Playwright probes.
+ * @author Agent 934 (research branch)
+ * @date 2026-11-05
+ * @license Proprietary – available for licensing
+ */
+import * as Phaser from 'phaser';
+import { JettScene } from '../../src/scenes/JettScene';
+import { ShatterStepScene } from '../../src/scenes/ShatterStepScene';
+import { FlapFortuneScene } from '../../src/scenes/FlapFortuneScene';
+
+type Counters = { audioContextsCreated: number; audioContextsClosed: number };
+const counters: Counters = { audioContextsCreated: 0, audioContextsClosed: 0 };
+const NativeAC = window.AudioContext;
+if (NativeAC) {
+  class CountingAC extends NativeAC {
+    constructor(opts?: AudioContextOptions) { super(opts); counters.audioContextsCreated++; }
+    close(): Promise<void> { counters.audioContextsClosed++; return super.close(); }
+  }
+  (window as unknown as Record<string, unknown>).AudioContext = CountingAC;
+}
+
+const params = new URLSearchParams(window.location.search);
+const target = params.get('scene') ?? 'JettScene';
+const limit = Number(params.get('fpsLimit') ?? '0');
+
+const config = {
+  type: params.get('renderer') === 'canvas' ? Phaser.CANVAS : Phaser.AUTO,
+  width: 390,
+  height: 844,
+  backgroundColor: '#000000',
+  resolution: window.devicePixelRatio || 2, // mirrors src/main.ts (ignored by Phaser 4)
+  scene: [JettScene, ShatterStepScene, FlapFortuneScene].filter((s) => s.name === target)
+    .concat([JettScene, ShatterStepScene, FlapFortuneScene].filter((s) => s.name !== target)),
+  parent: 'app',
+  fps: limit > 0 ? { limit } : undefined,
+  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+  dom: { createContainer: true },
+} as Phaser.Types.Core.GameConfig;
+
+const game = new Phaser.Game(config);
+(window as unknown as Record<string, unknown>).__game = game;
+(window as unknown as Record<string, unknown>).__counters = counters;
+(window as unknown as Record<string, unknown>).__Phaser = Phaser;
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  // GitHub Pages serves from /jett-game/ — this sets the base path correctly.
+  // If you ever move to a custom domain (jett.game), change this to '/'.
+  base: '/jett-game/',
+});
+
+[exited with code 0]
