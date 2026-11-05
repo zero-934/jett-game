@@ -157,3 +157,31 @@ export const FLAP_ASSETS = {
 export function useSprites(): boolean {
   return ASSET_MODE === 'sprites';
 }
+
+/**
+ * Inferno audio assets (inferno-polish-001). Original procedural audio rendered offline by
+ * `research/inferno/audio/render-audio.cjs`; provenance in `public/assets/inferno/ASSET_SOURCES.md`.
+ * Each cue lists formats in preference order for Phaser's loader (first supported wins).
+ * Inferno symbols/background are deterministic code-drawn textures, so no image paths are needed.
+ *
+ * @example
+ * Object.entries(INFERNO_ASSETS.audio).forEach(([key, urls]) => this.load.audio(key, [...urls]));
+ */
+export const INFERNO_ASSETS = {
+  audio: {
+    'inferno-forge-loop':      [`${BASE}/inferno/audio/inferno-forge-loop.ogg`, `${BASE}/inferno/audio/inferno-forge-loop.wav`],
+    'inferno-click':           [`${BASE}/inferno/audio/click.ogg`, `${BASE}/inferno/audio/click.mp3`],
+    'inferno-reel-stop-1':     [`${BASE}/inferno/audio/reel-stop-1.ogg`, `${BASE}/inferno/audio/reel-stop-1.mp3`],
+    'inferno-reel-stop-2':     [`${BASE}/inferno/audio/reel-stop-2.ogg`, `${BASE}/inferno/audio/reel-stop-2.mp3`],
+    'inferno-reel-stop-3':     [`${BASE}/inferno/audio/reel-stop-3.ogg`, `${BASE}/inferno/audio/reel-stop-3.mp3`],
+    'inferno-cluster-pop':     [`${BASE}/inferno/audio/cluster-pop.ogg`, `${BASE}/inferno/audio/cluster-pop.mp3`],
+    'inferno-cascade-land':    [`${BASE}/inferno/audio/cascade-land.ogg`, `${BASE}/inferno/audio/cascade-land.mp3`],
+    'inferno-heat-tick':       [`${BASE}/inferno/audio/heat-tick.ogg`, `${BASE}/inferno/audio/heat-tick.mp3`],
+    'inferno-feature-granted': [`${BASE}/inferno/audio/feature-granted.ogg`, `${BASE}/inferno/audio/feature-granted.mp3`],
+    'inferno-crown-flip':      [`${BASE}/inferno/audio/crown-flip.ogg`, `${BASE}/inferno/audio/crown-flip.mp3`],
+    'inferno-crown-win':       [`${BASE}/inferno/audio/crown-win.ogg`, `${BASE}/inferno/audio/crown-win.mp3`],
+    'inferno-crown-loss':      [`${BASE}/inferno/audio/crown-loss.ogg`, `${BASE}/inferno/audio/crown-loss.mp3`],
+    'inferno-result-profit':   [`${BASE}/inferno/audio/result-profit.ogg`, `${BASE}/inferno/audio/result-profit.mp3`],
+    'inferno-result-neutral':  [`${BASE}/inferno/audio/result-neutral.ogg`, `${BASE}/inferno/audio/result-neutral.mp3`],
+  },
+} as const;

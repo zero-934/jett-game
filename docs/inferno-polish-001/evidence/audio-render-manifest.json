@@ -1,0 +1,84 @@
+{
+  "generator": "research/inferno/audio/render-audio.cjs",
+  "sampleRate": 48000,
+  "bpm": 90,
+  "loopSeconds": 16,
+  "loopBars": 6,
+  "seam": {
+    "firstMinusLast": 0.004576796782203019,
+    "maxAdjacentStepInLoop": 0.018054170534014702
+  },
+  "files": {
+    "inferno-forge-loop": {
+      "seconds": 16,
+      "samplePeakDbfs": -12.000000253286988
+    },
+    "click": {
+      "seconds": 0.05,
+      "samplePeakDbfs": -13.999999827421785
+    },
+    "reel-stop-1": {
+      "seconds": 0.16,
+      "samplePeakDbfs": -15.000000078774018
+    },
+    "reel-stop-2": {
+      "seconds": 0.16,
+      "samplePeakDbfs": -15.000000078774018
+    },
+    "reel-stop-3": {
+      "seconds": 0.16,
+      "samplePeakDbfs": -15.000000078774018
+    },
+    "cluster-pop": {
+      "seconds": 0.22,
+      "samplePeakDbfs": -13.000000140032197
+    },
+    "cascade-land": {
+      "seconds": 0.22,
+      "samplePeakDbfs": -16.99999999789091
+    },
+    "heat-tick": {
+      "seconds": 0.14002083333333334,
+      "samplePeakDbfs": -18.9999998679469
+    },
+    "feature-granted": {
+      "seconds": 0.6,
+      "samplePeakDbfs": -13.000000140032197
+    },
+    "crown-flip": {
+      "seconds": 0.32,
+      "samplePeakDbfs": -18.000000436554874
+    },
+    "crown-win": {
+      "seconds": 0.3400208333333333,
+      "samplePeakDbfs": -15.000000078774018
+    },
+    "crown-loss": {
+      "seconds": 0.3400208333333333,
+      "samplePeakDbfs": -20.99999970913206
+    },
+    "result-profit": {
+      "seconds": 0.75,
+      "samplePeakDbfs": -13.000000140032197
+    },
+    "result-neutral": {
+      "seconds": 0.3,
+      "samplePeakDbfs": -22.000000077474585
+    }
+  },
+  "order": [
+    "click",
+    "reel-stop-1",
+    "reel-stop-2",
+    "reel-stop-3",
+    "cluster-pop",
+    "cascade-land",
+    "heat-tick",
+    "feature-granted",
+    "crown-flip",
+    "crown-win",
+    "crown-loss",
+    "result-profit",
+    "result-neutral"
+  ]
+}
