@@ -1,0 +1,72 @@
+{
+  "label": "option-both-collect",
+  "generatedAt": "2026-11-05T19:39:01.064Z",
+  "sourceRoot": ".",
+  "codeSha": "2977ad627314515097e2389e6486abb4ffda63e5",
+  "sourceDirty": true,
+  "mathVersion": "inferno-math-2",
+  "configFingerprint": "2669b2f6",
+  "prng": "ProvablyFairRNG production (unmasked BigInt xoroshiro-style)",
+  "runner": "exports",
+  "rules": {
+    "wildOnlyCluster": "pays-as-top-symbol",
+    "scatterAward": "any-landed-board"
+  },
+  "crownPolicy": {
+    "kind": "collect"
+  },
+  "stake": 1,
+  "batches": 40,
+  "cyclesPerBatch": 1000,
+  "seedScheme": "inferno-polish-001:option-both-collect:batch-NNN (one fresh RNG + fresh state (heat 0) per batch; state carried within a batch)",
+  "paidCycles": 40000,
+  "paidSpins": 40000,
+  "freeSpins": 12280,
+  "totalPaidCredits": 40000,
+  "grossReturnCredits": 250071.55,
+  "rtpPooled": 6.25178875,
+  "rtpBatchMean": 6.251788749999998,
+  "batchSd": 0.2632481898999059,
+  "ci95": [
+    6.170207290739975,
+    6.33337020926002
+  ],
+  "ciMethod": "batch means, Student t (df=39); batches are independent seeded sessions",
+  "hitFrequency": 0.754375,
+  "outcomeRates": {
+    "zero": 0.245625,
+    "partialBelowStake": 0.26815,
+    "breakEven": 0.011525,
+    "profit": 0.4747
+  },
+  "infernoSpinsPerPaidCycle": 0.250375,
+  "infernoSpinMeanReturnCredits": 20.938115327009488,
+  "freeSpinAwardsPerPaidCycle": 0.0614,
+  "freeSpinsPerPaidCycle": 0.307,
+  "crownOffersPerPaidCycle": 0.7415,
+  "crownFlips": 0,
+  "crownFlipWinRate": null,
+  "cascadeHistogramBySpin": [
+    13135,
+    16673,
+    10835,
+    5826,
+    2968,
+    1583,
+    659,
+    336,
+    151,
+    61,
+    19,
+    34
+  ],
+  "maxCascadesObserved": 17,
+  "maxObservedCycleReturnCredits": 167.325,
+  "maxObservedSpinReturnCredits": 30.4,
+  "unresolvedSpins": 0,
+  "unresolvedSeeds": [],
+  "nonFiniteEvents": 0,
+  "pendingFreeSpinsAtBatchEnds": 0,
+  "runtimeMs": 47958,
+  "crosscheck": null
+}

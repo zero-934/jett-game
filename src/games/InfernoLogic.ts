@@ -2,8 +2,20 @@
  * @file InfernoLogic.ts
  * @purpose Implements the core game logic for the Inferno slot game, including grid generation, cluster evaluation, cascading, and special mechanics like Heat Meter and Crown Flip.
  * @author Agent 934
- * @date 2026-04-16
+ * @date 2026-04-16 (inferno-polish-001 revision 2026-11-05)
  * @license Proprietary – available for licensing
+ *
+ * Revision notes (inferno-polish-001, math version `inferno-math-2`):
+ * - Cascade survivors now keep top-to-bottom order (gravity). The original collected survivors
+ *   bottom-to-top, reversing columns. This is a bug fix that changes returns; see the report.
+ * - `evaluateClusters()` is idempotent for a given cascade step (no duplicate credit on re-call).
+ * - Disputed product rules (all-WILD board, scatter-without-cluster) are selectable through
+ *   `InfernoConfig.rules`; the default keeps the original behaviour (`INFERNO_LEGACY_RULES`).
+ * - `resolveInfernoSpin()` produces an authoritative presentation script (before/after snapshots,
+ *   winning coordinates and old→new cell moves) so the renderer never decides outcomes.
+ * - A pure session ledger (`beginInfernoSpin` …) settles every round exactly once, never debits an
+ *   awarded free spin, and keeps the stake fixed over a free-spin award cycle.
+ * - `simulateInfernoRTP()` now carries heat / free spins between rounds and counts paid stakes only.
  */
 
 import { ProvablyFairRNG, createRNG } from '../shared/rng/ProvablyFairRNG';
@@ -15,6 +27,14 @@ const MIN_CLUSTER_SIZE = 3;
 const MAX_HEAT_METER = 5;
 const FREE_SPINS_AWARDED = 5;
 const CROWN_FLIP_WIN_PROBABILITY = 0.5; // 50% chance to win
+/** Safety cap on cascades inside one spin. Hitting it marks the spin `unresolved` (never silently zero). */
+const MAX_CASCADES_PER_SPIN = 200;
+/** Ledger unit: 1 credit = 1000 milli-credits. Bet × base payout × multiplier is exact at 3 decimals. */
+const MILLI_PER_CREDIT = 1000;
+/** Symbol whose base payout is used when a WILD-only group pays under the `pays-as-top-symbol` rule. */
+const TOP_PAYING_SYMBOL: InfernoSymbol = 'EMBER';
+/** Version label for the mathematics implemented in this file. Bump whenever returns can change. */
+export const INFERNO_MATH_VERSION = 'inferno-math-2';
 
 // Symbol weights for random generation
 const SYMBOL_WEIGHTS: { value: InfernoSymbol; weight: number }[] = [
@@ -88,10 +108,55 @@ export interface InfernoState {
   isFreeSpinTriggered: boolean; // True if free spins were just awarded
   isComplete: boolean; // spin fully resolved (no more cascades pending)
   lastSpinSeed: string;
+
+  /**
+   * Cascade index that was last credited by `evaluateClusters()`. Used to make repeated evaluation
+   * of the same step idempotent. Optional so existing literal states remain valid.
+   */
+  lastEvaluatedCascade?: number;
 }
+
+/**
+ * Product rules that the original source left ambiguous. Defaults (`INFERNO_LEGACY_RULES`) reproduce
+ * the original behaviour exactly; alternatives exist only so their consequences can be measured.
+ */
+export interface InfernoRules {
+  /**
+   * `no-pay` (original): WILD cells never start a cluster, so an all-WILD Inferno Spin returns 0.
+   * `pays-as-top-symbol` (proposal): a connected WILD-only group of 3+ that is not part of a paying
+   * symbol cluster pays as the top symbol (EMBER) at its size multiplier.
+   */
+  wildOnlyCluster: 'no-pay' | 'pays-as-top-symbol';
+  /**
+   * `after-cascade-only` (original): scatters are only checked after a cascade refill, so 3+ scatters
+   * on a board without a paying cluster award nothing.
+   * `any-landed-board` (proposal): 3+ scatters visible on the landed board or after any refill award
+   * free spins once per spin.
+   */
+  scatterAward: 'after-cascade-only' | 'any-landed-board';
+}
+
+/** Original behaviour for the disputed rules. This is the production default. */
+export const INFERNO_LEGACY_RULES: Readonly<InfernoRules> = Object.freeze({
+  wildOnlyCluster: 'no-pay',
+  scatterAward: 'after-cascade-only',
+});
 
 export interface InfernoConfig {
   rng?: ProvablyFairRNG;
+  /** Optional rule overrides; omitted fields fall back to `INFERNO_LEGACY_RULES`. */
+  rules?: Partial<InfernoRules>;
+}
+
+/**
+ * Resolves the effective rules for a config.
+ * @param config Optional Inferno config.
+ * @returns Complete rule set (legacy defaults for omitted fields).
+ * @example
+ * resolveInfernoRules({ rules: { scatterAward: 'any-landed-board' } }).wildOnlyCluster; // 'no-pay'
+ */
+export function resolveInfernoRules(config?: InfernoConfig): InfernoRules {
+  return { ...INFERNO_LEGACY_RULES, ...(config?.rules ?? {}) };
 }
 
 /**
@@ -160,6 +225,7 @@ export function spinInferno(state: InfernoState, config?: InfernoConfig): Infern
     isFreeSpinTriggered: false,
     isComplete: false,
     lastSpinSeed: newSeed,
+    lastEvaluatedCascade: undefined,
   };
 
   // Check if this spin should be an Inferno Spin
@@ -197,7 +263,11 @@ export function spinInferno(state: InfernoState, config?: InfernoConfig): Infern
  * Evaluates the current grid for winning clusters.
  * Marks winning cells and calculates payouts.
  *
+ * Idempotent per cascade step: evaluating the same step twice re-derives the clusters but credits
+ * `totalWin` only once (tracked by `lastEvaluatedCascade`).
+ *
  * @param state The current `InfernoState`.
+ * @param config Optional config; only `rules.wildOnlyCluster` is read here.
  * @returns A new `InfernoState` object with updated clusters, totalWin, and marked winning cells.
  * @example
  * let state = createInfernoState(10);
@@ -207,7 +277,8 @@ export function spinInferno(state: InfernoState, config?: InfernoConfig): Infern
  * state = evaluateClusters(state);
  * console.log(state.clusters.length); // 1
  */
-export function evaluateClusters(state: InfernoState): InfernoState {
+export function evaluateClusters(state: InfernoState, config?: InfernoConfig): InfernoState {
+  const rules = resolveInfernoRules(config);
   const newState: InfernoState = { ...state, clusters: [] as InfernoCluster[], scatterCount: 0 };
   const grid = newState.grid.map((row) =>
     row.map((cell) => ({ ...cell, isWinning: false, isFalling: false })),
@@ -307,8 +378,42 @@ export function evaluateClusters(state: InfernoState): InfernoState {
     }
   }
 
+  // Optional rule: WILD-only connected groups (not already part of a paying symbol cluster).
+  if (rules.wildOnlyCluster === 'pays-as-top-symbol') {
+    const seen: boolean[][] = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(false));
+    for (let r = 0; r < GRID_ROWS; r++) {
+      for (let c = 0; c < GRID_COLS; c++) {
+        if (seen[r][c] || grid[r][c].symbol !== 'WILD' || grid[r][c].isWinning) continue;
+        const group: { row: number; col: number }[] = [];
+        const queue = [{ row: r, col: c }];
+        seen[r][c] = true;
+        while (queue.length > 0) {
+          const cell = queue.shift() as { row: number; col: number };
+          group.push(cell);
+          for (const n of getNeighbors(cell.row, cell.col)) {
+            if (!seen[n.row][n.col] && grid[n.row][n.col].symbol === 'WILD' && !grid[n.row][n.col].isWinning) {
+              seen[n.row][n.col] = true;
+              queue.push(n);
+            }
+          }
+        }
+        if (group.length >= MIN_CLUSTER_SIZE) {
+          const multiplier = CLUSTER_MULTIPLIERS[group.length] || CLUSTER_MULTIPLIERS[9];
+          const payout = state.bet * SYMBOL_BASE_PAYOUTS[TOP_PAYING_SYMBOL] * multiplier;
+          currentTotalWin += payout;
+          newState.clusters.push({ symbol: 'WILD', cells: group, payout });
+          group.forEach(({ row, col }) => { grid[row][col].isWinning = true; });
+        }
+      }
+    }
+  }
+
   newState.grid = grid;
-  newState.totalWin += currentTotalWin; // Accumulate win for this cascade
+  const alreadyCredited = state.lastEvaluatedCascade === state.cascadeCount;
+  if (!alreadyCredited) {
+    newState.totalWin += currentTotalWin; // Accumulate win for this cascade (once per step)
+    newState.lastEvaluatedCascade = state.cascadeCount;
+  }
   return newState;
 }
 
@@ -328,7 +433,12 @@ export function evaluateClusters(state: InfernoState): InfernoState {
  */
 export function cascadeInferno(state: InfernoState, config?: InfernoConfig): InfernoState {
   if (state.clusters.length === 0) {
-    return { ...state, isComplete: true }; // No clusters, no cascade, spin is complete
+    // No clusters, no cascade, spin is complete.
+    const completed: InfernoState = { ...state, isComplete: true };
+    if (resolveInfernoRules(config).scatterAward === 'any-landed-board') {
+      return applyScatterAward(completed);
+    }
+    return completed;
   }
 
   const rng = config?.rng || createRNG(state.lastSpinSeed); // Use same seed for consistency within a spin
@@ -343,12 +453,15 @@ export function cascadeInferno(state: InfernoState, config?: InfernoConfig): Inf
 
   const newGrid: InfernoCell[][] = Array(GRID_ROWS)
     .fill(null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- placeholder; every cell is assigned below
     .map(() => Array(GRID_COLS).fill(null as any)); // Will be filled
 
   // For each column, collect non-winning symbols and fill new ones
   for (let col = 0; col < GRID_COLS; col++) {
+    // Survivors are collected top-to-bottom so gravity preserves their relative order.
+    // (The original loop ran bottom-to-top and reversed each column — inferno-math-1 defect.)
     const nonWinningSymbols: InfernoSymbol[] = [];
-    for (let row = GRID_ROWS - 1; row >= 0; row--) {
+    for (let row = 0; row < GRID_ROWS; row++) {
       if (!state.grid[row][col].isWinning) {
         nonWinningSymbols.push(state.grid[row][col].symbol);
       }
@@ -371,24 +484,32 @@ export function cascadeInferno(state: InfernoState, config?: InfernoConfig): Inf
   }
 
   newState.grid = newGrid;
+  newState.clusters = state.clusters; // keep the removed clusters for presentation of this step
+  return applyScatterAward(newState);
+}
 
-  // Re-evaluate scatter count after cascade
+/**
+ * Counts scatters on the current grid and, if 3+ and not yet awarded this spin, awards free spins.
+ * @param state State whose grid should be checked.
+ * @returns New state with updated `scatterCount`, `isFreeSpinTriggered` and `freeSpinsRemaining`.
+ */
+function applyScatterAward(state: InfernoState): InfernoState {
+  const newState = { ...state };
   let currentScatterCount = 0;
   for (let r = 0; r < GRID_ROWS; r++) {
     for (let c = 0; c < GRID_COLS; c++) {
-      if (newGrid[r][c].symbol === 'SCATTER') {
+      if (newState.grid[r][c].symbol === 'SCATTER') {
         currentScatterCount++;
       }
     }
   }
   newState.scatterCount = currentScatterCount;
 
-  // Check for free spin trigger after cascade
+  // Free spin trigger (scatter threshold shares MIN_CLUSTER_SIZE = 3 in the original source)
   if (newState.scatterCount >= MIN_CLUSTER_SIZE && !newState.isFreeSpinTriggered) {
     newState.isFreeSpinTriggered = true;
     newState.freeSpinsRemaining += FREE_SPINS_AWARDED;
   }
-
   return newState;
 }
 
@@ -457,79 +578,709 @@ export function walkCrown(state: InfernoState): InfernoState {
   return newState;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Authoritative spin script (presentation data; the renderer never decides outcomes)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** A cell position on the 3×3 board. */
+export interface InfernoCellRef {
+  row: number;
+  col: number;
+}
+
+/** A surviving symbol moving down after removal (row indices are [0..2], top = 0). */
+export interface InfernoCellMove {
+  col: number;
+  fromRow: number;
+  toRow: number;
+  symbol: InfernoSymbol;
+}
+
+/** A new symbol dropping in from above. `slotsAbove` = 1 for the lowest new symbol in its column. */
+export interface InfernoRefill {
+  col: number;
+  toRow: number;
+  slotsAbove: number;
+  symbol: InfernoSymbol;
+}
+
+/** One win → remove → fall step, with separate before/after snapshots. */
+export interface InfernoCascadeStep {
+  index: number;
+  /** Board before removal, `[row][col]`. Winning coordinates refer to this board. */
+  gridBefore: InfernoSymbol[][];
+  clusters: InfernoCluster[];
+  /** Union of all winning cells (a WILD shared by two clusters appears once). */
+  winningCells: InfernoCellRef[];
+  stepWin: number;
+  totalWinAfter: number;
+  moves: InfernoCellMove[];
+  refills: InfernoRefill[];
+  /** Board after refill, `[row][col]`. */
+  gridAfter: InfernoSymbol[][];
+  heatBefore: number;
+  heatAfter: number;
+  scatterCountAfter: number;
+  freeSpinsAwarded: number;
+}
+
+/** Complete, pre-computed result of one spin (base or free). */
+export interface InfernoSpinScript {
+  mathVersion: string;
+  rules: InfernoRules;
+  stake: number;
+  isFreeSpin: boolean;
+  isInfernoSpin: boolean;
+  heatBefore: number;
+  /** Heat after the spin start (an Inferno Spin resets heat to 0 before landing). */
+  heatAtLanding: number;
+  initialGrid: InfernoSymbol[][];
+  steps: InfernoCascadeStep[];
+  /** Free spins awarded when the board landed without a cascade (`any-landed-board` rule only). */
+  freeSpinsAwardedAtLanding: number;
+  totalWin: number;
+  freeSpinsAwarded: number;
+  freeSpinsRemainingAfter: number;
+  /** True if `MAX_CASCADES_PER_SPIN` was hit. Such spins must be reported, never counted as 0. */
+  unresolved: boolean;
+  /** State after the spin fully resolved (`isComplete: true`, Crown not yet entered). */
+  finalState: InfernoState;
+}
+
+const snapshotGrid = (state: InfernoState): InfernoSymbol[][] =>
+  state.grid.map((row) => row.map((cell) => cell.symbol));
+
 /**
- * Simulates N rounds of the Inferno game to estimate its Return To Player (RTP).
- * For RTP calculation, the Crown Flip is assumed to be a fair gamble and does not affect the base game RTP.
- * Therefore, the `totalWin` before any flips is used.
- *
- * @param rounds The number of game rounds to simulate.
- * @param bet The bet amount for each round.
- * @param config Optional configuration, including a `ProvablyFairRNG` instance.
- * @returns The estimated RTP as a decimal (e.g., 0.96 for 96%).
- * @example
- * const estimatedRTP = simulateInfernoRTP(10000, 1);
- * console.log(`Estimated RTP: ${estimatedRTP.toFixed(2)}`); // e.g., Estimated RTP: 0.95
+ * Computes the old→new mapping for a cascade from the pre-removal board and the post-refill board.
+ * Survivors keep top-to-bottom order; refills occupy the top rows.
  */
-export function simulateInfernoRTP(rounds: number, bet: number, config?: InfernoConfig): number {
-  const rng = config?.rng || createRNG();
-  let totalBet = 0;
-  let totalWin = 0;
-
-  for (let i = 0; i < rounds; i++) {
-    let state = createInfernoState(bet);
-    state.bet = bet; // Ensure bet is set for simulation
-
-    // Simulate heat meter and free spins for more accurate RTP
-    // For simplicity in RTP, we'll assume heat meter and free spins are part of the base game.
-    // The heat meter and free spins are stateful, so we need to carry them over.
-    // Let's create a persistent state for the simulation.
-    // This is a simplified simulation, not a full state machine across rounds.
-    // For a true RTP, the state (heatMeter, freeSpinsRemaining) should persist.
-    // For this exercise, we'll simulate each spin independently for simplicity,
-    // but acknowledge that a full RTP simulation would need to carry state.
-    // However, the prompt asks to simulate N rounds, implying independent rounds for RTP.
-    // Let's assume the prompt implies independent spins for RTP calculation,
-    // where heat meter and free spins are handled within a single "spin cycle"
-    // but don't carry over to affect the *next* of the N simulated rounds.
-    // If they did, the simulation would be much more complex.
-
-    // To make it more accurate for the heat meter, we need to simulate it across spins.
-    // Let's maintain a `simulatedHeatMeter` and `simulatedFreeSpins` outside the loop.
-    let simulatedHeatMeter = 0;
-    let simulatedFreeSpinsRemaining = 0;
-
-    // For each round, we start a new state, but apply the persistent effects
-    state.heatMeter = simulatedHeatMeter;
-    state.freeSpinsRemaining = simulatedFreeSpinsRemaining;
-
-    totalBet += bet; // Bet is placed at the start of each round
-
-    // Spin
-    state = spinInferno(state, { rng });
-
-    // If it was an Inferno Spin, the heat meter was reset in spinInferno
-    if (state.isInfernoSpin) {
-      simulatedHeatMeter = 0;
+function mapCascade(
+  before: InfernoState,
+  after: InfernoState,
+): { moves: InfernoCellMove[]; refills: InfernoRefill[] } {
+  const moves: InfernoCellMove[] = [];
+  const refills: InfernoRefill[] = [];
+  for (let col = 0; col < GRID_COLS; col++) {
+    const survivors: number[] = [];
+    for (let row = 0; row < GRID_ROWS; row++) {
+      if (!before.grid[row][col].isWinning) survivors.push(row);
     }
-
-    // Process cascades
-    let hasClusters = true;
-    let cascadeSafety = 0;
-    while (hasClusters && cascadeSafety < 50) {
-      cascadeSafety++;
-      state = evaluateClusters(state);
-      if (state.clusters.length > 0) {
-        state = cascadeInferno(state, { rng });
-        simulatedHeatMeter = state.heatMeter;
-        simulatedFreeSpinsRemaining = state.freeSpinsRemaining;
-      } else {
-        hasClusters = false;
-      }
+    const newCount = GRID_ROWS - survivors.length;
+    survivors.forEach((fromRow, k) => {
+      moves.push({ col, fromRow, toRow: newCount + k, symbol: before.grid[fromRow][col].symbol });
+    });
+    for (let toRow = 0; toRow < newCount; toRow++) {
+      refills.push({ col, toRow, slotsAbove: newCount - toRow, symbol: after.grid[toRow][col].symbol });
     }
+  }
+  return { moves, refills };
+}
 
-    // Add the total win for this spin (before any Crown Flip)
-    totalWin += state.totalWin;
+/**
+ * Resolves all cascades from an already-landed board. Used by `resolveInfernoSpin()` and by
+ * developer fixtures (which supply a landed board) — both run the same production functions.
+ *
+ * @param landed State whose grid has just landed (as returned by `spinInferno()`).
+ * @param config Config with the RNG used for refills and optional rules.
+ * @returns Steps, completed state and an `unresolved` flag.
+ * @example
+ * const { steps, finalState } = resolveInfernoCascades(spinInferno(state, { rng }), { rng });
+ */
+export function resolveInfernoCascades(
+  landed: InfernoState,
+  config?: InfernoConfig,
+): { steps: InfernoCascadeStep[]; finalState: InfernoState; unresolved: boolean; freeSpinsAwardedAtLanding: number } {
+  const steps: InfernoCascadeStep[] = [];
+  let state = landed;
+  let unresolved = false;
+  let freeSpinsAwardedAtLanding = 0;
+  for (;;) {
+    const evaluated = evaluateClusters(state, config);
+    if (evaluated.clusters.length === 0) {
+      const freeBefore = evaluated.freeSpinsRemaining;
+      state = cascadeInferno(evaluated, config); // completes the spin (and may apply scatter rule)
+      if (steps.length === 0) freeSpinsAwardedAtLanding = state.freeSpinsRemaining - freeBefore;
+      else if (state.freeSpinsRemaining > freeBefore) steps[steps.length - 1].freeSpinsAwarded += state.freeSpinsRemaining - freeBefore;
+      break;
+    }
+    if (steps.length >= MAX_CASCADES_PER_SPIN) {
+      unresolved = true;
+      state = { ...evaluated, isComplete: true };
+      break;
+    }
+    const after = cascadeInferno(evaluated, config);
+    const { moves, refills } = mapCascade(evaluated, after);
+    const winningCells: InfernoCellRef[] = [];
+    evaluated.grid.forEach((row, r) => row.forEach((cell, c) => { if (cell.isWinning) winningCells.push({ row: r, col: c }); }));
+    steps.push({
+      index: steps.length,
+      gridBefore: snapshotGrid(evaluated),
+      clusters: evaluated.clusters.map((cl) => ({ ...cl, cells: cl.cells.map((p) => ({ ...p })) })),
+      winningCells,
+      stepWin: evaluated.totalWin - state.totalWin,
+      totalWinAfter: evaluated.totalWin,
+      moves,
+      refills,
+      gridAfter: snapshotGrid(after),
+      heatBefore: evaluated.heatMeter,
+      heatAfter: after.heatMeter,
+      scatterCountAfter: after.scatterCount,
+      freeSpinsAwarded: after.freeSpinsRemaining - evaluated.freeSpinsRemaining,
+    });
+    state = after;
+  }
+  return { steps, finalState: { ...state, clusters: [], isComplete: true }, unresolved, freeSpinsAwardedAtLanding };
+}
+
+/**
+ * Runs one complete spin (start → land → every cascade) using the production functions and returns
+ * an authoritative script for presentation. All RNG consumption for the spin happens here, so
+ * animation speed, skip, reduced motion or audio settings cannot change the outcome.
+ *
+ * @param state State before the spin (heat / free spins carried from the previous spin).
+ * @param config Config with the gameplay RNG and optional rules.
+ * @returns Complete spin script.
+ * @example
+ * const script = resolveInfernoSpin(createInfernoState(10), { rng: createRNG('seed') });
+ * console.log(script.totalWin, script.steps.length);
+ */
+export function resolveInfernoSpin(state: InfernoState, config?: InfernoConfig): InfernoSpinScript {
+  const rules = resolveInfernoRules(config);
+  const isFreeSpin = state.freeSpinsRemaining > 0;
+  const landed = spinInferno(state, config);
+  const freeAfterStart = landed.freeSpinsRemaining;
+  const { steps, finalState, unresolved, freeSpinsAwardedAtLanding } = resolveInfernoCascades(landed, config);
+  return {
+    mathVersion: INFERNO_MATH_VERSION,
+    rules,
+    stake: state.bet,
+    isFreeSpin,
+    isInfernoSpin: landed.isInfernoSpin,
+    heatBefore: state.heatMeter,
+    heatAtLanding: landed.heatMeter,
+    initialGrid: snapshotGrid(landed),
+    steps,
+    freeSpinsAwardedAtLanding,
+    totalWin: finalState.totalWin,
+    freeSpinsAwarded: finalState.freeSpinsRemaining - freeAfterStart,
+    freeSpinsRemainingAfter: finalState.freeSpinsRemaining,
+    unresolved,
+    finalState,
+  };
+}
+
+/**
+ * Crown Flip eligibility (unchanged from the original scene rule): a positive spin return and no
+ * free spins pending. During a free-spin cycle Crown is therefore offered only on the last spin.
+ *
+ * @param state Completed spin state.
+ * @returns True if the player may choose to gamble the spin's return.
+ * @example
+ * if (isCrownEligible(script.finalState)) showCrownDecision();
+ */
+export function isCrownEligible(state: InfernoState): boolean {
+  return state.isComplete && state.totalWin > 0 && state.freeSpinsRemaining === 0;
+}
+
+/**
+ * Enters Crown Flip with the spin's return as the amount at risk.
+ * @param state Completed, eligible spin state.
+ * @returns State with `isInCrownFlip` set, or the input unchanged when not eligible.
+ * @example
+ * state = enterCrownFlip(script.finalState);
+ */
+export function enterCrownFlip(state: InfernoState): InfernoState {
+  if (!isCrownEligible(state)) return state;
+  return { ...state, isInCrownFlip: true, isComplete: false, crownFlipWin: state.totalWin, crownFlipChain: 0 };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Session ledger — exactly-once debit/credit guarded by round ID and phase
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Explicit round phases. Presentation sub-phases (spinning/removing/falling) live in the UI. */
+export type InfernoPhase = 'ready' | 'presenting' | 'decision' | 'settled';
+
+/** One ledger movement in milli-credits. */
+export interface InfernoLedgerEntry {
+  roundId: number;
+  cycleId: number;
+  kind: 'debit' | 'credit';
+  amountMilli: number;
+}
+
+/** A paid spin plus every free spin it awarded (including retriggers) and any Crown decision. */
+export interface InfernoCycle {
+  id: number;
+  stake: number;
+  paidStakeMilli: number;
+  returnedMilli: number;
+  spins: number;
+  freeSpins: number;
+}
+
+/** Demo-credit session. Balances are integer milli-credits to avoid float drift. */
+export interface InfernoSession {
+  balanceMilli: number;
+  /** Stake selected for the next paid spin. Locked while a cycle is open. */
+  selectedStake: number;
+  phase: InfernoPhase;
+  roundId: number;
+  state: InfernoState;
+  cycle: InfernoCycle | null;
+  lastCycle: InfernoCycle | null;
+  nextCycleId: number;
+  /** Bounded history (most recent `LEDGER_HISTORY` entries). */
+  ledger: InfernoLedgerEntry[];
+  debitCount: number;
+  creditCount: number;
+}
+
+/** Result of a session action. `rejected` actions leave the session unchanged. */
+export interface InfernoActionResult {
+  session: InfernoSession;
+  rejected?: 'BUSY' | 'INSUFFICIENT_BALANCE' | 'STALE_ROUND' | 'WRONG_PHASE' | 'STAKE_LOCKED';
+  script?: InfernoSpinScript;
+  /** Present when the action settled a round. */
+  settlement?: InfernoSettlement;
+}
+
+/** What was credited when a round settled, plus cycle-level totals for honest feedback. */
+export interface InfernoSettlement {
+  roundId: number;
+  creditedMilli: number;
+  /** True when no free spins remain: the paid cycle is closed. */
+  cycleComplete: boolean;
+  cyclePaidMilli: number;
+  cycleReturnedMilli: number;
+  /** Return relative to the cycle's paid stake: only `profit` may use a positive motif. */
+  cycleOutcome: 'pending' | 'zero' | 'partial' | 'break-even' | 'profit';
+}
+
+const LEDGER_HISTORY = 64;
+
+/**
+ * Converts credits to integer milli-credits (rounding away binary float error, e.g. 1.0499999).
+ * @param credits Amount in credits.
+ * @returns Integer milli-credits.
+ * @example
+ * toMilliCredits(1.05); // 1050
+ */
+export function toMilliCredits(credits: number): number {
+  return Math.round(credits * MILLI_PER_CREDIT);
+}
+
+/**
+ * Formats milli-credits for display with two decimals (display rounding only; ledger stays exact).
+ * @param milli Amount in milli-credits.
+ * @returns e.g. "1,234.50".
+ * @example
+ * formatCredits(1050); // "1.05"
+ */
+export function formatCredits(milli: number): string {
+  const value = milli / MILLI_PER_CREDIT;
+  return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/**
+ * Classifies a closed or open cycle for feedback. Profit requires return strictly above paid stake.
+ * @param cycle Cycle to classify.
+ * @param complete Whether the cycle is closed.
+ * @returns Outcome class.
+ * @example
+ * classifyCycle({ paidStakeMilli: 10000, returnedMilli: 5000 } as InfernoCycle, true); // 'partial'
+ */
+export function classifyCycle(cycle: Pick<InfernoCycle, 'paidStakeMilli' | 'returnedMilli'>, complete: boolean): InfernoSettlement['cycleOutcome'] {
+  if (!complete) return 'pending';
+  if (cycle.returnedMilli === 0) return 'zero';
+  if (cycle.returnedMilli < cycle.paidStakeMilli) return 'partial';
+  if (cycle.returnedMilli === cycle.paidStakeMilli) return 'break-even';
+  return 'profit';
+}
+
+/** Audio/visual outcome cue chosen for a settlement (presentation policy, pure and testable). */
+export type InfernoOutcomeCue = 'none' | 'neutral' | 'profit';
+
+/**
+ * Ethical outcome-cue policy: the positive motif plays only when a paid cycle has CLOSED with a
+ * gross return strictly above its paid stake. Pending cycles (free spins left), partial returns,
+ * break-even and zero returns never get a celebratory cue.
+ *
+ * @param settlement Settlement returned by the ledger.
+ * @returns Cue to play.
+ * @example
+ * selectInfernoOutcomeCue(res.settlement); // 'profit' | 'neutral' | 'none'
+ */
+export function selectInfernoOutcomeCue(settlement: InfernoSettlement): InfernoOutcomeCue {
+  if (!settlement.cycleComplete) return 'none';
+  return settlement.cycleOutcome === 'profit' ? 'profit' : 'neutral';
+}
+
+const pushLedger = (session: InfernoSession, entry: InfernoLedgerEntry): InfernoLedgerEntry[] => {
+  const next = session.ledger.concat(entry);
+  return next.length > LEDGER_HISTORY ? next.slice(next.length - LEDGER_HISTORY) : next;
+};
+
+/**
+ * Creates a demo-credit session.
+ * @param balanceCredits Starting demo balance in credits.
+ * @param stake Initial selected stake in credits.
+ * @returns New session in the `ready` phase.
+ * @example
+ * const session = createInfernoSession(1000, 10);
+ */
+export function createInfernoSession(balanceCredits: number, stake: number): InfernoSession {
+  return {
+    balanceMilli: toMilliCredits(balanceCredits),
+    selectedStake: stake,
+    phase: 'ready',
+    roundId: 0,
+    state: { ...createInfernoState(stake), isComplete: true },
+    cycle: null,
+    lastCycle: null,
+    nextCycleId: 1,
+    ledger: [],
+    debitCount: 0,
+    creditCount: 0,
+  };
+}
+
+/**
+ * True when the next spin is an awarded free spin (no debit, stake fixed to the cycle stake).
+ * @param session Current session.
+ * @returns Whether the next spin is free.
+ * @example
+ * if (isNextSpinFree(session)) label = 'FREE SPIN';
+ */
+export function isNextSpinFree(session: InfernoSession): boolean {
+  return session.state.freeSpinsRemaining > 0;
+}
+
+/**
+ * Changes the selected stake. Rejected while a round or award cycle is open.
+ * @param session Current session.
+ * @param stake New stake in credits.
+ * @returns Action result.
+ * @example
+ * session = setInfernoStake(session, 25).session;
+ */
+export function setInfernoStake(session: InfernoSession, stake: number): InfernoActionResult {
+  if (session.phase !== 'ready' || session.cycle !== null) return { session, rejected: 'STAKE_LOCKED' };
+  return { session: { ...session, selectedStake: stake, state: { ...session.state, bet: stake } } };
+}
+
+/**
+ * Starts a spin. A paid spin debits the selected stake exactly once and opens a cycle; an awarded
+ * free spin debits nothing, needs no balance, and uses the cycle's stake. The full outcome is
+ * resolved immediately and returned as a script.
+ *
+ * @param session Current session (must be `ready`).
+ * @param config Config with the gameplay RNG and optional rules.
+ * @returns Action result with the new session (phase `presenting`, new round ID) and script.
+ * @example
+ * const { session: next, script, rejected } = beginInfernoSpin(session, { rng });
+ */
+export function beginInfernoSpin(session: InfernoSession, config?: InfernoConfig): InfernoActionResult {
+  if (session.phase !== 'ready') return { session, rejected: 'BUSY' };
+  const free = isNextSpinFree(session);
+  const roundId = session.roundId + 1;
+  let balanceMilli = session.balanceMilli;
+  let ledger = session.ledger;
+  let debitCount = session.debitCount;
+  let cycle: InfernoCycle;
+  let nextCycleId = session.nextCycleId;
+
+  if (free && session.cycle) {
+    cycle = { ...session.cycle, spins: session.cycle.spins + 1, freeSpins: session.cycle.freeSpins + 1 };
+  } else {
+    const stakeMilli = toMilliCredits(session.selectedStake);
+    if (balanceMilli < stakeMilli) return { session, rejected: 'INSUFFICIENT_BALANCE' };
+    balanceMilli -= stakeMilli;
+    cycle = { id: nextCycleId, stake: session.selectedStake, paidStakeMilli: stakeMilli, returnedMilli: 0, spins: 1, freeSpins: 0 };
+    nextCycleId += 1;
+    ledger = pushLedger(session, { roundId, cycleId: cycle.id, kind: 'debit', amountMilli: stakeMilli });
+    debitCount += 1;
   }
 
-  return totalWin / totalBet;
+  const startState: InfernoState = { ...session.state, bet: cycle.stake, isInCrownFlip: false };
+  const script = resolveInfernoSpin(startState, config);
+  return {
+    session: { ...session, balanceMilli, ledger, debitCount, cycle, nextCycleId, roundId, phase: 'presenting', state: script.finalState },
+    script,
+  };
+}
+
+/**
+ * Settles `amountMilli` for the current round and closes the cycle when no free spins remain.
+ */
+function settleRound(session: InfernoSession, state: InfernoState, amountMilli: number): InfernoActionResult {
+  const cycle = session.cycle as InfernoCycle;
+  const updatedCycle: InfernoCycle = { ...cycle, returnedMilli: cycle.returnedMilli + amountMilli };
+  const cycleComplete = state.freeSpinsRemaining === 0;
+  const settled: InfernoSession = {
+    ...session,
+    balanceMilli: session.balanceMilli + amountMilli,
+    ledger: pushLedger(session, { roundId: session.roundId, cycleId: cycle.id, kind: 'credit', amountMilli }),
+    creditCount: session.creditCount + 1,
+    phase: 'ready',
+    state: { ...state, isInCrownFlip: false, isComplete: true },
+    cycle: cycleComplete ? null : updatedCycle,
+    lastCycle: updatedCycle,
+  };
+  return {
+    session: settled,
+    settlement: {
+      roundId: session.roundId,
+      creditedMilli: amountMilli,
+      cycleComplete,
+      cyclePaidMilli: updatedCycle.paidStakeMilli,
+      cycleReturnedMilli: updatedCycle.returnedMilli,
+      cycleOutcome: classifyCycle(updatedCycle, cycleComplete),
+    },
+  };
+}
+
+/**
+ * Called once the presentation of `roundId` has finished. Either enters the Crown decision (when
+ * eligible and `offerCrown` is true) or settles the spin's return exactly once.
+ *
+ * @param session Current session (phase `presenting`).
+ * @param roundId Round being finished; stale IDs are rejected.
+ * @param offerCrown Whether to offer the optional Crown decision (default true).
+ * @returns Action result; `settlement` present if the round settled.
+ * @example
+ * const res = finishInfernoPresentation(session, roundId);
+ */
+export function finishInfernoPresentation(session: InfernoSession, roundId: number, offerCrown = true): InfernoActionResult {
+  if (roundId !== session.roundId) return { session, rejected: 'STALE_ROUND' };
+  if (session.phase !== 'presenting') return { session, rejected: 'WRONG_PHASE' };
+  if (offerCrown && isCrownEligible(session.state)) {
+    return { session: { ...session, phase: 'decision', state: enterCrownFlip(session.state) } };
+  }
+  return settleRound(session, session.state, toMilliCredits(session.state.totalWin));
+}
+
+/**
+ * Player chose FLIP. Resolves one flip; a loss settles 0, a win stays in `decision`.
+ * @param session Current session (phase `decision`).
+ * @param roundId Round ID from the decision prompt.
+ * @param config Config with the gameplay RNG.
+ * @returns Action result.
+ * @example
+ * const res = crownFlipAction(session, roundId, { rng });
+ */
+export function crownFlipAction(session: InfernoSession, roundId: number, config?: InfernoConfig): InfernoActionResult {
+  if (roundId !== session.roundId) return { session, rejected: 'STALE_ROUND' };
+  if (session.phase !== 'decision' || !session.state.isInCrownFlip) return { session, rejected: 'WRONG_PHASE' };
+  const flipped = flipCrown(session.state, config);
+  if (!flipped.isInCrownFlip) {
+    return settleRound(session, { ...flipped, totalWin: 0 }, 0);
+  }
+  return { session: { ...session, state: flipped } };
+}
+
+/**
+ * Player chose COLLECT. Settles the current Crown amount exactly once.
+ * @param session Current session (phase `decision`).
+ * @param roundId Round ID from the decision prompt.
+ * @returns Action result with settlement.
+ * @example
+ * const res = crownCollectAction(session, roundId);
+ */
+export function crownCollectAction(session: InfernoSession, roundId: number): InfernoActionResult {
+  if (roundId !== session.roundId) return { session, rejected: 'STALE_ROUND' };
+  if (session.phase !== 'decision' || !session.state.isInCrownFlip) return { session, rejected: 'WRONG_PHASE' };
+  const walked = walkCrown(session.state);
+  return settleRound(session, walked, toMilliCredits(walked.totalWin));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Simulation (production functions only)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Crown policy used by the simulator. It never changes what the game allows a player to do. */
+export type InfernoCrownPolicy =
+  | { kind: 'collect' }
+  | { kind: 'flip-once' }
+  /** Flip until `maxFlips` wins or a loss (bounded analysis policy). */
+  | { kind: 'flip-up-to'; maxFlips: number };
+
+/** Aggregate statistics from a cycle simulation. */
+export interface InfernoSimulationStats {
+  mathVersion: string;
+  rules: InfernoRules;
+  crownPolicy: InfernoCrownPolicy;
+  stake: number;
+  paidCycles: number;
+  paidSpins: number;
+  freeSpins: number;
+  totalPaidMilli: number;
+  grossReturnMilli: number;
+  rtp: number;
+  /** Cycles returning > 0. */
+  hitCycles: number;
+  zeroCycles: number;
+  partialCycles: number;
+  breakEvenCycles: number;
+  profitCycles: number;
+  infernoSpins: number;
+  infernoSpinReturnMilli: number;
+  freeSpinAwards: number;
+  crownOffers: number;
+  crownFlips: number;
+  crownFlipWins: number;
+  /** cascadeHistogram[k] = spins with exactly k cascades (last bucket = k or more). */
+  cascadeHistogram: number[];
+  maxCascadesObserved: number;
+  maxCycleReturnMilli: number;
+  maxSpinReturnMilli: number;
+  unresolvedSpins: number;
+  nonFiniteEvents: number;
+  /** Free spins still pending when the requested number of paid cycles completed (should be 0). */
+  pendingFreeSpinsAtEnd: number;
+  /** Heat level at the end of the run (state carried across cycles). */
+  finalHeat: number;
+}
+
+const CASCADE_HISTOGRAM_BUCKETS = 12;
+
+/**
+ * Simulates complete paid cycles with persistent heat and free-spin state, using the production
+ * functions (`resolveInfernoSpin`, `flipCrown`, `walkCrown`). Only paid stakes enter the RTP
+ * denominator; awarded free spins are drained inside their cycle.
+ *
+ * @param paidCycles Number of paid entries to simulate.
+ * @param stake Stake per paid entry.
+ * @param config Config with RNG and optional rules.
+ * @param crownPolicy Crown decision policy for analysis (default: collect immediately).
+ * @param initialState Optional carried state (e.g. heat) to continue from.
+ * @returns Aggregate statistics.
+ * @example
+ * const stats = simulateInfernoCycles(10000, 1, { rng: createRNG('batch-1') });
+ * console.log(stats.rtp);
+ */
+export function simulateInfernoCycles(
+  paidCycles: number,
+  stake: number,
+  config?: InfernoConfig,
+  crownPolicy: InfernoCrownPolicy = { kind: 'collect' },
+  initialState?: InfernoState,
+): InfernoSimulationStats {
+  const rng = config?.rng || createRNG();
+  const cfg: InfernoConfig = { ...config, rng };
+  const stakeMilli = toMilliCredits(stake);
+  const stats: InfernoSimulationStats = {
+    mathVersion: INFERNO_MATH_VERSION, rules: resolveInfernoRules(cfg), crownPolicy, stake,
+    paidCycles: 0, paidSpins: 0, freeSpins: 0, totalPaidMilli: 0, grossReturnMilli: 0, rtp: 0,
+    hitCycles: 0, zeroCycles: 0, partialCycles: 0, breakEvenCycles: 0, profitCycles: 0,
+    infernoSpins: 0, infernoSpinReturnMilli: 0, freeSpinAwards: 0, crownOffers: 0, crownFlips: 0, crownFlipWins: 0,
+    cascadeHistogram: Array(CASCADE_HISTOGRAM_BUCKETS).fill(0), maxCascadesObserved: 0,
+    maxCycleReturnMilli: 0, maxSpinReturnMilli: 0, unresolvedSpins: 0, nonFiniteEvents: 0,
+    pendingFreeSpinsAtEnd: 0, finalHeat: 0,
+  };
+  let state: InfernoState = initialState ? { ...initialState, bet: stake } : createInfernoState(stake);
+
+  for (let cycleIndex = 0; cycleIndex < paidCycles; cycleIndex++) {
+    stats.paidCycles++;
+    stats.totalPaidMilli += stakeMilli;
+    let cycleReturn = 0;
+    let first = true;
+    while (first || state.freeSpinsRemaining > 0) {
+      if (first) stats.paidSpins++; else stats.freeSpins++;
+      first = false;
+      const script = resolveInfernoSpin({ ...state, bet: stake, isInCrownFlip: false }, cfg);
+      if (script.isInfernoSpin) { stats.infernoSpins++; stats.infernoSpinReturnMilli += toMilliCredits(script.totalWin); }
+      if (script.freeSpinsAwarded > 0) stats.freeSpinAwards++;
+      if (script.unresolved) stats.unresolvedSpins++;
+      const k = script.steps.length;
+      stats.cascadeHistogram[Math.min(k, CASCADE_HISTOGRAM_BUCKETS - 1)]++;
+      stats.maxCascadesObserved = Math.max(stats.maxCascadesObserved, k);
+      state = script.finalState;
+
+      let spinReturn = state.totalWin;
+      if (isCrownEligible(state) && crownPolicy.kind !== 'collect') {
+        stats.crownOffers++;
+        let crown = enterCrownFlip(state);
+        const limit = crownPolicy.kind === 'flip-once' ? 1 : Math.max(0, crownPolicy.maxFlips);
+        let flips = 0;
+        let lost = false;
+        while (crown.isInCrownFlip && flips < limit) {
+          crown = flipCrown(crown, cfg);
+          flips++;
+          stats.crownFlips++;
+          if (crown.isInCrownFlip) stats.crownFlipWins++;
+          else lost = true; // flipCrown leaves totalWin untouched on a loss; the return is 0
+        }
+        if (crown.isInCrownFlip) crown = walkCrown(crown);
+        spinReturn = lost ? 0 : crown.totalWin;
+        state = { ...crown, totalWin: spinReturn, isInCrownFlip: false, isComplete: true };
+      } else if (isCrownEligible(state)) {
+        stats.crownOffers++;
+      }
+      if (!Number.isFinite(spinReturn) || !Number.isFinite(state.heatMeter)) stats.nonFiniteEvents++;
+      const spinMilli = toMilliCredits(spinReturn);
+      stats.maxSpinReturnMilli = Math.max(stats.maxSpinReturnMilli, spinMilli);
+      cycleReturn += spinMilli;
+    }
+    stats.grossReturnMilli += cycleReturn;
+    stats.maxCycleReturnMilli = Math.max(stats.maxCycleReturnMilli, cycleReturn);
+    const outcome = classifyCycle({ paidStakeMilli: stakeMilli, returnedMilli: cycleReturn }, true);
+    if (cycleReturn > 0) stats.hitCycles++;
+    if (outcome === 'zero') stats.zeroCycles++;
+    else if (outcome === 'partial') stats.partialCycles++;
+    else if (outcome === 'break-even') stats.breakEvenCycles++;
+    else stats.profitCycles++;
+  }
+  stats.pendingFreeSpinsAtEnd = state.freeSpinsRemaining;
+  stats.finalHeat = state.heatMeter;
+  stats.rtp = stats.totalPaidMilli > 0 ? stats.grossReturnMilli / stats.totalPaidMilli : 0;
+  return stats;
+}
+
+/**
+ * Simulates N paid rounds of the Inferno game to estimate its Return To Player (RTP).
+ * Revised for inferno-math-2: heat and free spins persist between rounds, awarded free spins are
+ * drained inside their paid cycle, only paid stakes are counted, and Crown is collected immediately
+ * (a fair 50/50 double-or-nothing does not change expected return, but does change variance).
+ *
+ * @param rounds The number of paid rounds (cycles) to simulate.
+ * @param bet The bet amount for each paid round.
+ * @param config Optional configuration, including a `ProvablyFairRNG` instance and rules.
+ * @returns The estimated RTP as a decimal (e.g., 0.96 for 96%). This is an estimate, not a proof.
+ * @example
+ * const estimatedRTP = simulateInfernoRTP(10000, 1);
+ * console.log(`Estimated RTP: ${estimatedRTP.toFixed(2)}`);
+ */
+export function simulateInfernoRTP(rounds: number, bet: number, config?: InfernoConfig): number {
+  return simulateInfernoCycles(rounds, bet, config, { kind: 'collect' }).rtp;
+}
+
+/**
+ * Stable fingerprint of the mathematical configuration (weights, payouts, multipliers, constants).
+ * FNV-1a 32-bit over a canonical JSON string — an identifier for reports, not a security hash.
+ * @param config Optional config (rules are included in the fingerprint).
+ * @returns `{ version, hash, canonical }`.
+ * @example
+ * getInfernoMathFingerprint().hash; // e.g. '9f1c2a3b'
+ */
+export function getInfernoMathFingerprint(config?: InfernoConfig): { version: string; hash: string; canonical: string } {
+  const canonical = JSON.stringify({
+    version: INFERNO_MATH_VERSION,
+    grid: [GRID_ROWS, GRID_COLS],
+    minCluster: MIN_CLUSTER_SIZE,
+    maxHeat: MAX_HEAT_METER,
+    freeSpins: FREE_SPINS_AWARDED,
+    crownP: CROWN_FLIP_WIN_PROBABILITY,
+    weights: SYMBOL_WEIGHTS,
+    payouts: SYMBOL_BASE_PAYOUTS,
+    multipliers: CLUSTER_MULTIPLIERS,
+    maxCascades: MAX_CASCADES_PER_SPIN,
+    rules: resolveInfernoRules(config),
+  });
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < canonical.length; i++) {
+    hash ^= canonical.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return { version: INFERNO_MATH_VERSION, hash: hash.toString(16).padStart(8, '0'), canonical };
 }

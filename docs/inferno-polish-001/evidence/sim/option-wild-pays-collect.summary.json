@@ -1,0 +1,78 @@
+{
+  "label": "option-wild-pays-collect",
+  "generatedAt": "2026-11-05T19:37:42.546Z",
+  "sourceRoot": ".",
+  "codeSha": "2977ad627314515097e2389e6486abb4ffda63e5",
+  "sourceDirty": true,
+  "mathVersion": "inferno-math-2",
+  "configFingerprint": "06ec4b38",
+  "prng": "ProvablyFairRNG production (unmasked BigInt xoroshiro-style)",
+  "runner": "exports",
+  "rules": {
+    "wildOnlyCluster": "pays-as-top-symbol"
+  },
+  "crownPolicy": {
+    "kind": "collect"
+  },
+  "stake": 1,
+  "batches": 40,
+  "cyclesPerBatch": 1000,
+  "seedScheme": "inferno-polish-001:option-wild-pays-collect:batch-NNN (one fresh RNG + fresh state (heat 0) per batch; state carried within a batch)",
+  "paidCycles": 40000,
+  "paidSpins": 40000,
+  "freeSpins": 10405,
+  "totalPaidCredits": 40000,
+  "grossReturnCredits": 242539.4,
+  "rtpPooled": 6.063485,
+  "rtpBatchMean": 6.063485000000003,
+  "batchSd": 0.3278008204355278,
+  "ci95": [
+    5.961898473278086,
+    6.16507152672192
+  ],
+  "ciMethod": "batch means, Student t (df=39); batches are independent seeded sessions",
+  "hitFrequency": 0.7447,
+  "outcomeRates": {
+    "zero": 0.2553,
+    "partialBelowStake": 0.261725,
+    "breakEven": 0.01075,
+    "profit": 0.472225
+  },
+  "infernoSpinsPerPaidCycle": 0.24305,
+  "infernoSpinMeanReturnCredits": 20.962834293355275,
+  "freeSpinAwardsPerPaidCycle": 0.052025,
+  "freeSpinsPerPaidCycle": 0.260125,
+  "crownOffersPerPaidCycle": 0.73425,
+  "crownFlips": 0,
+  "crownFlipWinRate": null,
+  "cascadeHistogramBySpin": [
+    12730,
+    15430,
+    10681,
+    5739,
+    3127,
+    1449,
+    603,
+    357,
+    154,
+    50,
+    33,
+    52
+  ],
+  "maxCascadesObserved": 15,
+  "maxObservedCycleReturnCredits": 220.6,
+  "maxObservedSpinReturnCredits": 32.8,
+  "unresolvedSpins": 0,
+  "unresolvedSeeds": [],
+  "nonFiniteEvents": 0,
+  "pendingFreeSpinsAtBatchEnds": 0,
+  "runtimeMs": 45232,
+  "crosscheck": {
+    "seed": "inferno-polish-001:option-wild-pays-collect:batch-000",
+    "thisRunner": "exports",
+    "grossThis": 5871425,
+    "grossOther": 5871425,
+    "cascadesEqual": true,
+    "equal": true
+  }
+}

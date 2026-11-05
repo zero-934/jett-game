@@ -1,0 +1,14 @@
+{"label":"before-math1-collect","rtpPooled":0.9053425,"ci95":[0.8911534729202188,0.9195315270797817],"paidCycles":40000,"unresolved":0,"runtimeMs":24537,"crosscheck":null}
+{"label":"before-math1-flip-once","rtpPooled":0.901358125,"ci95":[0.8861217027388612,0.9165945472611389],"paidCycles":40000,"unresolved":0,"runtimeMs":25631,"crosscheck":null}
+{"label":"after-math2-collect","rtpPooled":0.9023725,"ci95":[0.8918745888552851,0.9128704111447145],"paidCycles":100000,"unresolved":0,"runtimeMs":62220,"crosscheck":{"seed":"inferno-polish-001:after-math2-collect:batch-000","thisRunner":"exports","grossThis":905300,"grossOther":905300,"cascadesEqual":true,"equal":true}}
+{"label":"after-math2-flip-once","rtpPooled":0.890925,"ci95":[0.8741731931896805,0.9076768068103188],"paidCycles":40000,"unresolved":0,"runtimeMs":26373,"crosscheck":null}
+{"label":"after-math2-flip-up-to-3","rtpPooled":0.80606625,"ci95":[0.7948589041367096,0.8172735958632913],"paidCycles":40000,"unresolved":0,"runtimeMs":28998,"crosscheck":null}
+{"label":"option-wild-pays-collect","rtpPooled":6.063485,"ci95":[5.961898473278086,6.16507152672192],"paidCycles":40000,"unresolved":0,"runtimeMs":45232,"crosscheck":{"seed":"inferno-polish-001:option-wild-pays-collect:batch-000","thisRunner":"exports","grossThis":5871425,"grossOther":5871425,"cascadesEqual":true,"equal":true}}
+{"label":"option-scatter-any-collect","rtpPooled":0.97288625,"ci95":[0.9564833853189508,0.9892891146810491],"paidCycles":40000,"unresolved":0,"runtimeMs":29685,"crosscheck":{"seed":"inferno-polish-001:option-scatter-any-collect:batch-000","thisRunner":"exports","grossThis":971575,"grossOther":971575,"cascadesEqual":true,"equal":true}}
+{"label":"option-both-collect","rtpPooled":6.25178875,"ci95":[6.170207290739975,6.33337020926002],"paidCycles":40000,"unresolved":0,"runtimeMs":47958,"crosscheck":null}
+{"label":"sensitivity-after-math2-short-batches","rtpPooled":0.945956875,"ci95":[0.9290803268373298,0.9628334231626714],"paidCycles":40000,"unresolved":0,"runtimeMs":7236,"crosscheck":null}
+{"label":"sensitivity-after-math2-masked-prng","rtpPooled":0.899120625,"ci95":[0.8818881703658943,0.9163530796341064],"paidCycles":40000,"unresolved":0,"runtimeMs":816,"crosscheck":null}
+
+real	5m3.283s
+user	5m1.604s
+sys	0m9.427s
