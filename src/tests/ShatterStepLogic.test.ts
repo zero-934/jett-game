@@ -132,3 +132,98 @@ describe('ShatterStepLogic', () => {
     });
   });
 });
+
+// ─── polish-003: precommitted board, truthful reveal, settlement ────────────
+import {
+  createShatterBoard, createShatterRound, pickShatterRound, canCashOutShatter, cashOutShatterRound,
+  revealShatterBoard, replayShatterRound, checkpointShatterRound,
+} from '../games/ShatterStepLogic';
+import type { TileSide } from '../games/ShatterStepLogic';
+import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
+
+const other = (s: TileSide): TileSide => (s === 'left' ? 'right' : 'left');
+
+describe('Shatter precommitted board', () => {
+  test('board is fixed by the seed and identical on replay', () => {
+    const a = createShatterRound('board-seed', 10); const b = createShatterRound('board-seed', 10);
+    expect(a.board).toEqual(b.board);
+    expect(a.board).toHaveLength(10);
+    expect(createShatterRound('other', 10).board).not.toEqual(a.board);
+  });
+
+  test('the chosen side decides the outcome: safe side advances, the other side breaks', () => {
+    const r = createShatterRound('side', 10);
+    expect(pickShatterRound(r, r.board[0])?.safe).toBe(true);
+    const l = createShatterRound('side', 10);
+    const pick = pickShatterRound(l, other(l.board[0]));
+    expect(pick?.safe).toBe(false);
+    expect(l.settlement).toMatchObject({ reason: 'shatter', payout: 0, brokenRow: 0, brokenSide: other(l.board[0]) });
+  });
+
+  test('reveal is hidden while live and matches the committed board after settlement; a losing pane is never revealed safe', () => {
+    for (let i = 0; i < 200; i++) {
+      const r = createShatterRound(`reveal-${i}`, 10);
+      expect(revealShatterBoard(r)).toBeNull();
+      // Three safe choices, then a wrong one.
+      for (let row = 0; row < 3; row++) pickShatterRound(r, r.board[row]);
+      expect(revealShatterBoard(r)).toBeNull();
+      const wrong = other(r.board[3]);
+      pickShatterRound(r, wrong);
+      const reveal = revealShatterBoard(r)!;
+      expect(reveal).toEqual(r.board);
+      expect(reveal[3]).not.toBe(wrong);
+      expect(r.picks.map((p) => p.side)).toEqual([r.board[0], r.board[1], r.board[2], wrong]);
+    }
+  });
+
+  test('per-row safe side is a fair 50/50 (100k rows, ±1.5%)', () => {
+    let left = 0; const n = 10000;
+    for (let i = 0; i < n; i++) left += createShatterRound(`fair-${i}`, 10).board.filter((s) => s === 'left').length;
+    expect(left / (n * 10)).toBeGreaterThan(0.485);
+    expect(left / (n * 10)).toBeLessThan(0.515);
+  });
+
+  test('createShatterBoard maps [0,0.5) to left and [0.5,1) to right; RNG output stays in [0,1)', () => {
+    expect(createShatterBoard(() => 0.4999, 3)).toEqual(['left', 'left', 'left']);
+    expect(createShatterBoard(() => 0.5, 2)).toEqual(['right', 'right']);
+    const rng = new ProvablyFairRNG('range');
+    for (let i = 0; i < 20000; i++) { const v = rng.random(); expect(v >= 0 && v < 1).toBe(true); }
+  });
+
+  test('replay of the same picks reproduces state and settlement; checkpoint is JSON-safe', () => {
+    const live = createShatterRound('replay', 10);
+    const sides: TileSide[] = [live.board[0], live.board[1], other(live.board[2])];
+    sides.forEach((s) => pickShatterRound(live, s));
+    const again = replayShatterRound('replay', 10, sides);
+    expect(again.state).toEqual(live.state);
+    expect(again.settlement).toEqual(live.settlement);
+    expect(JSON.parse(JSON.stringify(checkpointShatterRound(live))).board).toEqual(live.board);
+  });
+});
+
+describe('Shatter settlement (payout schedule unchanged)', () => {
+  test('row 0 cash-out disallowed; three safe rows cash out 32.74 once', () => {
+    const r = createShatterRound('cash', 10);
+    expect(canCashOutShatter(r)).toBe(false);
+    expect(cashOutShatterRound(r)).toBeNull();
+    for (let row = 0; row < 3; row++) pickShatterRound(r, r.board[row]);
+    const s = cashOutShatterRound(r);
+    expect(s).toMatchObject({ reason: 'cashout', rowsCleared: 3, multiplier: 3.2737, payout: 32.74, returnHundredths: 3274 });
+    expect(cashOutShatterRound(r)).toBe(s);           // idempotent
+    expect(pickShatterRound(r, 'left')).toBeNull();   // locked after settlement
+  });
+
+  test('re-entrant picks after a break are rejected; cash-out after loss returns the loss settlement', () => {
+    const r = createShatterRound('broken', 10);
+    pickShatterRound(r, other(r.board[0]));
+    expect(pickShatterRound(r, r.board[0])).toBeNull();
+    expect(cashOutShatterRound(r)?.reason).toBe('shatter');
+    expect(r.picks).toHaveLength(1);
+  });
+
+  test('final row auto-settles at the top', () => {
+    const r = createShatterRound('top', 10);
+    for (let row = 0; row < 10; row++) pickShatterRound(r, r.board[row]);
+    expect(r.settlement).toMatchObject({ reason: 'top', rowsCleared: 10, payout: 559.35 });
+  });
+});
