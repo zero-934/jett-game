@@ -22,10 +22,10 @@ Jett Casino is a crypto-native skill-based gaming platform built on Solana. Firs
 *   **Doom Crash**: World-first FPS crash game where shooting accuracy influences crash probability.
 
 ## ⚙️ The Technology
-*   **ProvablyFairRNG (xoroshiro128+, Solana VRF-ready)** — powering all 11 games with verifiable outcomes.
+*   **Seeded deterministic RNG (`ProvablyFairRNG`, xoroshiro128+)** — client-side and replayable for demos. No fairness protocol (server seed, commitment, verification) is implemented, so outcomes are not independently verifiable.
 *   **3-file licensable architecture (Logic.ts / UI.ts / Scene.ts)** — pure separation of concerns, zero coupling for easy white-labeling and integration.
 *   **Shared SlotEngineLogic and SlotAnimator** — a robust, asset-swappable slot engine for rapid game development.
-*   **96% RTP documented and simulated** across all games (100k round Monte Carlo simulation).
+*   **Return figures are not certified.** Shatter Step's best possible return is 72.75% under its current paytable; Jett and Flap Fortune returns depend on player skill and are not reported as a single RTP. See `docs/polish-002/RISK_REGISTER.md`.
 *   **TypeScript strict, Vite, Phaser 3, Jest full test coverage** — modern, reliable, and test-driven development.
 *   **GitHub Actions CI/CD → GitHub Pages** — continuous integration and deployment for rapid iterations and a live demo.
 
@@ -37,7 +37,7 @@ Targeting English-speaking Africa (Nigeria, Kenya, Ghana) and Asia (Philippines,
 *   Under $300 total development cost.
 *   11 production-ready games.
 *   Full Jest test coverage.
-*   Provably fair at its core.
+*   Seeded, replayable game logic (not a provably fair protocol).
 *   Live and playable now.
 
 ## 💰 The Ask

@@ -196,7 +196,7 @@ It provides shared button drawing and color constants for all games.
 
 ## House Edge Rules
 
-- **RTP target: 96%** (4% house edge on all games)
+- **RTP target: 96%** (4% house edge on all games) — a design target, not a verified figure. Never present it as measured. Shatter Step is currently at most 72.75%; Jett and Flap Fortune are skill-dependent (docs/polish-002/RISK_REGISTER.md, R-CLAIM-1/2).
 - House edge must be applied in the Logic file, not the UI
 - Every Logic file must have an RTP simulation function (e.g. `simulateJettRTP`)
 - Tests must verify RTP is reasonable (not >100%, not <50% for standard play)

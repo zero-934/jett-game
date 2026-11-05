@@ -1,0 +1,31 @@
+# Test gate for branches and pull requests. It never deploys:
+# no Pages permissions, no artifact upload, and it does not run on pushes to main.
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main, gh-pages]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm test
+      - run: npm run build

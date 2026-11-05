@@ -37,7 +37,7 @@ New scenes must be added to `src/main.ts` scene array AND `HomeScene.ts` cards a
 - TypeScript strict mode enforced
 - Every public function: JSDoc with @param, @returns, @example
 - File header: @file, @purpose, @author, @date, @license
-- RTP target: 96% (4% house edge) on all games
+- RTP: 96% is a design target only, not a verified figure. Shatter Step is at most 72.75%; Jett and Flap Fortune are skill-dependent (see docs/polish-002/RISK_REGISTER.md)
 - House edge in Logic.ts only, never in UI or Scene
 - Tests: Jest + ts-jest, no Phaser mocking needed (Logic is pure TS)
 

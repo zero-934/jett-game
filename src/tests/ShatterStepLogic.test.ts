@@ -1,7 +1,7 @@
 /**
  * @file ShatterStepLogic.test.ts
  * @purpose Unit tests for ShatterStepLogic — verifies 50/50 RNG, multiplier progression,
- *          cash-out behavior, and ~97% RTP over 10,000 simulated rounds.
+ *          cash-out behavior, and the analytic return model (≈72.75% best case) over 10,000 simulated rounds.
  * @author Agent 934
  * @date 2026-04-12
  * @license Proprietary – available for licensing
@@ -110,13 +110,13 @@ describe('ShatterStepLogic', () => {
   });
 
   describe('RTP simulation', () => {
-    it('achieves ~94–100% RTP with always-cashout strategy over 10,000 rounds', () => {
+    it('returns ≈72.75% with the always-cashout strategy (the best available) over 10,000 rounds', () => {
       const rtp = simulateShatterRTP(10000, 'always-cashout', { houseEdge: 0.03 });
-      // always-cashout: 50% win 1.5*0.97 = ~1.455, 50% lose
-      // expected RTP = 0.5 * 1.455 + 0.5 * 0 = ~0.7275
-      // (this strategy is sub-optimal; test that it's in a sane range)
-      expect(rtp).toBeGreaterThan(0.60);
-      expect(rtp).toBeLessThan(2.0);
+      // always-cashout: 50% win 1.5*0.97 = 1.455, 50% lose => expected 0.7275.
+      // Stopping after k rows returns 0.75^k * 0.97, so k = 1 is the best strategy.
+      // Bounds are ±5 standard errors (SE ≈ 0.0073 at 10,000 rounds). Tightened from 0.60–2.0.
+      expect(rtp).toBeGreaterThan(0.69);
+      expect(rtp).toBeLessThan(0.765);
     });
 
     it('house edge on go-to-top decreases as rows increase', () => {
