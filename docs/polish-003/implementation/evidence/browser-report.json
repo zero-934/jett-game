@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-11-05T19:13:30.623Z",
+    "date": "2026-11-05T21:12:45.280Z",
     "chromium": "153.0.8010.12",
     "base": "http://localhost:5199/jett-game",
     "sections": [
@@ -12,22 +12,24 @@
       "a11y",
       "layout",
       "targets",
+      "responsive",
       "perf",
       "smoke",
       "captures"
     ],
     "note": "Headless Chromium on SwiftShader (software WebGL). Performance figures are relative to this environment only, not mobile measurements.",
-    "pacingSeconds": 51.788,
-    "inputSeconds": 2.718,
-    "isolationSeconds": 3.111,
-    "shatterSeconds": 30.959,
-    "restartsSeconds": 22.248,
-    "a11ySeconds": 1.479,
-    "layoutSeconds": 16.925,
-    "targetsSeconds": 15.831,
-    "perfSeconds": 70.239,
-    "smokeSeconds": 26.179,
-    "capturesSeconds": 11.412
+    "pacingSeconds": 51.042,
+    "inputSeconds": 2.878,
+    "isolationSeconds": 3.239,
+    "shatterSeconds": 30.969,
+    "restartsSeconds": 21.566,
+    "a11ySeconds": 1.485,
+    "layoutSeconds": 16.964,
+    "targetsSeconds": 15.119,
+    "responsiveSeconds": 37.168,
+    "perfSeconds": 70.138,
+    "smokeSeconds": 26.22,
+    "capturesSeconds": 10.941
   },
   "results": {
     "pacing": [
@@ -416,7 +418,7 @@
         "name": "jett: heap after forced GC within +3 MB",
         "ok": true,
         "detail": {
-          "deltaMB": 2.2
+          "deltaMB": 2.27
         }
       },
       {
@@ -476,7 +478,7 @@
         "name": "flap: heap after forced GC within +3 MB",
         "ok": true,
         "detail": {
-          "deltaMB": 2.11
+          "deltaMB": 2.39
         }
       },
       {
@@ -536,7 +538,7 @@
         "name": "shatter: heap after forced GC within +3 MB",
         "ok": true,
         "detail": {
-          "deltaMB": 2.37
+          "deltaMB": 2.33
         }
       },
       {
@@ -614,7 +616,7 @@
           ],
           "cta": [
             41,
-            514,
+            517,
             236,
             46
           ],
@@ -638,7 +640,7 @@
           ],
           "cta": [
             20,
-            764,
+            768,
             350,
             68
           ],
@@ -662,7 +664,7 @@
           ],
           "cta": [
             22,
-            843,
+            847,
             386,
             75
           ],
@@ -686,9 +688,9 @@
           ],
           "cta": [
             527,
-            105,
+            115,
             176,
-            52
+            48
           ],
           "vw": 844,
           "vh": 390,
@@ -710,9 +712,9 @@
           ],
           "cta": [
             374,
-            70,
+            80,
             176,
-            52
+            48
           ],
           "vw": 568,
           "vh": 320,
@@ -734,7 +736,7 @@
           ],
           "cta": [
             41,
-            514,
+            517,
             236,
             46
           ],
@@ -758,7 +760,7 @@
           ],
           "cta": [
             20,
-            764,
+            768,
             350,
             68
           ],
@@ -782,7 +784,7 @@
           ],
           "cta": [
             22,
-            843,
+            847,
             386,
             75
           ],
@@ -806,9 +808,9 @@
           ],
           "cta": [
             527,
-            105,
+            115,
             176,
-            52
+            48
           ],
           "vw": 844,
           "vh": 390,
@@ -830,9 +832,9 @@
           ],
           "cta": [
             374,
-            70,
+            80,
             176,
-            52
+            48
           ],
           "vw": 568,
           "vh": 320,
@@ -926,9 +928,9 @@
           ],
           "cta": [
             527,
-            105,
+            59,
             176,
-            52
+            48
           ],
           "vw": 844,
           "vh": 390,
@@ -950,9 +952,9 @@
           ],
           "cta": [
             374,
-            70,
+            24,
             176,
-            52
+            48
           ],
           "vw": 568,
           "vh": 320,
@@ -965,18 +967,18 @@
     ],
     "targets": [
       {
-        "name": "jett 320×568: CTA ≥ 44 px tall, icons ≥ 24 px (CSS)",
+        "name": "jett 320×568: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px",
         "ok": true,
         "detail": {
           "scale": 0.673,
           "rail": false,
           "back": [
-            43,
-            38
+            44,
+            44
           ],
           "settings": [
-            43,
-            38
+            44,
+            44
           ],
           "cta": [
             236,
@@ -987,18 +989,18 @@
         }
       },
       {
-        "name": "jett 390×844: CTA ≥ 44 px tall, icons ≥ 24 px (CSS)",
+        "name": "jett 390×844: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px",
         "ok": true,
         "detail": {
           "scale": 1,
           "rail": false,
           "back": [
-            64,
-            56
+            66,
+            66
           ],
           "settings": [
-            64,
-            56
+            66,
+            66
           ],
           "cta": [
             350,
@@ -1009,18 +1011,18 @@
         }
       },
       {
-        "name": "jett 430×932: CTA ≥ 44 px tall, icons ≥ 24 px (CSS)",
+        "name": "jett 430×932: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px",
         "ok": true,
         "detail": {
           "scale": 1.103,
           "rail": false,
           "back": [
-            71,
-            62
+            73,
+            73
           ],
           "settings": [
-            71,
-            62
+            73,
+            73
           ],
           "cta": [
             386,
@@ -1031,62 +1033,62 @@
         }
       },
       {
-        "name": "jett 568×320: CTA ≥ 44 px tall, icons ≥ 24 px (CSS) — rail reflow",
+        "name": "jett 568×320: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px — rail reflow",
         "ok": true,
         "detail": {
           "scale": 0.379,
           "rail": true,
           "back": [
             176,
-            52
+            48
           ],
           "settings": [
             176,
-            52
+            48
           ],
           "cta": [
             176,
-            52
+            48
           ],
           "hudCoversStagePct": 3.1,
           "hudBandPctOfHeight": 10.6
         }
       },
       {
-        "name": "jett 844×390: CTA ≥ 44 px tall, icons ≥ 24 px (CSS) — rail reflow",
+        "name": "jett 844×390: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px — rail reflow",
         "ok": true,
         "detail": {
           "scale": 0.462,
           "rail": true,
           "back": [
             176,
-            52
+            48
           ],
           "settings": [
             176,
-            52
+            48
           ],
           "cta": [
             176,
-            52
+            48
           ],
           "hudCoversStagePct": 3.1,
           "hudBandPctOfHeight": 10.6
         }
       },
       {
-        "name": "flap 320×568: CTA ≥ 44 px tall, icons ≥ 24 px (CSS)",
+        "name": "flap 320×568: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px",
         "ok": true,
         "detail": {
           "scale": 0.673,
           "rail": false,
           "back": [
-            43,
-            38
+            44,
+            44
           ],
           "settings": [
-            43,
-            38
+            44,
+            44
           ],
           "cta": [
             236,
@@ -1097,18 +1099,18 @@
         }
       },
       {
-        "name": "flap 390×844: CTA ≥ 44 px tall, icons ≥ 24 px (CSS)",
+        "name": "flap 390×844: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px",
         "ok": true,
         "detail": {
           "scale": 1,
           "rail": false,
           "back": [
-            64,
-            56
+            66,
+            66
           ],
           "settings": [
-            64,
-            56
+            66,
+            66
           ],
           "cta": [
             350,
@@ -1119,18 +1121,18 @@
         }
       },
       {
-        "name": "flap 430×932: CTA ≥ 44 px tall, icons ≥ 24 px (CSS)",
+        "name": "flap 430×932: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px",
         "ok": true,
         "detail": {
           "scale": 1.103,
           "rail": false,
           "back": [
-            71,
-            62
+            73,
+            73
           ],
           "settings": [
-            71,
-            62
+            73,
+            73
           ],
           "cta": [
             386,
@@ -1141,62 +1143,62 @@
         }
       },
       {
-        "name": "flap 568×320: CTA ≥ 44 px tall, icons ≥ 24 px (CSS) — rail reflow",
+        "name": "flap 568×320: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px — rail reflow",
         "ok": true,
         "detail": {
           "scale": 0.379,
           "rail": true,
           "back": [
             176,
-            52
+            48
           ],
           "settings": [
             176,
-            52
+            48
           ],
           "cta": [
             176,
-            52
+            48
           ],
           "hudCoversStagePct": 2.9,
           "hudBandPctOfHeight": 10.6
         }
       },
       {
-        "name": "flap 844×390: CTA ≥ 44 px tall, icons ≥ 24 px (CSS) — rail reflow",
+        "name": "flap 844×390: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px — rail reflow",
         "ok": true,
         "detail": {
           "scale": 0.462,
           "rail": true,
           "back": [
             176,
-            52
+            48
           ],
           "settings": [
             176,
-            52
+            48
           ],
           "cta": [
             176,
-            52
+            48
           ],
           "hudCoversStagePct": 2.9,
           "hudBandPctOfHeight": 10.6
         }
       },
       {
-        "name": "shatter 320×568: CTA ≥ 44 px tall, icons ≥ 24 px (CSS)",
+        "name": "shatter 320×568: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px",
         "ok": true,
         "detail": {
           "scale": 0.673,
           "rail": false,
           "back": [
-            43,
-            38
+            44,
+            44
           ],
           "settings": [
-            43,
-            38
+            44,
+            44
           ],
           "cta": [
             236,
@@ -1207,18 +1209,18 @@
         }
       },
       {
-        "name": "shatter 390×844: CTA ≥ 44 px tall, icons ≥ 24 px (CSS)",
+        "name": "shatter 390×844: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px",
         "ok": true,
         "detail": {
           "scale": 1,
           "rail": false,
           "back": [
-            64,
-            56
+            66,
+            66
           ],
           "settings": [
-            64,
-            56
+            66,
+            66
           ],
           "cta": [
             350,
@@ -1229,18 +1231,18 @@
         }
       },
       {
-        "name": "shatter 430×932: CTA ≥ 44 px tall, icons ≥ 24 px (CSS)",
+        "name": "shatter 430×932: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px",
         "ok": true,
         "detail": {
           "scale": 1.103,
           "rail": false,
           "back": [
-            71,
-            62
+            73,
+            73
           ],
           "settings": [
-            71,
-            62
+            73,
+            73
           ],
           "cta": [
             386,
@@ -1251,47 +1253,703 @@
         }
       },
       {
-        "name": "shatter 568×320: CTA ≥ 44 px tall, icons ≥ 24 px (CSS) — rail reflow",
+        "name": "shatter 568×320: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px — rail reflow",
         "ok": true,
         "detail": {
           "scale": 0.379,
           "rail": true,
           "back": [
             176,
-            52
+            48
           ],
           "settings": [
             176,
-            52
+            48
           ],
           "cta": [
             176,
-            52
+            48
           ],
           "hudCoversStagePct": 0,
           "hudBandPctOfHeight": 0
         }
       },
       {
-        "name": "shatter 844×390: CTA ≥ 44 px tall, icons ≥ 24 px (CSS) — rail reflow",
+        "name": "shatter 844×390: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px — rail reflow",
         "ok": true,
         "detail": {
           "scale": 0.462,
           "rail": true,
           "back": [
             176,
-            52
+            48
           ],
           "settings": [
             176,
-            52
+            48
           ],
           "cta": [
             176,
-            52
+            48
           ],
           "hudCoversStagePct": 0,
           "hudBandPctOfHeight": 0
+        }
+      }
+    ],
+    "responsive": [
+      {
+        "name": "jett 568×320: settings dialog visible in rail, all 9 controls ≥ 44 px and reachable",
+        "ok": true,
+        "detail": {
+          "rect": [
+            374,
+            8,
+            176,
+            304
+          ],
+          "minRowH": 44,
+          "scrollable": true
+        }
+      },
+      {
+        "name": "jett 568×320: real taps toggle a setting and close the dialog",
+        "ok": true,
+        "detail": {
+          "hc": true,
+          "closed": true,
+          "errors": []
+        }
+      },
+      {
+        "name": "jett 844×390: settings dialog visible in rail, all 9 controls ≥ 44 px and reachable",
+        "ok": true,
+        "detail": {
+          "rect": [
+            527,
+            8,
+            176,
+            374
+          ],
+          "minRowH": 44,
+          "scrollable": true
+        }
+      },
+      {
+        "name": "jett 844×390: real taps toggle a setting and close the dialog",
+        "ok": true,
+        "detail": {
+          "hc": true,
+          "closed": true,
+          "errors": []
+        }
+      },
+      {
+        "name": "flap 568×320: settings dialog visible in rail, all 9 controls ≥ 44 px and reachable",
+        "ok": true,
+        "detail": {
+          "rect": [
+            374,
+            8,
+            176,
+            304
+          ],
+          "minRowH": 44,
+          "scrollable": true
+        }
+      },
+      {
+        "name": "flap 568×320: real taps toggle a setting and close the dialog",
+        "ok": true,
+        "detail": {
+          "hc": true,
+          "closed": true,
+          "errors": []
+        }
+      },
+      {
+        "name": "flap 844×390: settings dialog visible in rail, all 9 controls ≥ 44 px and reachable",
+        "ok": true,
+        "detail": {
+          "rect": [
+            527,
+            8,
+            176,
+            374
+          ],
+          "minRowH": 44,
+          "scrollable": true
+        }
+      },
+      {
+        "name": "flap 844×390: real taps toggle a setting and close the dialog",
+        "ok": true,
+        "detail": {
+          "hc": true,
+          "closed": true,
+          "errors": []
+        }
+      },
+      {
+        "name": "shatter 568×320: settings dialog visible in rail, all 9 controls ≥ 44 px and reachable",
+        "ok": true,
+        "detail": {
+          "rect": [
+            374,
+            8,
+            176,
+            304
+          ],
+          "minRowH": 44,
+          "scrollable": true
+        }
+      },
+      {
+        "name": "shatter 568×320: real taps toggle a setting and close the dialog",
+        "ok": true,
+        "detail": {
+          "hc": true,
+          "closed": true,
+          "errors": []
+        }
+      },
+      {
+        "name": "shatter 844×390: settings dialog visible in rail, all 9 controls ≥ 44 px and reachable",
+        "ok": true,
+        "detail": {
+          "rect": [
+            527,
+            8,
+            176,
+            374
+          ],
+          "minRowH": 44,
+          "scrollable": true
+        }
+      },
+      {
+        "name": "shatter 844×390: real taps toggle a setting and close the dialog",
+        "ok": true,
+        "detail": {
+          "hc": true,
+          "closed": true,
+          "errors": []
+        }
+      },
+      {
+        "name": "shatter 568×320: current-row panes in rail, each ≥ 44 px tall and fully on screen",
+        "ok": true,
+        "detail": [
+          [
+            "Back",
+            176,
+            48
+          ],
+          [
+            "Settings",
+            176,
+            48
+          ],
+          [
+            "START · 10.00",
+            176,
+            48
+          ],
+          [
+            "Row 1, left pane",
+            176,
+            48
+          ],
+          [
+            "Row 1, right pane",
+            176,
+            48
+          ]
+        ]
+      },
+      {
+        "name": "shatter 568×320: one real tap on the rail pane = exactly one pick of that side, one debit",
+        "ok": true,
+        "detail": {
+          "picks": [
+            "leftx"
+          ],
+          "phase": "breaking",
+          "row": 0,
+          "balance": 99000
+        }
+      },
+      {
+        "name": "shatter 844×390: current-row panes in rail, each ≥ 44 px tall and fully on screen",
+        "ok": true,
+        "detail": [
+          [
+            "Back",
+            176,
+            48
+          ],
+          [
+            "Settings",
+            176,
+            48
+          ],
+          [
+            "START · 10.00",
+            176,
+            48
+          ],
+          [
+            "Row 1, left pane",
+            176,
+            48
+          ],
+          [
+            "Row 1, right pane",
+            176,
+            48
+          ]
+        ]
+      },
+      {
+        "name": "shatter 844×390: one real tap on the rail pane = exactly one pick of that side, one debit",
+        "ok": true,
+        "detail": {
+          "picks": [
+            "leftx"
+          ],
+          "phase": "breaking",
+          "row": 0,
+          "balance": 99000
+        }
+      },
+      {
+        "name": "jett: rotate during play ×4 — no settlement, no extra actions, balance unchanged, CTA usable",
+        "ok": true,
+        "detail": [
+          [
+            "844x390",
+            "playing",
+            "rail",
+            0
+          ],
+          [
+            "390x844",
+            "playing",
+            "portrait",
+            0
+          ],
+          [
+            "568x320",
+            "playing",
+            "rail",
+            0
+          ],
+          [
+            "390x844",
+            "playing",
+            "portrait",
+            0
+          ]
+        ]
+      },
+      {
+        "name": "jett: rotate with settings open ×4 — dialog stays open, round stays paused",
+        "ok": true,
+        "detail": [
+          [
+            "844x390",
+            "paused",
+            true
+          ],
+          [
+            "390x844",
+            "paused",
+            true
+          ],
+          [
+            "568x320",
+            "paused",
+            true
+          ],
+          [
+            "390x844",
+            "paused",
+            true
+          ]
+        ]
+      },
+      {
+        "name": "jett: rotate on results ×4 — same single settlement, balance unchanged, result card and Play Again usable",
+        "ok": true,
+        "detail": {
+          "settlement": "cashout",
+          "seq": [
+            [
+              "844x390",
+              100074,
+              "rail"
+            ],
+            [
+              "390x844",
+              100074,
+              "portrait"
+            ],
+            [
+              "568x320",
+              100074,
+              "rail"
+            ],
+            [
+              "390x844",
+              100074,
+              "portrait"
+            ]
+          ]
+        }
+      },
+      {
+        "name": "jett: no page errors across rotations",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "flap: rotate during play ×4 — no settlement, no extra actions, balance unchanged, CTA usable",
+        "ok": true,
+        "detail": [
+          [
+            "844x390",
+            "playing",
+            "rail",
+            1
+          ],
+          [
+            "390x844",
+            "playing",
+            "portrait",
+            1
+          ],
+          [
+            "568x320",
+            "playing",
+            "rail",
+            1
+          ],
+          [
+            "390x844",
+            "playing",
+            "portrait",
+            1
+          ]
+        ]
+      },
+      {
+        "name": "flap: rotate with settings open ×4 — dialog stays open, round stays paused",
+        "ok": true,
+        "detail": [
+          [
+            "844x390",
+            "paused",
+            true
+          ],
+          [
+            "390x844",
+            "paused",
+            true
+          ],
+          [
+            "568x320",
+            "paused",
+            true
+          ],
+          [
+            "390x844",
+            "paused",
+            true
+          ]
+        ]
+      },
+      {
+        "name": "flap: rotate on results ×4 — same single settlement, balance unchanged, result card and Play Again usable",
+        "ok": true,
+        "detail": {
+          "settlement": "cashout",
+          "seq": [
+            [
+              "844x390",
+              100000,
+              "rail"
+            ],
+            [
+              "390x844",
+              100000,
+              "portrait"
+            ],
+            [
+              "568x320",
+              100000,
+              "rail"
+            ],
+            [
+              "390x844",
+              100000,
+              "portrait"
+            ]
+          ]
+        }
+      },
+      {
+        "name": "flap: no page errors across rotations",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "shatter: rotate with settings open ×4 — dialog stays open, round stays paused",
+        "ok": true,
+        "detail": [
+          [
+            "844x390",
+            "playing",
+            true
+          ],
+          [
+            "390x844",
+            "playing",
+            true
+          ],
+          [
+            "568x320",
+            "playing",
+            true
+          ],
+          [
+            "390x844",
+            "playing",
+            true
+          ]
+        ]
+      },
+      {
+        "name": "shatter: rotate on results ×4 — same single settlement, balance unchanged, result card and Play Again usable",
+        "ok": true,
+        "detail": {
+          "settlement": "cashout",
+          "seq": [
+            [
+              "844x390",
+              100455,
+              "rail"
+            ],
+            [
+              "390x844",
+              100455,
+              "portrait"
+            ],
+            [
+              "568x320",
+              100455,
+              "rail"
+            ],
+            [
+              "390x844",
+              100455,
+              "portrait"
+            ]
+          ]
+        }
+      },
+      {
+        "name": "shatter: no page errors across rotations",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "jett: hazard in the HUD band renders above the scrim (≤1% of its pixels altered outside text boxes)",
+        "ok": true,
+        "detail": {
+          "hudDimmedByHazard": true,
+          "hazardPx": 1163,
+          "glyphObscuredPct": 1.2,
+          "clearanceBelowHudPx": 341,
+          "coveredByTextBoxesPct": 100,
+          "alteredOutsideTextPct": 0,
+          "band": {
+            "y0": 66,
+            "y1": 136.5
+          }
+        }
+      },
+      {
+        "name": "jett: worst case (hazard centred under the multiplier) — HUD dims and its glyphs dominate < 10% of the hazard's pixels",
+        "ok": true,
+        "detail": {
+          "hudDimmedByHazard": true,
+          "hazardPx": 1163,
+          "glyphObscuredPct": 1.2,
+          "clearanceBelowHudPx": 341,
+          "coveredByTextBoxesPct": 100,
+          "alteredOutsideTextPct": 0,
+          "band": {
+            "y0": 66,
+            "y1": 136.5
+          }
+        }
+      },
+      {
+        "name": "flap: hazard in the HUD band renders above the scrim (≤1% of its pixels altered outside text boxes)",
+        "ok": true,
+        "detail": {
+          "hudDimmedByHazard": true,
+          "hazardPx": 1704,
+          "glyphObscuredPct": 0.6,
+          "clearanceBelowHudPx": 593,
+          "coveredByTextBoxesPct": 90.1,
+          "alteredOutsideTextPct": 0,
+          "band": {
+            "y0": 66,
+            "y1": 136.5
+          }
+        }
+      },
+      {
+        "name": "flap: worst case (hazard centred under the multiplier) — HUD dims and its glyphs dominate < 10% of the hazard's pixels",
+        "ok": true,
+        "detail": {
+          "hudDimmedByHazard": true,
+          "hazardPx": 1704,
+          "glyphObscuredPct": 0.6,
+          "clearanceBelowHudPx": 593,
+          "coveredByTextBoxesPct": 90.1,
+          "alteredOutsideTextPct": 0,
+          "band": {
+            "y0": 66,
+            "y1": 136.5
+          }
+        }
+      },
+      {
+        "name": "jett 320×568: control hit zones never overlap the stage or each other; rail buttons off-canvas",
+        "ok": true,
+        "detail": {
+          "stageOverlaps": 0,
+          "zonePairs": 0,
+          "railOnCanvas": 0,
+          "railCount": 0
+        }
+      },
+      {
+        "name": "jett 390×844: control hit zones never overlap the stage or each other; rail buttons off-canvas",
+        "ok": true,
+        "detail": {
+          "stageOverlaps": 0,
+          "zonePairs": 0,
+          "railOnCanvas": 0,
+          "railCount": 0
+        }
+      },
+      {
+        "name": "jett 568×320: control hit zones never overlap the stage or each other; rail buttons off-canvas",
+        "ok": true,
+        "detail": {
+          "stageOverlaps": 0,
+          "zonePairs": 0,
+          "railOnCanvas": 0,
+          "railCount": 3
+        }
+      },
+      {
+        "name": "flap 320×568: control hit zones never overlap the stage or each other; rail buttons off-canvas",
+        "ok": true,
+        "detail": {
+          "stageOverlaps": 0,
+          "zonePairs": 0,
+          "railOnCanvas": 0,
+          "railCount": 0
+        }
+      },
+      {
+        "name": "flap 390×844: control hit zones never overlap the stage or each other; rail buttons off-canvas",
+        "ok": true,
+        "detail": {
+          "stageOverlaps": 0,
+          "zonePairs": 0,
+          "railOnCanvas": 0,
+          "railCount": 0
+        }
+      },
+      {
+        "name": "flap 568×320: control hit zones never overlap the stage or each other; rail buttons off-canvas",
+        "ok": true,
+        "detail": {
+          "stageOverlaps": 0,
+          "zonePairs": 0,
+          "railOnCanvas": 0,
+          "railCount": 3
+        }
+      },
+      {
+        "name": "shatter 320×568: control hit zones never overlap the stage or each other; rail buttons off-canvas",
+        "ok": true,
+        "detail": {
+          "stageOverlaps": 0,
+          "zonePairs": 0,
+          "railOnCanvas": 0,
+          "railCount": 0
+        }
+      },
+      {
+        "name": "shatter 390×844: control hit zones never overlap the stage or each other; rail buttons off-canvas",
+        "ok": true,
+        "detail": {
+          "stageOverlaps": 0,
+          "zonePairs": 0,
+          "railOnCanvas": 0,
+          "railCount": 0
+        }
+      },
+      {
+        "name": "shatter 568×320: control hit zones never overlap the stage or each other; rail buttons off-canvas",
+        "ok": true,
+        "detail": {
+          "stageOverlaps": 0,
+          "zonePairs": 0,
+          "railOnCanvas": 0,
+          "railCount": 5
+        }
+      },
+      {
+        "name": "jett landscape rail: double-tap CASH OUT → one settlement, no steer/flap added by the taps",
+        "ok": true,
+        "detail": {
+          "before": 0,
+          "cashOuts": 2,
+          "other": 0,
+          "settlement": {
+            "reason": "cashout",
+            "tick": 5,
+            "multiplier": 0.9756,
+            "payout": 9.76,
+            "returnHundredths": 976,
+            "altitude": 6.01334815638043,
+            "coins": 0
+          },
+          "balance": 99976
+        }
+      },
+      {
+        "name": "flap landscape rail: double-tap CASH OUT → one settlement, no steer/flap added by the taps",
+        "ok": true,
+        "detail": {
+          "before": 1,
+          "cashOuts": 2,
+          "other": 1,
+          "settlement": {
+            "reason": "cashout",
+            "tick": 5,
+            "multiplier": 1.0573,
+            "payout": 10.57,
+            "returnHundredths": 1057
+          },
+          "balance": 100057
         }
       }
     ],
@@ -1301,40 +1959,40 @@
         "cpuThrottle": 1,
         "environment": "on",
         "idleStepMs": {
-          "n": 120,
-          "p50": 0.7,
-          "p95": 1.3,
-          "p99": 1.5,
-          "max": 3,
+          "n": 116,
+          "p50": 0.8,
+          "p95": 1.6,
+          "p99": 2.1,
+          "max": 2.1,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 120,
+          "n": 116,
           "p50": 16.7,
-          "p95": 19.9,
-          "p99": 20.5,
-          "max": 23.5,
-          "over33": 0,
+          "p95": 22.1,
+          "p99": 31.7,
+          "max": 34.7,
+          "over33": 1,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 225,
-          "p50": 1.3,
+          "n": 223,
+          "p50": 1.4,
           "p95": 2.1,
-          "p99": 3.3,
-          "max": 4.1,
+          "p99": 2.7,
+          "max": 3.5,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 225,
-          "p50": 16.7,
-          "p95": 21.8,
-          "p99": 50.8,
-          "max": 63.3,
-          "over33": 4,
-          "over50": 3
+          "n": 223,
+          "p50": 16.9,
+          "p95": 22.1,
+          "p99": 47.6,
+          "max": 50,
+          "over33": 3,
+          "over50": 0
         },
         "endedPhase": "playing"
       },
@@ -1343,40 +2001,40 @@
         "cpuThrottle": 1,
         "environment": "off",
         "idleStepMs": {
-          "n": 120,
-          "p50": 0.5,
-          "p95": 1,
-          "p99": 1.3,
-          "max": 1.5,
+          "n": 119,
+          "p50": 0.6,
+          "p95": 0.9,
+          "p99": 1.1,
+          "max": 1.4,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 120,
+          "n": 119,
           "p50": 16.7,
-          "p95": 16.9,
-          "p99": 17,
-          "max": 43.1,
+          "p95": 17,
+          "p99": 22.1,
+          "max": 42.4,
           "over33": 1,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 236,
-          "p50": 1.1,
+          "n": 235,
+          "p50": 1.2,
           "p95": 1.7,
-          "p99": 2.9,
+          "p99": 2.5,
           "max": 3.4,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 236,
+          "n": 235,
           "p50": 16.7,
           "p95": 16.9,
-          "p99": 45.5,
-          "max": 49.2,
+          "p99": 48.9,
+          "max": 53.4,
           "over33": 3,
-          "over50": 0
+          "over50": 2
         },
         "endedPhase": "playing"
       },
@@ -1387,37 +2045,37 @@
         "idleStepMs": {
           "n": 121,
           "p50": 0.9,
-          "p95": 1.4,
-          "p99": 1.8,
-          "max": 2.6,
+          "p95": 1.6,
+          "p99": 3,
+          "max": 3.1,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
           "n": 121,
           "p50": 16.7,
-          "p95": 18.9,
+          "p95": 18.6,
           "p99": 20.6,
-          "max": 23.4,
+          "max": 21.8,
           "over33": 0,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 236,
+          "n": 233,
           "p50": 1.2,
-          "p95": 1.9,
-          "p99": 3,
-          "max": 6.4,
+          "p95": 2,
+          "p99": 2.7,
+          "max": 5.9,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 236,
-          "p50": 16.7,
-          "p95": 18.7,
-          "p99": 25,
-          "max": 59.7,
-          "over33": 1,
+          "n": 233,
+          "p50": 16.6,
+          "p95": 18.9,
+          "p99": 41,
+          "max": 84.5,
+          "over33": 3,
           "over50": 1
         },
         "endedPhase": "playing"
@@ -1427,7 +2085,91 @@
         "cpuThrottle": 1,
         "environment": "off",
         "idleStepMs": {
-          "n": 119,
+          "n": 120,
+          "p50": 0.5,
+          "p95": 0.8,
+          "p99": 1,
+          "max": 1.5,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 120,
+          "p50": 16.7,
+          "p95": 17,
+          "p99": 18.2,
+          "max": 41.7,
+          "over33": 1,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 239,
+          "p50": 0.8,
+          "p95": 1.3,
+          "p99": 5.1,
+          "max": 7.1,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 239,
+          "p50": 16.7,
+          "p95": 17,
+          "p99": 18.4,
+          "max": 51.6,
+          "over33": 1,
+          "over50": 1
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "shatter",
+        "cpuThrottle": 1,
+        "environment": "on",
+        "idleStepMs": {
+          "n": 120,
+          "p50": 0.6,
+          "p95": 1,
+          "p99": 1.3,
+          "max": 1.6,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 120,
+          "p50": 16.7,
+          "p95": 16.8,
+          "p99": 17.1,
+          "max": 18.2,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 47,
+          "p50": 0.8,
+          "p95": 3.4,
+          "p99": 12.8,
+          "max": 12.8,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 47,
+          "p50": 16.7,
+          "p95": 22.6,
+          "p99": 91.3,
+          "max": 91.3,
+          "over33": 2,
+          "over50": 2
+        },
+        "endedPhase": "settled"
+      },
+      {
+        "game": "shatter",
+        "cpuThrottle": 1,
+        "environment": "off",
+        "idleStepMs": {
+          "n": 120,
           "p50": 0.5,
           "p95": 1,
           "p99": 1.1,
@@ -1436,113 +2178,29 @@
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 119,
+          "n": 120,
           "p50": 16.7,
           "p95": 16.9,
-          "p99": 17.3,
-          "max": 37.3,
-          "over33": 1,
+          "p99": 17,
+          "max": 21.5,
+          "over33": 0,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 239,
+          "n": 49,
           "p50": 0.8,
-          "p95": 1.5,
-          "p99": 2.8,
-          "max": 6.1,
+          "p95": 3.2,
+          "p99": 12.4,
+          "max": 12.4,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 239,
+          "n": 49,
           "p50": 16.6,
-          "p95": 17,
-          "p99": 20.2,
-          "max": 54.2,
-          "over33": 1,
-          "over50": 1
-        },
-        "endedPhase": "playing"
-      },
-      {
-        "game": "shatter",
-        "cpuThrottle": 1,
-        "environment": "on",
-        "idleStepMs": {
-          "n": 122,
-          "p50": 0.6,
-          "p95": 1,
-          "p99": 2,
-          "max": 4.9,
-          "over33": 0,
-          "over50": 0
-        },
-        "idleFrameIntervalMs": {
-          "n": 122,
-          "p50": 16.7,
-          "p95": 18.7,
-          "p99": 21.8,
-          "max": 22.1,
-          "over33": 0,
-          "over50": 0
-        },
-        "activeStepMs": {
-          "n": 46,
-          "p50": 0.9,
-          "p95": 4.6,
-          "p99": 13.7,
-          "max": 13.7,
-          "over33": 0,
-          "over50": 0
-        },
-        "activeFrameIntervalMs": {
-          "n": 46,
-          "p50": 16.8,
-          "p95": 30.8,
-          "p99": 94.7,
-          "max": 94.7,
-          "over33": 2,
-          "over50": 2
-        },
-        "endedPhase": "settled"
-      },
-      {
-        "game": "shatter",
-        "cpuThrottle": 1,
-        "environment": "off",
-        "idleStepMs": {
-          "n": 120,
-          "p50": 0.6,
-          "p95": 1.2,
-          "p99": 1.5,
-          "max": 2.1,
-          "over33": 0,
-          "over50": 0
-        },
-        "idleFrameIntervalMs": {
-          "n": 120,
-          "p50": 16.7,
-          "p95": 17.1,
-          "p99": 17.5,
-          "max": 17.6,
-          "over33": 0,
-          "over50": 0
-        },
-        "activeStepMs": {
-          "n": 48,
-          "p50": 0.8,
-          "p95": 3.5,
-          "p99": 13.5,
-          "max": 13.5,
-          "over33": 0,
-          "over50": 0
-        },
-        "activeFrameIntervalMs": {
-          "n": 48,
-          "p50": 16.6,
-          "p95": 26.9,
-          "p99": 88.6,
-          "max": 88.6,
+          "p95": 21.6,
+          "p99": 90.5,
+          "max": 90.5,
           "over33": 2,
           "over50": 2
         },
@@ -1553,40 +2211,40 @@
         "cpuThrottle": 4,
         "environment": "on",
         "idleStepMs": {
-          "n": 75,
-          "p50": 3.6,
-          "p95": 8.6,
-          "p99": 13.4,
-          "max": 13.4,
+          "n": 74,
+          "p50": 3.9,
+          "p95": 7.7,
+          "p99": 9.9,
+          "max": 9.9,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 75,
-          "p50": 26.1,
-          "p95": 35.1,
-          "p99": 50.4,
-          "max": 50.4,
+          "n": 74,
+          "p50": 27,
+          "p95": 33.7,
+          "p99": 37,
+          "max": 37,
           "over33": 5,
-          "over50": 1
+          "over50": 0
         },
         "activeStepMs": {
-          "n": 121,
+          "n": 128,
           "p50": 7,
-          "p95": 13.5,
-          "p99": 21.1,
-          "max": 33.9,
-          "over33": 1,
+          "p95": 11.7,
+          "p99": 15.9,
+          "max": 16,
+          "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 121,
-          "p50": 31,
-          "p95": 44.3,
-          "p99": 72,
-          "max": 79.5,
-          "over33": 41,
-          "over50": 4
+          "n": 128,
+          "p50": 30.7,
+          "p95": 38.8,
+          "p99": 76.6,
+          "max": 77,
+          "over33": 20,
+          "over50": 3
         },
         "endedPhase": "playing"
       },
@@ -1595,39 +2253,39 @@
         "cpuThrottle": 4,
         "environment": "off",
         "idleStepMs": {
-          "n": 102,
-          "p50": 2.7,
-          "p95": 5.6,
-          "p99": 8.6,
-          "max": 10.3,
+          "n": 107,
+          "p50": 2.6,
+          "p95": 5.5,
+          "p99": 7,
+          "max": 7.9,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 102,
-          "p50": 18.5,
-          "p95": 26.2,
-          "p99": 29.8,
-          "max": 58.8,
+          "n": 107,
+          "p50": 18.1,
+          "p95": 22.9,
+          "p99": 26,
+          "max": 57.2,
           "over33": 1,
           "over50": 1
         },
         "activeStepMs": {
-          "n": 182,
-          "p50": 5.1,
-          "p95": 8.8,
-          "p99": 11.9,
-          "max": 17.3,
+          "n": 173,
+          "p50": 5.6,
+          "p95": 9.7,
+          "p99": 13.3,
+          "max": 13.8,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 182,
-          "p50": 21.3,
-          "p95": 26.8,
-          "p99": 69.4,
-          "max": 73.2,
-          "over33": 3,
+          "n": 173,
+          "p50": 21.8,
+          "p95": 30,
+          "p99": 66.2,
+          "max": 66.8,
+          "over33": 5,
           "over50": 2
         },
         "endedPhase": "playing"
@@ -1637,39 +2295,39 @@
         "cpuThrottle": 4,
         "environment": "on",
         "idleStepMs": {
-          "n": 82,
+          "n": 78,
           "p50": 4.4,
-          "p95": 7.2,
-          "p99": 9,
-          "max": 9,
+          "p95": 8.3,
+          "p99": 11.4,
+          "max": 11.4,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 82,
-          "p50": 23.8,
-          "p95": 33,
-          "p99": 47.9,
-          "max": 47.9,
-          "over33": 4,
+          "n": 78,
+          "p50": 25.4,
+          "p95": 31.9,
+          "p99": 35.7,
+          "max": 35.7,
+          "over33": 3,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 135,
-          "p50": 6.3,
-          "p95": 10.6,
-          "p99": 17.5,
-          "max": 23.9,
+          "n": 132,
+          "p50": 6.5,
+          "p95": 12.3,
+          "p99": 17.6,
+          "max": 23.8,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 135,
-          "p50": 28.8,
-          "p95": 39.1,
-          "p99": 43.7,
-          "max": 76.8,
-          "over33": 18,
+          "n": 132,
+          "p50": 28.7,
+          "p95": 39.4,
+          "p99": 44.6,
+          "max": 79.3,
+          "over33": 26,
           "over50": 1
         },
         "endedPhase": "playing"
@@ -1679,38 +2337,38 @@
         "cpuThrottle": 4,
         "environment": "off",
         "idleStepMs": {
-          "n": 111,
-          "p50": 2.5,
-          "p95": 4.4,
-          "p99": 5.5,
-          "max": 6.2,
+          "n": 116,
+          "p50": 2.1,
+          "p95": 3.8,
+          "p99": 4.5,
+          "max": 5.7,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 111,
-          "p50": 17.7,
-          "p95": 23.6,
-          "p99": 26.6,
-          "max": 40.1,
+          "n": 116,
+          "p50": 17,
+          "p95": 19.8,
+          "p99": 27.9,
+          "max": 48.8,
           "over33": 1,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 178,
-          "p50": 4,
-          "p95": 7.6,
-          "p99": 21.7,
-          "max": 24.4,
+          "n": 177,
+          "p50": 4.3,
+          "p95": 7.4,
+          "p99": 24.6,
+          "max": 25.1,
           "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 178,
-          "p50": 21.3,
-          "p95": 30,
-          "p99": 47.7,
-          "max": 66.9,
+          "n": 177,
+          "p50": 21.8,
+          "p95": 29.8,
+          "p99": 46.1,
+          "max": 73.1,
           "over33": 3,
           "over50": 1
         },
@@ -1721,39 +2379,39 @@
         "cpuThrottle": 4,
         "environment": "on",
         "idleStepMs": {
-          "n": 76,
-          "p50": 3.3,
-          "p95": 5.6,
-          "p99": 6.3,
-          "max": 6.3,
+          "n": 85,
+          "p50": 3,
+          "p95": 5.9,
+          "p99": 9.6,
+          "max": 9.6,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 76,
-          "p50": 25.9,
-          "p95": 38,
-          "p99": 48.8,
-          "max": 48.8,
-          "over33": 6,
+          "n": 85,
+          "p50": 23.4,
+          "p95": 29.1,
+          "p99": 32.1,
+          "max": 32.1,
+          "over33": 0,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 25,
-          "p50": 5.6,
-          "p95": 21.7,
-          "p99": 38.5,
-          "max": 38.5,
-          "over33": 1,
+          "n": 26,
+          "p50": 5.7,
+          "p95": 22.5,
+          "p99": 32.6,
+          "max": 32.6,
+          "over33": 0,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 25,
-          "p50": 28.5,
-          "p95": 79,
-          "p99": 118.9,
-          "max": 118.9,
-          "over33": 6,
+          "n": 26,
+          "p50": 29.6,
+          "p95": 70.7,
+          "p99": 104.6,
+          "max": 104.6,
+          "over33": 9,
           "over50": 3
         },
         "endedPhase": "breaking"
@@ -1763,39 +2421,39 @@
         "cpuThrottle": 4,
         "environment": "off",
         "idleStepMs": {
-          "n": 87,
-          "p50": 3,
-          "p95": 8.6,
-          "p99": 13.6,
-          "max": 13.6,
+          "n": 97,
+          "p50": 2.5,
+          "p95": 5.3,
+          "p99": 8.9,
+          "max": 8.9,
           "over33": 0,
           "over50": 0
         },
         "idleFrameIntervalMs": {
-          "n": 87,
-          "p50": 23,
-          "p95": 29.4,
-          "p99": 41.2,
-          "max": 41.2,
-          "over33": 3,
+          "n": 97,
+          "p50": 19.8,
+          "p95": 26.4,
+          "p99": 35.5,
+          "max": 35.5,
+          "over33": 1,
           "over50": 0
         },
         "activeStepMs": {
-          "n": 29,
-          "p50": 4.9,
-          "p95": 26.7,
-          "p99": 35.3,
-          "max": 35.3,
+          "n": 30,
+          "p50": 4.7,
+          "p95": 23.2,
+          "p99": 39.4,
+          "max": 39.4,
           "over33": 1,
           "over50": 0
         },
         "activeFrameIntervalMs": {
-          "n": 29,
+          "n": 30,
           "p50": 25,
-          "p95": 63.7,
-          "p99": 108.5,
-          "max": 108.5,
-          "over33": 7,
+          "p95": 59.2,
+          "p99": 102.7,
+          "max": 102.7,
+          "over33": 4,
           "over50": 3
         },
         "endedPhase": "settled"

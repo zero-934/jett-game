@@ -439,11 +439,182 @@ async function targets(browser) {
           hudCoversStagePct: +((100 * hudArea) / (stage.width * stage.height)).toFixed(1), hudBandPctOfHeight: hudBoxes.length ? +((100 * (hudBottom - stage.y)) / stage.height).toFixed(1) : 0 };
       });
       const min = Math.min(m.back[1], m.settings[1], m.cta[1], m.back[0], m.settings[0]);
-      const ok = m.cta[1] >= 44 && min >= 24 && (m.rail || m.scale >= 0.6);
-      check('targets', `${game} ${w}×${h}: CTA ≥ 44 px tall, icons ≥ 24 px (CSS)${m.rail ? ' — rail reflow' : ''}`, ok, m);
+      const ok = m.cta[1] >= 44 && min >= 44 && (m.rail || m.scale >= 0.6);
+      check('targets', `${game} ${w}×${h}: CTA ≥ 44 px tall, Back/Settings ≥ 44×44 CSS px${m.rail ? ' — rail reflow' : ''}`, ok, m);
       if (w === 568) await page.screenshot({ path: path.join(OUT, 'screenshots', `targets-${game}-568x320-rail.png`) });
       await ctx.close();
     }
+  }
+}
+
+// ─── Responsive finishing pass: landscape settings/panes, rotation, hazards, overlap ──
+async function responsive(browser) {
+  const SHOTS = path.join(OUT, 'screenshots', 'responsive'); fs.mkdirSync(SHOTS, { recursive: true });
+  const rectOf = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, vis: getComputedStyle(e).display !== 'none' && getComputedStyle(e).opacity !== '0' }; }, sel);
+  const clickCenter = async (page, r) => page.mouse.click(r.x + r.w / 2, r.y + r.h / 2);
+
+  // 1. Landscape settings usable with real clicks (all three games, two landscape sizes)
+  for (const game of ['jett', 'flap', 'shatter']) {
+    for (const [w, h] of [[568, 320], [844, 390]]) {
+      const { ctx, page, errors } = await openGame(browser, game, { viewport: { width: w, height: h }, dpr: 2, seed: 'land' });
+      await page.waitForTimeout(250);
+      const btn = await rectOf(page, '.sd-a11y button[data-id="settings"]');
+      await clickCenter(page, btn);
+      await page.waitForTimeout(100);
+      const d = await page.evaluate(() => {
+        const dlg = document.querySelector('.sd-a11y [role=dialog]'); if (!dlg) return null;
+        const r = dlg.getBoundingClientRect();
+        const rows = [...dlg.querySelectorAll('label, button')].map((e) => { e.scrollIntoView({ block: 'nearest' }); const q = e.getBoundingClientRect(); return { h: Math.round(q.height), w: Math.round(q.width), inView: q.top >= 0 && q.bottom <= innerHeight + 1 && q.left >= 0 && q.right <= innerWidth + 1 }; });
+        return { visible: getComputedStyle(dlg).opacity === '1', rect: [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)], rows, scrollable: dlg.scrollHeight > dlg.clientHeight, paused: window.__ui().shell.settingsOpen };
+      });
+      const allOk = d && d.visible && d.rows.length === 9 && d.rows.every((r) => r.h >= 44 && r.w >= 44 && r.inView);
+      check('responsive', `${game} ${w}×${h}: settings dialog visible in rail, all 9 controls ≥ 44 px and reachable`, allOk, d && { rect: d.rect, minRowH: Math.min(...d.rows.map((r) => r.h)), scrollable: d.scrollable });
+      // Real click on "High contrast" label toggles it; Close closes.
+      const hcLabel = await page.evaluate(() => { const l = [...document.querySelectorAll('.sd-a11y [role=dialog] label')][3]; l.scrollIntoView({ block: 'nearest' }); const r = l.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; });
+      await clickCenter(page, hcLabel);
+      const hc = await page.evaluate(() => window.__ui().shell.settings.highContrast);
+      if (game === 'jett') await page.screenshot({ path: path.join(SHOTS, `settings-rail-${w}x${h}.png`) });
+      const close = await page.evaluate(() => { const b = document.querySelector('.sd-a11y [role=dialog] button'); b.scrollIntoView({ block: 'nearest' }); const r = b.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; });
+      await clickCenter(page, close);
+      const closed = await page.evaluate(() => !window.__ui().shell.settingsOpen && !document.querySelector('.sd-a11y [role=dialog]'));
+      check('responsive', `${game} ${w}×${h}: real taps toggle a setting and close the dialog`, hc === true && closed && errors.length === 0, { hc, closed, errors: errors.slice(0, 2) });
+      await ctx.close();
+    }
+  }
+
+  // 2. Shatter pane targets in landscape (rail), single real click = one pick
+  for (const [w, h] of [[568, 320], [844, 390]]) {
+    const { ctx, page } = await openGame(browser, 'shatter', { viewport: { width: w, height: h }, dpr: 2, seed: 'land-shatter' });
+    await page.waitForTimeout(250);
+    const panes = await page.evaluate(() => [...document.querySelectorAll('.sd-a11y button.sd-railbtn')].map((b) => { const r = b.getBoundingClientRect(); return { id: b.dataset.id, label: b.textContent, x: r.x, y: r.y, w: r.width, h: r.height }; }));
+    const left = panes.find((p) => p.id === 'stage:pane-left'); const right = panes.find((p) => p.id === 'stage:pane-right');
+    check('responsive', `shatter ${w}×${h}: current-row panes in rail, each ≥ 44 px tall and fully on screen`, left && right && [left, right].every((p) => p.h >= 44 && p.w >= 44 && p.y >= 0 && p.y + p.h <= h), panes.map((p) => [p.label, Math.round(p.w), Math.round(p.h)]));
+    await page.screenshot({ path: path.join(SHOTS, `shatter-panes-rail-${w}x${h}.png`) });
+    await clickCenter(page, left);
+    await page.waitForTimeout(60);
+    const r1 = await page.evaluate(() => { const s = window.__ui().debugSnapshot(); return { picks: s.picks.map((p) => p.side + (p.safe ? '+' : 'x')), phase: s.phase, row: s.row, balance: s.balance }; });
+    check('responsive', `shatter ${w}×${h}: one real tap on the rail pane = exactly one pick of that side, one debit`, r1.picks.length === 1 && r1.picks[0].startsWith('left') && r1.balance === 99000, r1);
+    await ctx.close();
+  }
+
+  // 3. Rotation during play, settings and results (Jett and Flap; Shatter results)
+  for (const game of ['jett', 'flap', 'shatter']) {
+    const { ctx, page, errors } = await openGame(browser, game, { viewport: { width: 390, height: 844 }, dpr: 2, seed: 'rotate' });
+    const keepAlive = () => page.evaluate((game) => { const ui = window.__ui(); ui.round.config.combustionFloorPerTick = 0; ui.round.config.combustionChancePerTick = 0; if (window.__keep) clearInterval(window.__keep); window.__keep = setInterval(() => { const r = ui.round; if (!r) return; if (game === 'flap') { r.state.playerY = 422; r.state.playerVelocityY = 0; r.state.pipes.forEach((q) => { q.topHeight = 300; q.bottomHeight = 386; }); } if (game === 'jett') r.state.asteroids.forEach((q) => { if (Math.abs(q.worldY - r.state.altitude) < 80) q.x = q.x < 195 ? 25 : 365; }); }, 4); }, game);
+    await keepAlive();
+    const state = () => page.evaluate(() => { const ui = window.__ui(); const s = ui.debugSnapshot(); const cta = document.querySelector('.sd-a11y button[data-id="cta"]').getBoundingClientRect(); return { phase: s.phase, settled: !!s.settlement, settlement: s.settlement, balance: s.balance, actions: ui.runner && ui.runner.actionLog ? ui.runner.actionLog.filter((a) => a.type === 'cashOut' || a.type === 'flap').length : (s.picks || []).length, rail: ui.shell.domRoot.classList.contains('sd-rail'), ctaVisible: cta.width >= 44 && cta.height >= 44 && cta.bottom <= innerHeight + 1 && cta.right <= innerWidth + 1, resultShown: ui.shell.resultObjects.length > 0, settingsOpen: ui.shell.settingsOpen }; });
+    const rotate = async () => { const out = []; for (const [w, h] of [[844, 390], [390, 844], [568, 320], [390, 844]]) { await page.setViewportSize({ width: w, height: h }); await page.waitForTimeout(220); out.push({ vp: `${w}x${h}`, ...(await state()) }); } return out; };
+    // during play
+    if (game !== 'shatter') {
+      await page.evaluate((game) => { const ui = window.__ui(); ui.onPrimary(); if (game === 'flap') ui.onPress(); }, game);
+      await page.waitForTimeout(300);
+      const before = await state();
+      const seq = await rotate();
+      const stable = seq.every((s) => !s.settled && (s.phase === 'playing' || s.phase === 'paused') && s.balance === before.balance && s.actions === before.actions && s.ctaVisible);
+      check('responsive', `${game}: rotate during play ×4 — no settlement, no extra actions, balance unchanged, CTA usable`, stable && seq.some((s) => s.rail) && seq.some((s) => !s.rail), seq.map((s) => [s.vp, s.phase, s.rail ? 'rail' : 'portrait', s.actions]));
+    } else {
+      await page.evaluate(() => { const ui = window.__ui(); ui.onPrimary(); const b = ui.round.board; ui.choose(0, b[0], { x: 0, y: 0 }); });
+    }
+    // settings open while rotating
+    await page.evaluate(() => [...document.querySelectorAll('.sd-a11y button')].find((b) => b.dataset.id === 'settings').click());
+    const seqS = await rotate();
+    const dlgOk = await page.evaluate(() => !!document.querySelector('.sd-a11y [role=dialog]') && window.__ui().shell.settingsOpen);
+    check('responsive', `${game}: rotate with settings open ×4 — dialog stays open, round stays paused`, dlgOk && seqS.every((s) => s.settingsOpen && !s.settled), seqS.map((s) => [s.vp, s.phase, s.settingsOpen]));
+    await page.keyboard.press('Escape');
+    // results while rotating
+    await page.evaluate((game) => { const ui = window.__ui(); if (ui.phase === 'paused') ui.resume && ui.resume(); if (game === 'flap') ui.round.state.pipesCleared = Math.max(1, ui.round.state.pipesCleared); ui.onPrimary(); }, game); // cash out (Flap: after first gate, as in play)
+    await page.waitForTimeout(400);
+    const settled = await state();
+    const seqR = await rotate();
+    check('responsive', `${game}: rotate on results ×4 — same single settlement, balance unchanged, result card and Play Again usable`, settled.settled && seqR.every((s) => s.settled && JSON.stringify(s.settlement) === JSON.stringify(settled.settlement) && s.balance === settled.balance && s.resultShown && s.ctaVisible), { settlement: settled.settlement && settled.settlement.reason, seq: seqR.map((s) => [s.vp, s.balance, s.rail ? 'rail' : 'portrait']) });
+    if (game === 'jett') { await page.setViewportSize({ width: 844, height: 390 }); await page.waitForTimeout(250); await page.screenshot({ path: path.join(SHOTS, 'jett-results-landscape-844x390.png') }); }
+    check('responsive', `${game}: no page errors across rotations`, errors.length === 0, errors.slice(0, 2));
+    await ctx.close();
+  }
+
+  // 4. Hazard visibility beneath the overlaid HUD (rendered pixels)
+  for (const game of ['jett', 'flap']) {
+    const { ctx, page } = await openGame(browser, game, { seed: 'hud-hazard' });
+    const r = await page.evaluate(async (game) => {
+      window.__manual(); const ui = window.__ui(); const g = window.__game; const sh = ui.shell;
+      ui.round.config.combustionFloorPerTick = 0; ui.round.config.combustionChancePerTick = 0;
+      ui.onPrimary(); if (game === 'flap') ui.onPress();
+      for (let i = 0; i < 3; i++) window.__step(16);
+      const k = 0.786729857819905; const oy = 66; const ox = 41.592417061611375;
+      // Place a hazard in the HUD band directly under the multiplier (worst case).
+      const hudBoxes = ['phase', 'multiplier', 'progress'].map((n) => sh.texts[n].getBounds());
+      const band = { y0: sh.stage.y, y1: Math.max(...hudBoxes.map((b) => b.y + b.height)) };
+      let hz;
+      if (game === 'jett') {
+        const st = ui.round.state; const screenY = band.y0 + 30; // asteroid centre inside the band
+        const worldY = st.altitude + (523.28 - (screenY - oy) / k);
+        st.asteroids.push({ id: 7777, x: 195, worldY, radius: 30, driftX: 0, rotationAngle: 0, rotationSpeed: 0 });
+        const rr = 30 * 0.92 * k; hz = { x: 195 - rr, y: screenY - rr, w: rr * 2, h: rr * 2 };
+      } else {
+        const st = ui.round.state; st.pipes = [{ x: (195 - ox) / k - 15, topHeight: 300, bottomHeight: 386, cleared: false }];
+        hz = { x: 195 - 15 * k, y: band.y0, w: 30 * k, h: band.y1 - band.y0 };
+      }
+      const snap = () => new Promise((res) => { g.renderer.snapshotArea(Math.floor(hz.x), Math.floor(hz.y), Math.ceil(hz.w), Math.ceil(hz.h), (img) => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d'); x.drawImage(img, 0, 0); res(x.getImageData(0, 0, c.width, c.height).data); }); window.__step(0.01); });
+      const show = (v) => ['phase', 'multiplier', 'progress'].forEach((n) => sh.texts[n].setVisible(v));
+      if (game === 'jett') ui.runner.pause('manual'); else ui.runner.pause('manual');
+      const withHud = await snap(); const dimmed = sh.texts.multiplier.alpha < 1; show(false); const noHud = await snap(); show(true);
+      // remove hazard to get the background-only reference
+      if (game === 'jett') ui.round.state.asteroids = ui.round.state.asteroids.filter((a) => a.id !== 7777); else ui.round.state.pipes = [];
+      show(false); const noHazard = await snap(); show(true);
+      const W = Math.ceil(hz.w); const H = Math.ceil(hz.h);
+      const inText = (px, py) => hudBoxes.some((b) => { const X = hz.x + px; const Y = hz.y + py; return X >= b.x && X <= b.x + b.width && Y >= b.y && Y <= b.y + b.height; });
+      let hazardPx = 0; let covered = 0; let changedOutsideText = 0; let outside = 0; let glyphCovered = 0;
+      for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+        const i = (py * W + px) * 4;
+        const isHazard = Math.abs(noHud[i] - noHazard[i]) + Math.abs(noHud[i + 1] - noHazard[i + 1]) + Math.abs(noHud[i + 2] - noHazard[i + 2]) > 24;
+        if (!isHazard) continue;
+        hazardPx++;
+        const hudDelta = Math.abs(withHud[i] - noHud[i]) + Math.abs(withHud[i + 1] - noHud[i + 1]) + Math.abs(withHud[i + 2] - noHud[i + 2]);
+        const hazardSignal = Math.abs(noHud[i] - noHazard[i]) + Math.abs(noHud[i + 1] - noHazard[i + 1]) + Math.abs(noHud[i + 2] - noHazard[i + 2]);
+        const drawnOver = hudDelta > hazardSignal * 0.5; // the HUD changes this pixel more than half as much as the hazard does
+        if (drawnOver) glyphCovered++;
+        if (inText(px, py)) { covered++; continue; }
+        outside++;
+        if (Math.abs(withHud[i] - noHud[i]) + Math.abs(withHud[i + 1] - noHud[i + 1]) + Math.abs(withHud[i + 2] - noHud[i + 2]) > 6) changedOutsideText++;
+      }
+      return { hudDimmedByHazard: dimmed, hazardPx, glyphObscuredPct: +(100 * glyphCovered / Math.max(1, hazardPx)).toFixed(1), clearanceBelowHudPx: Math.round((game === 'jett' ? 66 + 523.28 * 0.786729857819905 : 66 + 844 * 0.786729857819905) - band.y1), coveredByTextBoxesPct: +(100 * covered / Math.max(1, hazardPx)).toFixed(1), alteredOutsideTextPct: +(100 * changedOutsideText / Math.max(1, outside)).toFixed(2), band };
+    }, game);
+    check('responsive', `${game}: hazard in the HUD band renders above the scrim (≤1% of its pixels altered outside text boxes)`, r.hazardPx > 100 && r.alteredOutsideTextPct <= 1, r);
+    check('responsive', `${game}: worst case (hazard centred under the multiplier) — HUD dims and its glyphs dominate < 10% of the hazard's pixels`, r.hudDimmedByHazard && r.glyphObscuredPct < 10, r);
+    await ctx.close();
+  }
+
+  // 5. Input regions never overlap; rail controls sit outside the canvas; one CTA tap = one action
+  for (const game of ['jett', 'flap', 'shatter']) {
+    for (const [w, h] of [[320, 568], [390, 844], [568, 320]]) {
+      const { ctx, page } = await openGame(browser, game, { viewport: { width: w, height: h }, seed: 'overlap' });
+      await page.waitForTimeout(200);
+      const r = await page.evaluate(() => {
+        const ui = window.__ui(); const sh = ui.shell; const s = sh.stage;
+        const stage = { x: s.x, y: s.y, w: s.width, h: s.height };
+        const zones = sh.hitZones.map((z) => ({ x: z.x - z.width / 2, y: z.y - z.height / 2, w: z.width, h: z.height }));
+        const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+        const stageOverlaps = zones.filter((z) => hit(z, stage)).length;
+        const zonePairs = zones.flatMap((a, i) => zones.slice(i + 1).filter((b) => hit(a, b))).length;
+        const c = window.__game.canvas.getBoundingClientRect();
+        const railOnCanvas = [...document.querySelectorAll('.sd-a11y button.sd-railbtn')].filter((b) => { const q = b.getBoundingClientRect(); return q.left < c.right && q.right > c.left && q.top < c.bottom && q.bottom > c.top; }).length;
+        const railCount = document.querySelectorAll('.sd-a11y button.sd-railbtn').length;
+        return { stageOverlaps, zonePairs, railOnCanvas, railCount };
+      });
+      check('responsive', `${game} ${w}×${h}: control hit zones never overlap the stage or each other; rail buttons off-canvas`, r.stageOverlaps === 0 && r.zonePairs === 0 && r.railOnCanvas === 0, r);
+      await ctx.close();
+    }
+  }
+  // Rail cash-out: one real tap = one cash-out action, one settlement, no steer/flap.
+  for (const game of ['jett', 'flap']) {
+    const { ctx, page } = await openGame(browser, game, { viewport: { width: 844, height: 390 }, seed: 'railcash' });
+    await page.evaluate((game) => { window.__manual(); const ui = window.__ui(); ui.round.config.combustionFloorPerTick = 0; ui.round.config.combustionChancePerTick = 0; ui.onPrimary(); if (game === 'flap') { ui.onPress(); ui.round.state.pipesCleared = 1; } for (let i = 0; i < 5; i++) { if (game === 'flap') { ui.round.state.playerY = 422; ui.round.state.playerVelocityY = 0; ui.round.state.pipes.length = 0; } window.__step(16); } }, game);
+    const before = await page.evaluate(() => window.__ui().runner.actionLog.length);
+    const cta = await rectOf(page, '.sd-a11y button[data-id="cta"]');
+    await clickCenter(page, cta); await clickCenter(page, cta); // double tap
+    const r = await page.evaluate(() => { window.__step(16); window.__step(16); const ui = window.__ui(); const log = ui.runner.actionLog; return { cashOuts: log.filter((a) => a.type === 'cashOut').length, other: log.filter((a) => a.type !== 'cashOut').length, settlement: ui.round.settlement, balance: ui.debugSnapshot().balance }; });
+    check('responsive', `${game} landscape rail: double-tap CASH OUT → one settlement, no steer/flap added by the taps`, r.settlement && r.settlement.reason === 'cashout' && r.other === before, { before, ...r });
+    await ctx.close();
   }
 }
 
@@ -462,7 +633,7 @@ async function captures(browser) {
 
 (async () => {
   const which = process.argv.slice(2);
-  const all = { pacing: pacingAndReplay, input, isolation, shatter, restarts, a11y, layout, targets, perf, smoke, captures };
+  const all = { pacing: pacingAndReplay, input, isolation, shatter, restarts, a11y, layout, targets, responsive, perf, smoke, captures };
   const browser = await chromium.launch({ args: ['--enable-precise-memory-info'] });
   report.meta = { date: new Date().toISOString(), chromium: browser.version(), base: BASE, sections: which.length ? which : Object.keys(all), note: 'Headless Chromium on SwiftShader (software WebGL). Performance figures are relative to this environment only, not mobile measurements.' };
   for (const [name, fn] of Object.entries(all)) {

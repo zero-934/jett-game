@@ -492,7 +492,7 @@ export class ShatterStepUI {
     }
     const actions: StageAction[] = live && row < TOTAL_ROWS
       ? (['left', 'right'] as const).map((side) => ({
-        id: `pane-${side}`, label: `Row ${row + 1}, ${side} pane`, enabled: true,
+        id: `pane-${side}`, label: `Row ${row + 1}, ${side} pane`, enabled: true, rail: true,
         rect: { x: paneX(side), y: rowY(row) - HIT_H / 2, width: PANE_W, height: HIT_H },
         onActivate: () => this.choose(row, side, { x: paneX(side) + PANE_W / 2, y: rowY(row) }),
       }))

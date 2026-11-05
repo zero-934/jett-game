@@ -124,7 +124,8 @@ export function contrastRatio(a: string, b: string): number {
 export const SHELL = {
   width: 390,
   height: 844,
-  headerBottom: 56,
+  /** 66 so 66×66 header hit regions stay >= 44 CSS px down to a 0.667 canvas scale (320×568). */
+  headerBottom: 66,
   hudBottom: 136,
   stage: { x: 16, y: 136, width: 358, height: 544, radius: 14 },
   controlsTop: 692,
@@ -151,7 +152,7 @@ export interface ShellLayout {
 /** Original layout (ART_AND_LAYOUT.md). */
 export const LAYOUT_STANDARD: ShellLayout = {
   name: 'standard', stage: SHELL.stage, hudOverlay: false,
-  hudY: { phase: 72, multiplier: 101, progress: 127 }, multiplierPx: SHELL.fontPx.multiplier,
+  hudY: { phase: 78, multiplier: 104, progress: 128 }, multiplierPx: SHELL.fontPx.multiplier,
   controlsTop: SHELL.controlsTop, footerLabelY: 710, footerValueY: 734, cta: SHELL.cta, demoLabelY: 824,
 };
 
@@ -161,9 +162,9 @@ export const LAYOUT_STANDARD: ShellLayout = {
  * (350×52), same minimum text sizes, same 44 px targets.
  */
 export const LAYOUT_IMMERSIVE: ShellLayout = {
-  name: 'immersive', stage: { x: 8, y: 56, width: 374, height: 664, radius: 14 }, hudOverlay: true,
-  hudY: { phase: 70, multiplier: 95, progress: 119 }, multiplierPx: 34,
-  controlsTop: 720, footerLabelY: 732, footerValueY: 752, cta: { x: 20, y: 772, width: 350, height: 52 }, demoLabelY: 836,
+  name: 'immersive', stage: { x: 8, y: 66, width: 374, height: 664, radius: 14 }, hudOverlay: true,
+  hudY: { phase: 80, multiplier: 105, progress: 129 }, multiplierPx: 34,
+  controlsTop: 730, footerLabelY: 742, footerValueY: 761, cta: { x: 20, y: 776, width: 350, height: 52 }, demoLabelY: 838,
 };
 
 /**

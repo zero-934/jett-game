@@ -463,6 +463,7 @@ export class JettUI {
       img.setPosition(wx(ax), sy(a.worldY, alt)).setDisplaySize(d, d).setAngle(a.rotationAngle);
     }
     for (const [id, img] of this.rockById) if (!live.has(id)) { img.setVisible(false); this.rockPool.push(img); this.rockById.delete(id); }
+    this.shell?.setHudObstruction([...this.rockById.values()].map((im) => ({ x: im.x - im.displayWidth / 2, y: im.y - im.displayHeight / 2, w: im.displayWidth, h: im.displayHeight })));
 
     const liveCoins = new Set<number>();
     for (const c of st.coins) {

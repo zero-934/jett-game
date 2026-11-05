@@ -391,6 +391,8 @@ export class FlapFortuneUI {
       this.drawPipe(g, x, WORLD_H - p.bottomHeight, p.bottomHeight, false);
     }
 
+    this.shell?.setHudObstruction(st.pipes.map((p) => { const x = lerp(this.prevPipeX.get(p) ?? p.x, p.x); return { x: wx(x), y: wy(0), w: FLAP_PIPE_WIDTH * K, h: p.topHeight * K }; }));
+
     // Wizard
     const y = lerp(this.prevPlayerY, st.playerY);
     const v = lerp(this.prevVelocity, st.playerVelocityY);

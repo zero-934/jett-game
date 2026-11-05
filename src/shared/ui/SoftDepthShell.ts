@@ -35,8 +35,11 @@ export const SHELL_FONT = '"Inter", system-ui, -apple-system, "Segoe UI", Roboto
 const DEPTH = { stageInput: 38, hudScrim: 4, /* above backdrops, below hazards */ fillet: 40, panel: 41, panelContent: 42, cta: 44, result: 60, pause: 58, settings: 80 } as const;
 const RESULT_FADE_MS = 160;
 const LETTER_SPACING_CAPS = 1.6;
-const ICON_HIT_W = 64;
-const ICON_HIT_H = 56;
+const ICON_HIT_W = 66;
+/** HUD text opacity while a hazard passes beneath it. */
+const HUD_DIM_ALPHA = 0.25;
+const ICON_HIT_H = 66;
+const HEADER_MID = SHELL.headerBottom / 2;
 const CTA_HIT_PAD = 8;
 /** Below this CSS scale the shell reflows its primary controls into a visible DOM rail. */
 const RAIL_SCALE_THRESHOLD = 0.6;
@@ -95,6 +98,8 @@ export interface StageAction {
   rect: { x: number; y: number; width: number; height: number };
   enabled: boolean;
   onActivate: () => void;
+  /** Show as a real, visible button in the landscape control rail (e.g. Shatter panes). */
+  rail?: boolean;
 }
 
 /** Shell options. */
@@ -342,6 +347,22 @@ export class SoftDepthShell {
     return { x: x - this.stage.x, y: y - this.stage.y };
   }
 
+  /**
+   * Hazard-aware HUD (presentation only): when any given hazard rect (logical px) overlaps the
+   * overlaid HUD text, the text fades so the hazard stays readable underneath.
+   * @param hazards - Screen-space rects of hazards this frame.
+   * @returns Whether the HUD is currently dimmed.
+   */
+  setHudObstruction(hazards: ReadonlyArray<{ x: number; y: number; w: number; h: number }>): boolean {
+    if (!this.layout.hudOverlay) return false;
+    const names = ['phase', 'multiplier', 'progress'];
+    const boxes = names.map((n) => this.texts[n].getBounds());
+    const hit = hazards.some((z) => boxes.some((b) => z.x < b.x + b.width && b.x < z.x + z.w && z.y < b.y + b.height && b.y < z.y + z.h));
+    const alpha = hit ? HUD_DIM_ALPHA : 1;
+    for (const n of names) if (this.texts[n].alpha !== alpha) this.texts[n].setAlpha(alpha);
+    return hit;
+  }
+
   /** Destroys DOM and listeners. Idempotent; called automatically on scene shutdown. */
   destroy(): void {
     if (this.destroyed) return;
@@ -370,9 +391,9 @@ export class SoftDepthShell {
   private buildStaticText(): void {
     const t = this.tokens; const W = SHELL.width; const f = SHELL.fontPx;
     const d = DEPTH.panelContent;
-    this.texts.title = this.text(48, 28, this.opts.title.toUpperCase(), f.title, t.text, 'bold').setOrigin(0, 0.5).setDepth(d).setLetterSpacing(0.6);
-    this.texts.balanceLabel = this.text(W - 66, 19, 'DEMO CREDITS', f.label, t.muted).setOrigin(1, 0.5).setDepth(d).setLetterSpacing(1);
-    this.texts.balance = this.text(W - 66, 37, '0.00', 15, t.text, 'bold').setOrigin(1, 0.5).setDepth(d);
+    this.texts.title = this.text(56, HEADER_MID, this.opts.title.toUpperCase(), f.title, t.text, 'bold').setOrigin(0, 0.5).setDepth(d).setLetterSpacing(0.6);
+    this.texts.balanceLabel = this.text(W - 70, HEADER_MID - 9, 'DEMO CREDITS', f.label, t.muted).setOrigin(1, 0.5).setDepth(d).setLetterSpacing(1);
+    this.texts.balance = this.text(W - 70, HEADER_MID + 9, '0.00', 15, t.text, 'bold').setOrigin(1, 0.5).setDepth(d);
     const L = this.layout;
     this.texts.phase = this.text(W / 2, L.hudY.phase, '', f.label, t.muted, 'bold').setOrigin(0.5).setDepth(d).setLetterSpacing(LETTER_SPACING_CAPS);
     this.texts.multiplier = this.text(W / 2, L.hudY.multiplier, '', L.multiplierPx, t.accent, 'bold').setOrigin(0.5).setDepth(d);
@@ -423,8 +444,8 @@ export class SoftDepthShell {
     g.lineStyle(1, hexToInt(t.line), 1).strokeRoundedRect(s.x, s.y, s.width, s.height, r);
     // Lucide-style icons: chevron-left and settings (gear).
     g.lineStyle(2, hexToInt(t.text), 1);
-    g.beginPath(); g.moveTo(27, 21); g.lineTo(20, 28); g.lineTo(27, 35); g.strokePath();
-    const gx = W - 30; const gy = 28;
+    g.beginPath(); g.moveTo(30, HEADER_MID - 7); g.lineTo(23, HEADER_MID); g.lineTo(30, HEADER_MID + 7); g.strokePath();
+    const gx = W - ICON_HIT_W / 2; const gy = HEADER_MID;
     g.strokeCircle(gx, gy, 3.5);
     g.beginPath();
     for (let i = 0; i < 8; i++) {
@@ -466,8 +487,8 @@ export class SoftDepthShell {
       z.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, ev: Phaser.Types.Input.EventData) => { ev?.stopPropagation?.(); fn(); });
       this.hitZones.push(z);
     };
-    mk(ICON_HIT_W / 2, 28, () => { if (!this.settingsOpenValue) this.opts.onBack(); });
-    mk(SHELL.width - ICON_HIT_W / 2, 28, () => this.toggleSettings());
+    mk(ICON_HIT_W / 2, ICON_HIT_H / 2, () => { if (!this.settingsOpenValue) this.opts.onBack(); });
+    mk(SHELL.width - ICON_HIT_W / 2, ICON_HIT_H / 2, () => this.toggleSettings());
     // Extra CTA hit band (invisible): +CTA_HIT_PAD above and below the drawn 52 px button, so the
     // CSS target stays >= 44 px on narrow phones. Entirely inside the footer, never over the stage.
     const c = this.layout.cta;
@@ -594,9 +615,14 @@ export class SoftDepthShell {
 .sd-a11y .sd-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .sd-a11y .sd-dialog{position:absolute;pointer-events:auto;opacity:0.001}
 .sd-a11y .sd-dialog label{display:block;font:14px sans-serif}
-.sd-a11y.sd-rail button[data-id=cta],.sd-a11y.sd-rail button[data-id=back],.sd-a11y.sd-rail button[data-id=settings]{pointer-events:auto;color:var(--sd-cta-text);background:var(--sd-cta);font:700 15px/1.2 system-ui,sans-serif;border-radius:10px;min-height:48px;padding:0 12px}
-.sd-a11y.sd-rail button[data-id=back],.sd-a11y.sd-rail button[data-id=settings]{background:var(--sd-surface);color:var(--sd-text);border:1px solid var(--sd-line)}
-.sd-a11y.sd-rail button[data-id=cta]:disabled{background:var(--sd-surface);color:var(--sd-muted)}`;
+.sd-a11y button.sd-railbtn{pointer-events:auto;color:var(--sd-cta-text);background:var(--sd-cta);font:700 15px/1.2 system-ui,sans-serif;border-radius:10px;padding:0 12px}
+.sd-a11y button.sd-railbtn.sd-secondary{background:var(--sd-surface);color:var(--sd-text);border:1px solid var(--sd-line)}
+.sd-a11y button.sd-railbtn:disabled{background:var(--sd-surface);color:var(--sd-muted)}
+.sd-a11y.sd-settings-open button.sd-railbtn{display:none}
+.sd-a11y.sd-rail .sd-dialog{opacity:1;background:var(--sd-surface);color:var(--sd-text);border:1px solid var(--sd-line);border-radius:12px;padding:8px;box-sizing:border-box;overflow:auto;font:15px system-ui,sans-serif}
+.sd-a11y.sd-rail .sd-dialog label{display:flex;align-items:center;gap:10px;min-height:44px;font:15px system-ui,sans-serif;color:var(--sd-text)}
+.sd-a11y.sd-rail .sd-dialog input{width:22px;height:22px;margin:0 0 0 4px}
+.sd-a11y.sd-rail .sd-dialog button{position:static;display:block;width:100%;min-height:48px;margin-top:6px;color:var(--sd-cta-text);background:var(--sd-cta);font:700 15px system-ui,sans-serif;border-radius:10px}`;
     root.appendChild(style);
     this.dom = root;
     document.body.appendChild(root);
@@ -644,20 +670,30 @@ export class SoftDepthShell {
     const spaceRight = window.innerWidth - r.right;
     const rail = k < RAIL_SCALE_THRESHOLD && spaceRight >= RAIL_WIDTH_PX + 16;
     this.dom.classList.toggle('sd-rail', rail);
-    const railOrder = ['cta', 'settings', 'back'];
+    this.dom.classList.toggle('sd-settings-open', rail && this.settingsOpenValue);
+    const railActions = this.stageActions.filter((a) => a.rail).map((a) => `stage:${a.id}`);
+    const railOrder = ['cta', ...railActions, 'settings', 'back'];
+    const railH = 48; const railGap = 8;
+    const railTop = Math.max(8, r.height / 2 - (railH * railOrder.length + railGap * (railOrder.length - 1)) / 2);
     for (const b of Object.values(this.domButtons)) {
       const rect = JSON.parse(b.dataset.rect || '{}') as { x: number; y: number; width: number; height: number };
       const idx = railOrder.indexOf(b.dataset.id || '');
-      if (rail && idx >= 0) {
-        const h = 52; const gap = 12; const top = r.height / 2 - (h * 3 + gap * 2) / 2 + idx * (h + gap);
-        Object.assign(b.style, { left: `${r.width + 16}px`, top: `${top}px`, width: `${RAIL_WIDTH_PX}px`, height: `${h}px` });
+      const inRail = rail && idx >= 0;
+      b.classList.toggle('sd-railbtn', inRail);
+      b.classList.toggle('sd-secondary', inRail && (b.dataset.id === 'settings' || b.dataset.id === 'back'));
+      if (inRail) {
+        Object.assign(b.style, { left: `${r.width + 16}px`, top: `${railTop + idx * (railH + railGap)}px`, width: `${RAIL_WIDTH_PX}px`, height: `${railH}px` });
         if (b.dataset.id === 'back') b.textContent = 'Back';
         if (b.dataset.id === 'settings') b.textContent = 'Settings';
+        if (b.dataset.id?.startsWith('stage:')) b.textContent = b.getAttribute('aria-label');
       } else {
         Object.assign(b.style, { left: `${rect.x * k}px`, top: `${rect.y * k}px`, width: `${rect.width * k}px`, height: `${rect.height * k}px` });
       }
     }
-    if (this.dialog) Object.assign(this.dialog.style, { left: `${28 * k}px`, top: `${150 * k}px`, width: `${334 * k}px` });
+    if (this.dialog) {
+      if (rail) Object.assign(this.dialog.style, { left: `${r.width + 16}px`, top: '8px', width: `${RAIL_WIDTH_PX}px`, maxHeight: `${Math.max(120, window.innerHeight - 16 - r.top)}px` });
+      else Object.assign(this.dialog.style, { left: `${28 * k}px`, top: `${150 * k}px`, width: `${334 * k}px`, maxHeight: '' });
+    }
   }
 
   private updateDomTheme(): void {
@@ -725,6 +761,7 @@ export class SoftDepthShell {
   private closeDomDialog(): void {
     this.dialog?.remove();
     this.dialog = null;
+    this.layoutDom();
   }
 
   /** Test/diagnostic hook: the DOM root. */
