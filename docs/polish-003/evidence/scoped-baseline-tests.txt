@@ -1,0 +1,7 @@
+
+Test Suites: 3 passed, 3 total
+Tests:       42 passed, 42 total
+Snapshots:   0 total
+Time:        26.436 s, estimated 29 s
+Ran all test suites matching src/tests/JettLogic.test.ts|src/tests/FlapFortuneLogic.test.ts|src/tests/ShatterStepLogic.test.ts.
+Test results written to: docs\polish-003\evidence\scoped-baseline-results.json

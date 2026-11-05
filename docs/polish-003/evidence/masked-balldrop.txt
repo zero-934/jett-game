@@ -1,0 +1,6 @@
+Test Suites: 1 passed, 1 total
+Tests:       24 passed, 24 total
+Snapshots:   0 total
+Time:        3.308 s
+Ran all test suites matching src/tests/BallDropLogic.test.ts.
+Test results written to: docs\polish-003\evidence\masked-balldrop-results.json

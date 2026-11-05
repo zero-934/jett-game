@@ -1,0 +1,40 @@
+{
+  "note": "Source-derived, assisted geometry and payout fixtures; not gameplay/replay proof.",
+  "firstSpawn": {
+    "tick": 111,
+    "x": [
+      157,
+      450
+    ]
+  },
+  "flapAtTick152": {
+    "pipes": [
+      {
+        "x": 34,
+        "topHeight": 397.59999999999997,
+        "bottomHeight": 288.40000000000003,
+        "cleared": true
+      },
+      {
+        "x": 327,
+        "topHeight": 397.59999999999997,
+        "bottomHeight": 288.40000000000003,
+        "cleared": false
+      }
+    ],
+    "playerY": 476.59999999999997,
+    "pipesCleared": 1,
+    "return": 10.57
+  },
+  "shatter": {
+    "row": 3,
+    "multiplier": 3.2737,
+    "return": 32.74
+  },
+  "jett": {
+    "altitude": 400,
+    "baseMultiplier": 1.4202,
+    "coinBonus": 0.03,
+    "return": 14.5
+  }
+}

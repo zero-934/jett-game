@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "direction": "B — Soft Depth",
+  "referenceViewport": {
+    "width": 390,
+    "height": 844
+  },
+  "colors": {
+    "background": "#0d121a",
+    "surface": "#131c27",
+    "stage": "#1b2940",
+    "text": "#e8edf4",
+    "muted": "#a6b3c4",
+    "success": "#75d6b1",
+    "loss": "#ebbfaa",
+    "themes": {
+      "gold": "#d6b76f",
+      "emerald": "#64d6b2",
+      "violet": "#b4a1f0"
+    }
+  },
+  "geometry": {
+    "width": 390,
+    "height": 844,
+    "header": 56,
+    "hudBottom": 128,
+    "stage": {
+      "x": 16,
+      "y": 136,
+      "width": 358,
+      "height": 544
+    },
+    "controlsTop": 692,
+    "flap": {
+      "worldWidth": 390,
+      "worldHeight": 844,
+      "scale": 0.6445497630331753,
+      "playerX": 80,
+      "playerSize": 28,
+      "pipeWidth": 30,
+      "gapHeight": 158,
+      "initialPipeX": 490,
+      "spawnPipeX": 450,
+      "spawnThresholdX": 160,
+      "scrollPerTick": 3,
+      "firstSpawnTick": 111,
+      "firstPitch": 293,
+      "steadyPitch": 294,
+      "fixtureTick": 152,
+      "pipeX": [
+        34,
+        327
+      ],
+      "gapTop": 397.6
+    },
+    "shatter": {
+      "rows": 10,
+      "columns": 2,
+      "tileWidth": 148.2,
+      "tileHeight": 40,
+      "rowPitch": 48,
+      "leftX": 38.8,
+      "rightX": 203,
+      "topCenterY": 196
+    }
+  }
+}

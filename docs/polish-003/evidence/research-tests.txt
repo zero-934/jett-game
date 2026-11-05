@@ -1,0 +1,7 @@
+
+Test Suites: 7 passed, 7 total
+Tests:       36 passed, 36 total
+Snapshots:   0 total
+Time:        7.023 s
+Ran all test suites.
+Test results written to: docs\polish-003\evidence\research-results.json
