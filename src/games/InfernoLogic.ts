@@ -1255,6 +1255,57 @@ export function simulateInfernoRTP(rounds: number, bet: number, config?: Inferno
   return simulateInfernoCycles(rounds, bet, config, { kind: 'collect' }).rtp;
 }
 
+const MASK64 = (1n << 64n) - 1n;
+const FNV64_OFFSET = 0xcbf29ce484222325n;
+const FNV64_PRIME = 0x100000001b3n;
+const SAFE_INTEGER_BITS = 53n;
+
+/**
+ * Derives a well-mixed numeric RNG seed from a string (FNV-1a 64 + splitmix64 finalizer, top 53 bits).
+ *
+ * Why: the shared ProvablyFairRNG hashes string seeds with an unmasked djb2 and takes the low bits of
+ * its first outputs, so seeds that differ only in their last characters (e.g. `session:r1`,
+ * `session:r2`) frequently produce IDENTICAL streams (measured: 127 distinct of 500). Passing this
+ * numeric seed avoids that without modifying the shared generator.
+ *
+ * @param key Any string (e.g. `${sessionSeed}:r${roundId}`).
+ * @returns Integer in [1, 2^53).
+ * @example
+ * createRNG(deriveInfernoSeed(`${sessionSeed}:r${roundId}`));
+ */
+export function deriveInfernoSeed(key: string): number {
+  let h = FNV64_OFFSET;
+  for (let i = 0; i < key.length; i++) {
+    h ^= BigInt(key.charCodeAt(i));
+    h = (h * FNV64_PRIME) & MASK64;
+  }
+  let z = (h + 0x9e3779b97f4a7c15n) & MASK64;
+  z = ((z ^ (z >> 30n)) * 0xbf58476d1ce4e5b9n) & MASK64;
+  z = ((z ^ (z >> 27n)) * 0x94d049bb133111ebn) & MASK64;
+  z ^= z >> 31n;
+  const top = Number(z >> (64n - SAFE_INTEGER_BITS));
+  return top === 0 ? 1 : top;
+}
+
+/** Draws discarded after seeding: the shared generator's FIRST output is heavily biased (measured). */
+export const INFERNO_RNG_WARMUP_DRAWS = 16;
+
+/**
+ * Creates the gameplay RNG for one round: numeric seed via `deriveInfernoSeed(key)`, then
+ * `INFERNO_RNG_WARMUP_DRAWS` discarded outputs. Works around two measured properties of the shared
+ * ProvablyFairRNG (suffix-only string-seed collisions; biased first output) without modifying it.
+ *
+ * @param key Round key, e.g. `${sessionSeed}:r${roundId}`.
+ * @returns Warmed-up ProvablyFairRNG.
+ * @example
+ * const rng = createInfernoRoundRng(`${sessionSeed}:r${roundId}`);
+ */
+export function createInfernoRoundRng(key: string): ProvablyFairRNG {
+  const rng = createRNG(deriveInfernoSeed(key));
+  for (let i = 0; i < INFERNO_RNG_WARMUP_DRAWS; i++) rng.random();
+  return rng;
+}
+
 /**
  * Stable fingerprint of the mathematical configuration (weights, payouts, multipliers, constants).
  * FNV-1a 32-bit over a canonical JSON string — an identifier for reports, not a security hash.

@@ -20,3 +20,13 @@ node $R --label sensitivity-after-math2-short-batches --batches 160 --cycles 250
 node $R --label sensitivity-after-math2-masked-prng --batches 40 --cycles 1000 --prng masked-proposal --out $OUT
 node $R --label sensitivity-after-math2-masked-prng-2M --batches 200 --cycles 10000 --prng masked-proposal --out $OUT
 node research/inferno/sim/burn-in-check.cjs > $OUT/burn-in-check.json
+node $R --label after-math2-collect-round-rng-like-scene --batches 40 --cycles 1000 --rng-scope round --out $OUT
+# --- scene-faithful (one RNG per spin, derived seed + warm-up) — fast because RNG state stays small ---
+node $R --label sensitivity-masked-round-rng-1M --batches 200 --cycles 5000 --rng-scope round --prng masked-proposal --out $OUT
+node $R --label after-math2-collect-round-rng-like-scene-200k --batches 200 --cycles 1000 --rng-scope round --seed-prefix inferno-polish-001b --out $OUT
+node $R --label HEADLINE-after-math2-scene-rng-collect-2M --batches 200 --cycles 10000 --rng-scope round --out $OUT
+node $R --label scene-rng-flip-once-400k --batches 100 --cycles 4000 --rng-scope round --policy flip-once --out $OUT
+node $R --label scene-rng-flip-up-to-3-400k --batches 100 --cycles 4000 --rng-scope round --policy flip-up-to:3 --out $OUT
+node $R --label scene-rng-option-wild-pays-400k --batches 100 --cycles 4000 --rng-scope round --wild pays-as-top-symbol --out $OUT
+node $R --label scene-rng-option-scatter-any-400k --batches 100 --cycles 4000 --rng-scope round --scatter any-landed-board --out $OUT
+node $R --label scene-rng-before-math1-collect-400k --root ../inferno-baseline --batches 100 --cycles 4000 --rng-scope round --out $OUT

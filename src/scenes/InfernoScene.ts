@@ -11,12 +11,12 @@
 import * as Phaser from 'phaser';
 import {
   createInfernoSession, beginInfernoSpin, finishInfernoPresentation, crownFlipAction, crownCollectAction,
-  setInfernoStake, isNextSpinFree, selectInfernoOutcomeCue, toMilliCredits, formatCredits,
+  setInfernoStake, isNextSpinFree, selectInfernoOutcomeCue, toMilliCredits, formatCredits, createInfernoRoundRng,
 } from '../games/InfernoLogic';
 import type { InfernoSession, InfernoSettlement, InfernoSymbol, InfernoConfig, InfernoSpinScript } from '../games/InfernoLogic';
 import { InfernoUI, INFERNO_TIMING } from '../games/InfernoUI';
 import type { InfernoSettings, InfernoPresentationHooks } from '../games/InfernoUI';
-import { ProvablyFairRNG, createRNG } from '../shared/rng/ProvablyFairRNG';
+import type { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
 import { INFERNO_ASSETS } from '../shared/assetConfig';
 
 // --- Constants ---
@@ -212,14 +212,15 @@ export class InfernoScene extends Phaser.Scene {
   }
 
   /**
-   * Gameplay config for a round. One fresh RNG per round (`<sessionSeed>:r<roundId>`), used for the
+   * Gameplay config for a round. One fresh RNG per round (seed derived from `<sessionSeed>:r<roundId>`), used for the
    * spin and any Crown flips of that round. Bounded RNG lifetime also avoids the shared generator's
    * unmasked state growth over long sessions.
    * @param roundId Round about to start.
    * @returns Config passed to InfernoLogic.
    */
   protected createRoundConfig(roundId: number): InfernoConfig {
-    this.roundRng = createRNG(`${this.sessionSeed}:r${roundId}`);
+    // numeric well-mixed seed + warm-up draws (see createInfernoRoundRng for the measured reasons)
+    this.roundRng = createInfernoRoundRng(`${this.sessionSeed}:r${roundId}`);
     return { rng: this.roundRng };
   }
 

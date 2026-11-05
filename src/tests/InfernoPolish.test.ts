@@ -12,7 +12,7 @@ import {
   createInfernoState, spinInferno, evaluateClusters, cascadeInferno, simulateInfernoRTP, simulateInfernoCycles,
   resolveInfernoSpin, resolveInfernoCascades, createInfernoSession, beginInfernoSpin, finishInfernoPresentation,
   crownFlipAction, crownCollectAction, setInfernoStake, isCrownEligible, toMilliCredits, formatCredits,
-  classifyCycle, selectInfernoOutcomeCue, getInfernoMathFingerprint, INFERNO_LEGACY_RULES, INFERNO_MATH_VERSION,
+  classifyCycle, selectInfernoOutcomeCue, deriveInfernoSeed, createInfernoRoundRng, getInfernoMathFingerprint, INFERNO_LEGACY_RULES, INFERNO_MATH_VERSION,
 } from '../games/InfernoLogic';
 import type { InfernoState, InfernoSymbol, InfernoSession, InfernoConfig } from '../games/InfernoLogic';
 import { ProvablyFairRNG, createRNG } from '../shared/rng/ProvablyFairRNG';
@@ -383,5 +383,43 @@ describe('Full-cycle simulator (production functions)', () => {
     expect(getInfernoMathFingerprint().hash).toMatch(/^[0-9a-f]{8}$/);
     expect(getInfernoMathFingerprint().hash).not.toBe(getInfernoMathFingerprint({ rules: { wildOnlyCluster: 'pays-as-top-symbol' } }).hash);
     expect(INFERNO_LEGACY_RULES).toEqual({ wildOnlyCluster: 'no-pay', scatterAward: 'after-cascade-only' });
+  });
+});
+
+describe('Round seed derivation (shared RNG string-seed collisions)', () => {
+  it('documents the shared generator collision for suffix-only string seeds', () => {
+    const streams = new Set<string>();
+    for (let i = 0; i < 300; i++) { const r = createRNG(`abcdef0123456789:r${i}`); streams.add(`${r.random()},${r.random()}`); }
+    expect(streams.size).toBeLessThan(300); // known defect of the shared generator, kept visible
+  });
+  it('derived numeric seeds give a distinct stream per round', () => {
+    const streams = new Set<string>();
+    const seeds = new Set<number>();
+    for (let i = 0; i < 2000; i++) {
+      const seed = deriveInfernoSeed(`abcdef0123456789:r${i}`);
+      seeds.add(seed);
+      expect(Number.isSafeInteger(seed)).toBe(true);
+      const r = createRNG(seed);
+      streams.add(`${r.random()},${r.random()}`);
+    }
+    expect(seeds.size).toBe(2000);
+    expect(streams.size).toBe(2000);
+  });
+  it('documents the shared generator first-output bias (first draw after seeding)', () => {
+    const firstSymbols = new Set<string>();
+    for (let i = 0; i < 2000; i++) firstSymbols.add(spinInferno(createInfernoState(1), { rng: createRNG(deriveInfernoSeed(`bias:r${i}`)) }).grid[0][0].symbol);
+    expect(firstSymbols.size).toBeLessThan(7); // only some symbols can appear first: known defect, kept visible
+  });
+  it('round RNGs (derived seed + warm-up) give first-symbol frequencies matching the weights (chi-square, 6 df)', () => {
+    const weights: Record<string, number> = { EMBER: 1, FLAME: 2, COAL: 3, ASH: 4, SMOKE: 5, WILD: 1, SCATTER: 1 };
+    const counts: Record<string, number> = {};
+    const N = 6000;
+    for (let i = 0; i < N; i++) {
+      const sc = spinInferno(createInfernoState(1), { rng: createInfernoRoundRng(`chi:r${i}`) });
+      const sym = sc.grid[0][0].symbol; counts[sym] = (counts[sym] ?? 0) + 1;
+    }
+    let chi = 0;
+    Object.entries(weights).forEach(([k, w]) => { const e = (N * w) / 17; chi += ((counts[k] ?? 0) - e) ** 2 / e; });
+    expect(chi).toBeLessThan(22.46); // p = 0.001 critical value, 6 df
   });
 });

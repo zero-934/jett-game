@@ -36,9 +36,18 @@ const prngName = args.prng || 'production';
 const RNGMod = prngName === 'masked-proposal'
   ? require(path.resolve(__dirname, '../../patches/ProvablyFairRNG.masked.ts'))
   : require(path.join(root, 'src/shared/rng/ProvablyFairRNG.ts'));
-const makeRng = (seed) => (RNGMod.createRNG ? RNGMod.createRNG(seed) : new RNGMod.ProvablyFairRNG(seed));
+const { deriveSeed } = require('../lib/seed.cjs');
+// Batch seeds are derived numerically: string seeds differing only in a suffix collide in the
+// production generator's djb2 hash (found during this run; see MATH_AND_TEST_REPORT.md).
+const seedMode = args['seed-mode'] || 'derived';
+const toSeed = (s) => (seedMode === 'raw-string' ? s : deriveSeed(s));
+const makeRng = (seed) => { const v = toSeed(seed); return RNGMod.createRNG ? RNGMod.createRNG(v) : new RNGMod.ProvablyFairRNG(v); };
 
 const label = args.label || 'run';
+// 'batch' (default): one RNG stream per batch. 'round': one RNG per spin like InfernoScene
+// (derived numeric seed + 16 warm-up draws, Crown flips use the same round RNG).
+const rngScope = args['rng-scope'] || 'batch';
+const WARMUP = 16;
 const batches = Number(args.batches || 20);
 const cyclesPerBatch = Number(args.cycles || 1000);
 const stake = Number(args.stake || 1);
@@ -62,8 +71,9 @@ let dirty = false;
 try { dirty = execSync('git status --porcelain -- src', { cwd: root }).toString().trim().length > 0; } catch { /* ignore */ }
 
 /** Cycle runner that uses only the original public exports. */
-function runExportsBatch(rng) {
-  const cfg = Object.keys(rules).length ? { rng, rules } : { rng };
+function runExportsBatch(rng, batchSeed) {
+  let cfg = Object.keys(rules).length ? { rng, rules } : { rng };
+  let spinIndex = 0;
   const b = { paidCycles: 0, paidSpins: 0, freeSpins: 0, totalPaidMilli: 0, grossReturnMilli: 0, hitCycles: 0, zeroCycles: 0, partialCycles: 0,
     breakEvenCycles: 0, profitCycles: 0, infernoSpins: 0, infernoSpinReturnMilli: 0, freeSpinAwards: 0, crownOffers: 0, crownFlips: 0,
     crownFlipWins: 0, cascadeHistogram: Array(BUCKETS).fill(0), maxCascadesObserved: 0, maxCycleReturnMilli: 0, maxSpinReturnMilli: 0,
@@ -75,6 +85,7 @@ function runExportsBatch(rng) {
     while (first || state.freeSpinsRemaining > 0) {
       if (first) b.paidSpins++; else b.freeSpins++;
       first = false;
+      if (rngScope === 'round') { const rr = makeRng(`${batchSeed}:r${spinIndex++}`); for (let w = 0; w < WARMUP; w++) rr.random(); cfg = { ...cfg, rng: rr }; }
       const freeBefore = state.freeSpinsRemaining > 0 ? state.freeSpinsRemaining - 1 : 0;
       state = L.spinInferno({ ...state, bet: stake, isInCrownFlip: false }, cfg);
       if (state.isInfernoSpin) b.infernoSpins++;
@@ -134,17 +145,19 @@ let crosscheck = null;
 for (let i = 0; i < batches; i++) {
   const seed = `${seedPrefix}:${label}:batch-${String(i).padStart(3, '0')}`;
   const t0 = Date.now();
-  const b = runner === 'cycles' ? runCyclesBatch(makeRng(seed)) : runExportsBatch(makeRng(seed));
+  if (rngScope === 'round' && runner === 'cycles') throw new Error('--rng-scope round requires --runner exports');
+  const b = runner === 'cycles' ? runCyclesBatch(makeRng(seed)) : runExportsBatch(makeRng(seed), seed);
   b.batch = i; b.seed = seed; b.ms = Date.now() - t0;
   b.rtp = b.grossReturnMilli / b.totalPaidMilli;
   rows.push(b);
   if (args.crosscheck && i === 0 && L.simulateInfernoCycles) {
-    const other = runner === 'cycles' ? runExportsBatch(makeRng(seed)) : runCyclesBatch(makeRng(seed));
+    const other = runner === 'cycles' ? runExportsBatch(makeRng(seed), seed) : runCyclesBatch(makeRng(seed));
     crosscheck = { seed, thisRunner: runner, grossThis: b.grossReturnMilli, grossOther: other.grossReturnMilli,
       cascadesEqual: JSON.stringify(b.cascadeHistogram) === JSON.stringify(other.cascadeHistogram), equal: b.grossReturnMilli === other.grossReturnMilli };
   }
 }
 const sum = (k) => rows.reduce((a, r) => a + r[k], 0);
+const distinct = new Set(rows.map((r) => `${r.grossReturnMilli}|${r.freeSpins}|${r.infernoSpins}|${r.paidSpins}`)).size;
 const totalPaid = sum('totalPaidMilli');
 const gross = sum('grossReturnMilli');
 const batchRtps = rows.map((r) => r.rtp);
@@ -162,8 +175,9 @@ const summary = {
   label, generatedAt: new Date().toISOString(), sourceRoot: path.relative(process.cwd(), root) || '.', codeSha: sha, sourceDirty: dirty,
   mathVersion: L.INFERNO_MATH_VERSION || 'inferno-math-1 (baseline, unversioned)', configFingerprint: fp ? fp.hash : 'n/a (baseline has no fingerprint export)',
   prng: prngName === 'production' ? 'ProvablyFairRNG production (unmasked BigInt xoroshiro-style)' : 'research/patches/ProvablyFairRNG.masked.ts (proposal, NOT production)',
-  runner, rules: Object.keys(rules).length ? rules : 'production defaults', crownPolicy: policy, stake, batches, cyclesPerBatch,
-  seedScheme: `${seedPrefix}:${label}:batch-NNN (one fresh RNG + fresh state (heat 0) per batch; state carried within a batch)`,
+  runner, rngScope, rules: Object.keys(rules).length ? rules : 'production defaults', crownPolicy: policy, stake, batches, cyclesPerBatch,
+  seedScheme: `${seedMode === 'raw-string' ? 'raw string' : 'deriveSeed(FNV-1a64+splitmix64) of'} ${seedPrefix}:${label}:batch-NNN (one fresh RNG + fresh state (heat 0) per batch; state carried within a batch)`,
+  distinctBatchOutcomes: distinct,
   paidCycles: sum('paidCycles'), paidSpins: sum('paidSpins'), freeSpins: sum('freeSpins'), totalPaidCredits: totalPaid / 1000, grossReturnCredits: gross / 1000,
   rtpPooled: gross / totalPaid, rtpBatchMean: mean, batchSd: sd, ci95: [mean - half, mean + half], ciMethod: `batch means, Student t (df=${df}); batches are independent seeded sessions`,
   hitFrequency: sum('hitCycles') / sum('paidCycles'),
@@ -182,4 +196,4 @@ fs.writeFileSync(path.join(outDir, `${label}.summary.json`), JSON.stringify(summ
 fs.writeFileSync(path.join(outDir, `${label}.batches.json`), JSON.stringify(rowsOut, null, 1) + '\n');
 const cols = ['batch', 'seed', 'paidCycles', 'paidSpins', 'freeSpins', 'totalPaidMilli', 'grossReturnMilli', 'rtp', 'hitCycles', 'zeroCycles', 'partialCycles', 'breakEvenCycles', 'profitCycles', 'infernoSpins', 'freeSpinAwards', 'crownOffers', 'crownFlips', 'crownFlipWins', 'maxCascadesObserved', 'maxCycleReturnMilli', 'unresolvedSpins', 'ms'];
 fs.writeFileSync(path.join(outDir, `${label}.batches.csv`), [cols.join(',')].concat(rows.map((r) => cols.map((c) => r[c]).join(','))).join('\n') + '\n');
-console.log(JSON.stringify({ label, rtpPooled: summary.rtpPooled, ci95: summary.ci95, paidCycles: summary.paidCycles, unresolved: summary.unresolvedSpins, runtimeMs: summary.runtimeMs, crosscheck }, null, 0));
+console.log(JSON.stringify({ label, distinct, rtpPooled: summary.rtpPooled, ci95: summary.ci95, paidCycles: summary.paidCycles, unresolved: summary.unresolvedSpins, runtimeMs: summary.runtimeMs, crosscheck }, null, 0));

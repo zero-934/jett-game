@@ -10,7 +10,8 @@ require('../lib/load-ts.cjs');
 const L = require(path.resolve(__dirname, '../../../src/games/InfernoLogic.ts'));
 const prod = require(path.resolve(__dirname, '../../../src/shared/rng/ProvablyFairRNG.ts'));
 const masked = require(path.resolve(__dirname, '../../patches/ProvablyFairRNG.masked.ts'));
-const make = { production: (s) => prod.createRNG(s), masked: (s) => (masked.createRNG ? masked.createRNG(s) : new masked.ProvablyFairRNG(s)) };
+const { deriveSeed } = require('../lib/seed.cjs');
+const make = { production: (s) => prod.createRNG(deriveSeed(s)), masked: (s) => (masked.createRNG ? masked.createRNG(deriveSeed(s)) : new masked.ProvablyFairRNG(deriveSeed(s))) };
 const BUCKET = 50;
 function run(prng, batches, cycles) {
   const buckets = []; let paid = 0, gross = 0;
