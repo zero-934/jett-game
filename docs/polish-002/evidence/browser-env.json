@@ -1,0 +1,163 @@
+[
+  {
+    "scene": "JettScene",
+    "dpr": 1,
+    "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "rendererType": "WEBGL",
+    "gl": {
+      "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "maxTexture": 8192
+    },
+    "canvasBackingStore": [
+      390,
+      844
+    ],
+    "canvasCss": [
+      390,
+      844
+    ],
+    "upscaleFactor": 1,
+    "fontsInter": true,
+    "fontsFredoka": true,
+    "actualFps": 55.75,
+    "displayListSize": 21,
+    "errors": [
+      "warning: [.WebGL-0x12bc009a6400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "warning: [.WebGL-0x12bc009a6400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "warning: [.WebGL-0x12bc009a6400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "warning: [.WebGL-0x12bc009a6400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    ],
+    "screenshot": "docs/polish-002/evidence/screenshots/ready-JettScene-dpr1.png"
+  },
+  {
+    "scene": "FlapFortuneScene",
+    "dpr": 1,
+    "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "rendererType": "WEBGL",
+    "gl": {
+      "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "maxTexture": 8192
+    },
+    "canvasBackingStore": [
+      390,
+      844
+    ],
+    "canvasCss": [
+      390,
+      844
+    ],
+    "upscaleFactor": 1,
+    "fontsInter": true,
+    "fontsFredoka": true,
+    "actualFps": 58,
+    "displayListSize": 12,
+    "errors": [],
+    "screenshot": "docs/polish-002/evidence/screenshots/ready-FlapFortuneScene-dpr1.png"
+  },
+  {
+    "scene": "ShatterStepScene",
+    "dpr": 1,
+    "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "rendererType": "WEBGL",
+    "gl": {
+      "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "maxTexture": 8192
+    },
+    "canvasBackingStore": [
+      390,
+      844
+    ],
+    "canvasCss": [
+      390,
+      844
+    ],
+    "upscaleFactor": 1,
+    "fontsInter": true,
+    "fontsFredoka": true,
+    "actualFps": 55.25,
+    "displayListSize": 110,
+    "errors": [],
+    "screenshot": "docs/polish-002/evidence/screenshots/ready-ShatterStepScene-dpr1.png"
+  },
+  {
+    "scene": "JettScene",
+    "dpr": 3,
+    "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "rendererType": "WEBGL",
+    "gl": {
+      "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "maxTexture": 8192
+    },
+    "canvasBackingStore": [
+      390,
+      844
+    ],
+    "canvasCss": [
+      390,
+      844
+    ],
+    "upscaleFactor": 3,
+    "fontsInter": true,
+    "fontsFredoka": true,
+    "actualFps": 58.25,
+    "displayListSize": 21,
+    "errors": [],
+    "screenshot": "docs/polish-002/evidence/screenshots/ready-JettScene-dpr3.png"
+  },
+  {
+    "scene": "FlapFortuneScene",
+    "dpr": 3,
+    "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "rendererType": "WEBGL",
+    "gl": {
+      "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "maxTexture": 8192
+    },
+    "canvasBackingStore": [
+      390,
+      844
+    ],
+    "canvasCss": [
+      390,
+      844
+    ],
+    "upscaleFactor": 3,
+    "fontsInter": true,
+    "fontsFredoka": true,
+    "actualFps": 59,
+    "displayListSize": 12,
+    "errors": [],
+    "screenshot": "docs/polish-002/evidence/screenshots/ready-FlapFortuneScene-dpr3.png"
+  },
+  {
+    "scene": "ShatterStepScene",
+    "dpr": 3,
+    "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "rendererType": "WEBGL",
+    "gl": {
+      "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "maxTexture": 8192
+    },
+    "canvasBackingStore": [
+      390,
+      844
+    ],
+    "canvasCss": [
+      390,
+      844
+    ],
+    "upscaleFactor": 3,
+    "fontsInter": true,
+    "fontsFredoka": true,
+    "actualFps": 55.5,
+    "displayListSize": 110,
+    "errors": [],
+    "screenshot": "docs/polish-002/evidence/screenshots/ready-ShatterStepScene-dpr3.png"
+  }
+]

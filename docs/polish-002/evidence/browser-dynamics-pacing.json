@@ -1,0 +1,405 @@
+{
+  "pacing": {
+    "JettScene": {
+      "hz30": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 4000,
+          "ticks": 145,
+          "expectedAt62_5Hz": 250,
+          "simSpeed": 0.58,
+          "ticksPerFrameHistogram": {
+            "1": 96,
+            "2": 23,
+            "3": 1
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 10000,
+          "ticks": 614,
+          "expectedAt62_5Hz": 625,
+          "simSpeed": 0.982,
+          "ticksPerFrameHistogram": {
+            "0": 5,
+            "2": 271,
+            "3": 24
+          }
+        }
+      },
+      "hz60": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 2000,
+          "ticks": 124,
+          "expectedAt62_5Hz": 125,
+          "simSpeed": 0.992,
+          "ticksPerFrameHistogram": {
+            "1": 116,
+            "2": 4
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 5000,
+          "ticks": 313,
+          "expectedAt62_5Hz": 312.5,
+          "simSpeed": 1.002,
+          "ticksPerFrameHistogram": {
+            "1": 287,
+            "2": 13
+          }
+        }
+      },
+      "hz120": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 1000,
+          "ticks": 65,
+          "expectedAt62_5Hz": 62.5,
+          "simSpeed": 1.04,
+          "ticksPerFrameHistogram": {
+            "0": 55,
+            "1": 65
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 2500,
+          "ticks": 156,
+          "expectedAt62_5Hz": 156.3,
+          "simSpeed": 0.998,
+          "ticksPerFrameHistogram": {
+            "0": 144,
+            "1": 156
+          }
+        }
+      },
+      "hz144": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 833,
+          "ticks": 55,
+          "expectedAt62_5Hz": 52.1,
+          "simSpeed": 1.056,
+          "ticksPerFrameHistogram": {
+            "0": 65,
+            "1": 55
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 2083,
+          "ticks": 130,
+          "expectedAt62_5Hz": 130.2,
+          "simSpeed": 0.998,
+          "ticksPerFrameHistogram": {
+            "0": 170,
+            "1": 130
+          }
+        }
+      },
+      "jitter60": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 1992,
+          "ticks": 112,
+          "expectedAt62_5Hz": 124.5,
+          "simSpeed": 0.9,
+          "ticksPerFrameHistogram": {
+            "0": 8,
+            "1": 112
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 5003,
+          "ticks": 313,
+          "expectedAt62_5Hz": 312.7,
+          "simSpeed": 1.001,
+          "ticksPerFrameHistogram": {
+            "0": 3,
+            "1": 281,
+            "2": 16
+          }
+        }
+      },
+      "hitch60": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 2000,
+          "ticks": 124,
+          "expectedAt62_5Hz": 125,
+          "simSpeed": 0.992,
+          "ticksPerFrameHistogram": {
+            "1": 116,
+            "2": 4
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 5483,
+          "ticks": 313,
+          "expectedAt62_5Hz": 342.7,
+          "simSpeed": 0.913,
+          "ticksPerFrameHistogram": {
+            "1": 287,
+            "2": 13
+          }
+        }
+      },
+      "hz60unfocused": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 2000,
+          "ticks": 124,
+          "expectedAt62_5Hz": 125,
+          "simSpeed": 0.992,
+          "ticksPerFrameHistogram": {
+            "1": 116,
+            "2": 4
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 5000,
+          "ticks": 313,
+          "expectedAt62_5Hz": 312.5,
+          "simSpeed": 1.002,
+          "ticksPerFrameHistogram": {
+            "1": 287,
+            "2": 13
+          }
+        }
+      },
+      "hz30unfocused": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 4000,
+          "ticks": 124,
+          "expectedAt62_5Hz": 250,
+          "simSpeed": 0.496,
+          "ticksPerFrameHistogram": {
+            "1": 116,
+            "2": 4
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 10000,
+          "ticks": 313,
+          "expectedAt62_5Hz": 625,
+          "simSpeed": 0.501,
+          "ticksPerFrameHistogram": {
+            "1": 287,
+            "2": 13
+          }
+        }
+      }
+    },
+    "FlapFortuneScene": {
+      "hz30": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 4000,
+          "ticks": 145,
+          "expectedAt62_5Hz": 250,
+          "simSpeed": 0.58,
+          "ticksPerFrameHistogram": {
+            "1": 97,
+            "2": 21,
+            "3": 2
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 10000,
+          "ticks": 625,
+          "expectedAt62_5Hz": 625,
+          "simSpeed": 1,
+          "ticksPerFrameHistogram": {
+            "2": 275,
+            "3": 25
+          }
+        }
+      },
+      "hz60": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 2000,
+          "ticks": 125,
+          "expectedAt62_5Hz": 125,
+          "simSpeed": 1,
+          "ticksPerFrameHistogram": {
+            "1": 115,
+            "2": 5
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 5000,
+          "ticks": 313,
+          "expectedAt62_5Hz": 312.5,
+          "simSpeed": 1.002,
+          "ticksPerFrameHistogram": {
+            "1": 287,
+            "2": 13
+          }
+        }
+      },
+      "hz120": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 1000,
+          "ticks": 65,
+          "expectedAt62_5Hz": 62.5,
+          "simSpeed": 1.04,
+          "ticksPerFrameHistogram": {
+            "0": 55,
+            "1": 65
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 2500,
+          "ticks": 157,
+          "expectedAt62_5Hz": 156.3,
+          "simSpeed": 1.005,
+          "ticksPerFrameHistogram": {
+            "0": 143,
+            "1": 157
+          }
+        }
+      },
+      "hz144": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 833,
+          "ticks": 55,
+          "expectedAt62_5Hz": 52.1,
+          "simSpeed": 1.056,
+          "ticksPerFrameHistogram": {
+            "0": 65,
+            "1": 55
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 2083,
+          "ticks": 131,
+          "expectedAt62_5Hz": 130.2,
+          "simSpeed": 1.006,
+          "ticksPerFrameHistogram": {
+            "0": 169,
+            "1": 131
+          }
+        }
+      },
+      "jitter60": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 1992,
+          "ticks": 113,
+          "expectedAt62_5Hz": 124.5,
+          "simSpeed": 0.908,
+          "ticksPerFrameHistogram": {
+            "0": 8,
+            "1": 111,
+            "2": 1
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 5003,
+          "ticks": 312,
+          "expectedAt62_5Hz": 312.7,
+          "simSpeed": 0.998,
+          "ticksPerFrameHistogram": {
+            "0": 1,
+            "1": 286,
+            "2": 13
+          }
+        }
+      },
+      "hitch60": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 2000,
+          "ticks": 125,
+          "expectedAt62_5Hz": 125,
+          "simSpeed": 1,
+          "ticksPerFrameHistogram": {
+            "1": 115,
+            "2": 5
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 5483,
+          "ticks": 313,
+          "expectedAt62_5Hz": 342.7,
+          "simSpeed": 0.913,
+          "ticksPerFrameHistogram": {
+            "1": 287,
+            "2": 13
+          }
+        }
+      },
+      "hz60unfocused": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 2000,
+          "ticks": 125,
+          "expectedAt62_5Hz": 125,
+          "simSpeed": 1,
+          "ticksPerFrameHistogram": {
+            "1": 115,
+            "2": 5
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 5000,
+          "ticks": 313,
+          "expectedAt62_5Hz": 312.5,
+          "simSpeed": 1.002,
+          "ticksPerFrameHistogram": {
+            "1": 287,
+            "2": 13
+          }
+        }
+      },
+      "hz30unfocused": {
+        "cold": {
+          "frames": 120,
+          "wallMs": 4000,
+          "ticks": 125,
+          "expectedAt62_5Hz": 250,
+          "simSpeed": 0.5,
+          "ticksPerFrameHistogram": {
+            "1": 115,
+            "2": 5
+          }
+        },
+        "warm": {
+          "frames": 300,
+          "wallMs": 10000,
+          "ticks": 313,
+          "expectedAt62_5Hz": 625,
+          "simSpeed": 0.501,
+          "ticksPerFrameHistogram": {
+            "1": 287,
+            "2": 13
+          }
+        }
+      }
+    }
+  },
+  "meta": {
+    "probe": "browser-dynamics",
+    "which": "pacing",
+    "durationSec": 65.695,
+    "chromium": "153.0.8010.12",
+    "date": "2026-11-05T16:11:47.432Z"
+  }
+}

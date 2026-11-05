@@ -1,0 +1,15 @@
+AlchemistLogic.test.ts                        rc=0   32.2s  Tests:       11 passed, 11 total
+BallDropLogic.test.ts                         rc=124  120.0s  
+CasinoAudioManager.test.ts                    rc=0    2.8s  Tests:       10 passed, 10 total
+DiceDuelLogic.test.ts                         rc=0   10.2s  Tests:       12 passed, 12 total
+DiceLogic.test.ts                             rc=0   72.7s  Tests:       13 passed, 13 total
+DoomCrashLogic.test.ts                        rc=0    3.2s  Tests:       55 passed, 55 total
+FlapFortuneLogic.test.ts                      rc=0    6.9s  Tests:       14 passed, 14 total
+InfernoLogic.test.ts                          rc=0    8.2s  Tests:       16 passed, 16 total
+JettLogic.test.ts                             rc=0   10.6s  Tests:       15 passed, 15 total
+MasqueradeLogic.test.ts                       rc=124  120.0s  
+MinesLogic.test.ts                            rc=0    3.6s  Tests:       14 passed, 14 total
+ProvablyFairRNG.test.ts                       rc=0    3.8s  Tests:       7 passed, 7 total
+ShatterStepLogic.test.ts                      rc=0    5.0s  Tests:       13 passed, 13 total
+SlotEngineLogic.test.ts                       rc=0    6.6s  Tests:       9 passed, 9 total
+SurgeLogic.test.ts                            rc=0    4.6s  Tests:       16 passed, 16 total
