@@ -115,3 +115,31 @@ export class DemoLedger {
     return this.settled.has(roundId);
   }
 }
+
+let pageLedger: DemoLedger | null = null;
+
+/**
+ * The single demo ledger for this page, so the balance persists across rounds, restarts and
+ * games within a session. Not persisted to storage; reloading resets demo credits.
+ * @returns The page ledger.
+ * @example
+ * getPageLedger().balanceHundredths;
+ */
+export function getPageLedger(): DemoLedger {
+  if (!pageLedger) pageLedger = new DemoLedger();
+  return pageLedger;
+}
+
+let roundCounter = 0;
+
+/**
+ * Creates a unique round ID for this page.
+ * @param game - Game key.
+ * @returns e.g. 'flap-3-1730000000000'.
+ * @example
+ * nextRoundId('jett');
+ */
+export function nextRoundId(game: string): string {
+  roundCounter += 1;
+  return `${game}-${roundCounter}-${Date.now()}`;
+}
