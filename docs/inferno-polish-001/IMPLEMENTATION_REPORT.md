@@ -112,3 +112,12 @@ Owner decisions A–C, then a versioned `inferno-math-3` with a designed Inferno
 Inferno polish 001: rules and ledger bugs fixed (survivor order, Crown triple credit, free-spin debit, heat tween leak, AudioContext leak). Measured RTP 90.8% (2M cycles), not 96%. All-WILD Inferno Spin pays 0 (open decision). Shared RNG defects: suffix-seed collisions, biased first output, unbounded state. New Refined 2D forge presentation and original procedural audio (unauditioned). Branch fix/inferno-polish-001, not merged.
 
 ## Commits
+- `4206cc9` research(inferno): baseline suite/build log and Logic characterization probe
+- `50f5244` fix(inferno): survivor order, idempotent evaluation, exactly-once ledger, full-cycle simulator
+- `1f081cd` feat(inferno): Refined 2D Ember Workshop presentation driven by authoritative scripts
+- `840b0de` feat(inferno): original procedural forge loop and cue set via Phaser sound manager
+- `83e8f63` research(inferno): browser baseline/lifecycle/API/determinism probes and evidence
+- `77ec251` perf(inferno): bake rounded HUD faces/heat into textures; crown busy guard; captures and video
+- `8ab5d10` fix(inferno): derived numeric round seeds + warm-up to avoid shared RNG seed collisions and first-output bias
+- `f036c09` docs(inferno): five reports, re-run simulation with distinct seeds, final evidence
+- (this commit) docs(inferno): commit list in implementation report
