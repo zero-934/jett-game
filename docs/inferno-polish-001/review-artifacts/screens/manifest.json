@@ -1,0 +1,117 @@
+[
+ {
+  "file": "screens/01-ready-390.png",
+  "kind": "natural",
+  "desc": "Ready state, idle display board, heat 0"
+ },
+ {
+  "file": "screens/02-spin-entry-390.png",
+  "kind": "natural",
+  "desc": "Reel entry ~330 ms after press: columns dropping in stagger"
+ },
+ {
+  "file": "screens/03-natural-result-390.png",
+  "kind": "natural",
+  "desc": "First natural seeded result (seed capture-natural)"
+ },
+ {
+  "file": "screens/04-cluster-identified.png",
+  "kind": "fixture",
+  "desc": "Winning 4-EMBER cluster outlined + connected (pre-removal coordinates)"
+ },
+ {
+  "file": "screens/05-removing-embers.png",
+  "kind": "fixture",
+  "desc": "Ember removal: shrink/fade + ≤24 pooled sparks"
+ },
+ {
+  "file": "screens/06-falling.png",
+  "kind": "fixture",
+  "desc": "Survivors fall to their new rows; refills drop from behind the hood"
+ },
+ {
+  "file": "screens/07-second-cascade.png",
+  "kind": "fixture",
+  "desc": "Refill formed a 3-FLAME cluster: cascade 1"
+ },
+ {
+  "file": "screens/08-crown-decision-after-cascade.png",
+  "kind": "fixture",
+  "desc": "Optional Crown: amount at risk, COLLECT primary, FLIP secondary"
+ },
+ {
+  "file": "screens/09-settled-profit.png",
+  "kind": "fixture",
+  "desc": "Settled once: return, net and balance; positive tone only because net > 0"
+ },
+ {
+  "file": "screens/10-crown-flipping-locked.png",
+  "kind": "fixture",
+  "desc": "Flip in progress: both actions locked"
+ },
+ {
+  "file": "screens/11-crown-doubled.png",
+  "kind": "fixture",
+  "desc": "Flip won (fixture random 0.1): doubled amount at risk"
+ },
+ {
+  "file": "screens/12-crown-lost-settled.png",
+  "kind": "fixture",
+  "desc": "Second flip lost (fixture random 0.9): spin returns 0, neutral tone"
+ },
+ {
+  "file": "screens/13-free-spins-awarded.png",
+  "kind": "fixture",
+  "desc": "3 SCATTER after a cascade: 5 free spins at the same stake (legacy rule)"
+ },
+ {
+  "file": "screens/14-free-spin-in-progress.png",
+  "kind": "natural (in fixture-awarded cycle)",
+  "desc": "Free spin: no charge, stake locked"
+ },
+ {
+  "file": "screens/15-heat-full.png",
+  "kind": "fixture",
+  "desc": "Heat 5/5: next spin is all WILD (label states it)"
+ },
+ {
+  "file": "screens/16-inferno-spin-all-wild.png",
+  "kind": "natural (production all-WILD rule)",
+  "desc": "Inferno Spin lands all WILD; current rules pay 0 — open decision"
+ },
+ {
+  "file": "screens/17-inferno-spin-result.png",
+  "kind": "natural",
+  "desc": "Honest result copy: \"All-WILD board: no paying cluster\""
+ },
+ {
+  "file": "screens/18-three-scatter-no-cluster.png",
+  "kind": "fixture",
+  "desc": "Legacy rule: 3 SCATTER without a cluster awards nothing — open decision"
+ },
+ {
+  "file": "screens/19-settings.png",
+  "kind": "natural",
+  "desc": "Settings: music/SFX levels, reduced motion, quick spin, reset, rules"
+ },
+ {
+  "file": "screens/20-reduced-motion-crossfade.png",
+  "kind": "fixture",
+  "desc": "Reduced motion: in-place crossfade, no travel/particles/pulse"
+ },
+ {
+  "file": "screens/21-width-320.png",
+  "kind": "natural",
+  "desc": "Viewport 320×693 (Phaser FIT scaling)"
+ },
+ {
+  "file": "screens/22-width-430.png",
+  "kind": "natural",
+  "desc": "Viewport 430×932 (Phaser FIT scaling)"
+ },
+ {
+  "file": "screens/23-landscape-844x390.png",
+  "kind": "natural",
+  "desc": "Viewport 844×390 (Phaser FIT scaling)"
+ }
+]

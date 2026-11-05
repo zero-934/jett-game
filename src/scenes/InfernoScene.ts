@@ -228,7 +228,8 @@ export class InfernoScene extends Phaser.Scene {
    * @returns Ledger result.
    */
   protected beginRound(): ReturnType<typeof beginInfernoSpin> {
-    return beginInfernoSpin(this.session, this.createRoundConfig(this.session.roundId + 1));
+    const config = this.createRoundConfig(this.session.roundId + 1); // build config before reading session
+    return beginInfernoSpin(this.session, config);
   }
 
   // ─── Round flow ──────────────────────────────────────────────────────────────────────
@@ -257,7 +258,7 @@ export class InfernoScene extends Phaser.Scene {
     this.ui.lockControls(true);
     this.ui.setStake(cycle?.stake ?? this.session.selectedStake, true);
     this.ui.setBalance(this.session.balanceMilli);
-    this.ui.setSpinButton(free ? 'FREE SPIN · TAP TO SPEED UP' : 'TAP TO SPEED UP', true);
+    this.ui.setSpinButton('TAP TO SPEED UP', true);
     this.ui.setReadout(free ? 'RETURN SO FAR' : 'ROUND RETURN', cycle?.returnedMilli ?? 0, null);
     if (!script.isInfernoSpin) this.ui.setStatus(free ? `Free spin · stake ${formatCredits(toMilliCredits(script.stake))} (no charge)` : 'Spinning…', 'neutral');
     const base = cycle?.returnedMilli ?? 0;

@@ -74,7 +74,6 @@ const ICON_BTN = 44;
 const MIN_TOUCH = 44;
 
 // ─── Depths ────────────────────────────────────────────────────────────────────────────────
-const D_SHELL = 0;
 const D_FORGE = 5;
 const D_CELLS = 10;
 const D_OUTLINE = 12;
@@ -106,6 +105,11 @@ const TEX_SCALE = 2;
 const TEX_CELL = CELL * TEX_SCALE;
 const SYMBOLS: InfernoSymbol[] = ['EMBER', 'FLAME', 'COAL', 'ASH', 'SMOKE', 'WILD', 'SCATTER'];
 const SPARK_FRAME = 'spark';
+const SPIN_FACE_KEY = 'inferno-face-spin';
+const ICON_FACE_KEY = 'inferno-face-icon';
+const HEAT_BASE_KEY = 'inferno-heat-base';
+const HEAT_ON_KEY = 'inferno-heat-on-';
+const CHIP_KEYS = { selected: 'inferno-chip-sel', selectedLocked: 'inferno-chip-sel-locked', normal: 'inferno-chip', normalLocked: 'inferno-chip-locked' };
 const SPARK_SIZE = 16;
 const MAX_ACTIVE_PARTICLES = 24;
 const SPARKS_PER_CELL = 3;
@@ -143,7 +147,8 @@ export interface InfernoPresentationHooks {
 /** Presentation sub-phases. `idle` means no script is playing. */
 export type InfernoPresentationPhase = 'idle' | 'spinning' | 'evaluating' | 'removing' | 'falling' | 'settling';
 
-type Button = { bg: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text };
+/** `bg` is the drawButton() input target (cleared, so it renders nothing); `face` is the baked visual. */
+type Button = { bg: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text; face?: Phaser.GameObjects.Image };
 
 const cellX = (col: number): number => BOARD_X + CELL / 2 + col * STEP;
 const cellY = (row: number): number => BOARD_Y + CELL / 2 + row * STEP;
@@ -161,7 +166,7 @@ export class InfernoUI {
   private cells: Phaser.GameObjects.Image[][] = [];
   private outline!: Phaser.GameObjects.Graphics;
   private emitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
-  private heatOn: Phaser.GameObjects.Graphics[] = [];
+  private heatOn: Phaser.GameObjects.Image[] = [];
   private heatLabel!: Phaser.GameObjects.Text;
   private heatLevel = 0;
 
@@ -174,7 +179,7 @@ export class InfernoUI {
   private stakeChips: Button[] = [];
   private spinButton!: Button;
   private settingsButton!: Button;
-  private gearIcon: Phaser.GameObjects.Graphics | null = null;
+  private gearIcon: Phaser.GameObjects.Image | null = null;
   private skipZone!: Phaser.GameObjects.Zone;
 
   private crownObjects: Phaser.GameObjects.GameObject[] = [];
@@ -278,33 +283,42 @@ export class InfernoUI {
 
   private buildShell(): void {
     const s = this.scene;
-    s.add.rectangle(W / 2, H / 2, W, H, C_SHELL).setDepth(D_SHELL);
+    s.cameras.main.setBackgroundColor(C_SHELL); // instead of a full-screen rectangle (fill-rate)
     // forge window (cached texture) — behind the cells
     s.add.image(WINDOW_X, WINDOW_Y, BG_KEY).setOrigin(0, 0).setDepth(D_FORGE);
-    // occluders: header + hood (refills drop from behind the hood), grate band below board
-    const occ = s.add.graphics().setDepth(D_OCCLUDE);
-    occ.fillStyle(C_SHELL, 1).fillRect(0, 0, W, WINDOW_Y);
-    occ.lineStyle(1, C_SHELL_LINE, 1).lineBetween(0, HEADER_H, W, HEADER_H);
-    // hood: dark iron band with two rivets lines; heat meter sits on it
-    occ.fillStyle(0x17120f, 1).fillRoundedRect(WINDOW_X, WINDOW_Y, WINDOW_W, HOOD_H, { tl: WINDOW_R, tr: WINDOW_R, bl: 0, br: 0 });
-    occ.fillStyle(C_RIB, 1).fillRect(WINDOW_X, WINDOW_Y + HOOD_H - 4, WINDOW_W, 4);
-    occ.fillStyle(0x4a4f58, 1);
-    for (let x = WINDOW_X + 22; x < WINDOW_X + WINDOW_W - 10; x += 38) occ.fillCircle(x, WINDOW_Y + HOOD_H - 2, 1.5);
-    // grate: iron bars with a warm glow showing between them (the "small warm glow below the board")
-    const grateH = WINDOW_Y + WINDOW_H - GRATE_Y;
-    occ.fillStyle(0x1a1310, 1).fillRoundedRect(WINDOW_X, GRATE_Y, WINDOW_W, grateH, { tl: 0, tr: 0, bl: WINDOW_R, br: WINDOW_R });
-    for (let i = 0; i < 9; i++) {
-      const gx = BOARD_X + 6 + i * (BOARD_W - 12) / 8;
-      occ.fillStyle(0xff7a33, 0.18).fillRect(gx - 9, GRATE_Y + 12, 18, grateH - 22);
-      occ.fillStyle(0xffa24d, 0.22).fillRect(gx - 4, GRATE_Y + 16, 8, grateH - 30);
+    // Shell art stays a live Graphics (rects are cheap to tessellate). Baking it into full-width
+    // textures measured slower on software WebGL (fill rate); small rounded HUD faces ARE baked.
+    drawShellArt(s.add.graphics().setDepth(D_OCCLUDE));
+  }
+
+  /** Draws `draw` into a texture once (cached by key). */
+  private bake(key: string, w: number, h: number, draw: (g: Phaser.GameObjects.Graphics) => void): string {
+    if (!this.scene.textures.exists(key)) {
+      const g = this.scene.make.graphics({}, false);
+      draw(g);
+      g.generateTexture(key, w, h);
+      g.destroy();
     }
-    occ.fillStyle(C_RIB, 1).fillRect(WINDOW_X, GRATE_Y, WINDOW_W, 4);
-    // window outline
-    occ.lineStyle(1, C_SHELL_LINE, 1).strokeRoundedRect(WINDOW_X, WINDOW_Y, WINDOW_W, WINDOW_H, WINDOW_R);
-    // bottom panel
-    const panel = s.add.graphics().setDepth(D_SHELL + 1);
-    panel.fillStyle(C_PANEL, 1).fillRoundedRect(WINDOW_X, PANEL_Y - 6, WINDOW_W, PANEL_H, 16);
-    panel.lineStyle(1, C_SHELL_LINE, 1).strokeRoundedRect(WINDOW_X, PANEL_Y - 6, WINDOW_W, PANEL_H, 16);
+    return key;
+  }
+
+  /** drawButton() for input + a baked face image for visuals. */
+  private facedButton(x: number, y: number, w: number, h: number, label: string, faceKey: string, depth: number): Button {
+    const btn = drawButton(this.scene, x, y, w, h, label, 'secondary', depth);
+    btn.bg.clear(); // keeps its hit area and input; renders nothing
+    const face = this.scene.add.image(x, y, faceKey).setDepth(depth);
+    return { ...btn, face };
+  }
+
+  private bakeButtonFaces(): void {
+    const chip = (key: string, selected: boolean, locked: boolean) => this.bake(key, STAKE_CHIP_W, STAKE_CHIP_H, (g) => {
+      if (selected) g.fillStyle(COLOR_GOLD, locked ? 0.55 : 1).fillRoundedRect(0, 0, STAKE_CHIP_W, STAKE_CHIP_H, 8);
+      else g.fillStyle(C_PANEL, 1).fillRoundedRect(1, 1, STAKE_CHIP_W - 2, STAKE_CHIP_H - 2, 8).lineStyle(1.5, COLOR_GOLD, locked ? 0.3 : 0.8).strokeRoundedRect(1, 1, STAKE_CHIP_W - 2, STAKE_CHIP_H - 2, 8);
+    });
+    chip(CHIP_KEYS.selected, true, false); chip(CHIP_KEYS.selectedLocked, true, true);
+    chip(CHIP_KEYS.normal, false, false); chip(CHIP_KEYS.normalLocked, false, true);
+    this.bake(SPIN_FACE_KEY, BOARD_W, SPIN_H, (g) => g.fillStyle(COLOR_GOLD, 1).fillRoundedRect(0, 0, BOARD_W, SPIN_H, 10));
+    this.bake(ICON_FACE_KEY, ICON_BTN, ICON_BTN, (g) => g.fillStyle(C_PANEL, 1).fillRoundedRect(1, 1, ICON_BTN - 2, ICON_BTN - 2, 8).lineStyle(1.5, COLOR_GOLD, 1).strokeRoundedRect(1, 1, ICON_BTN - 2, ICON_BTN - 2, 8));
   }
 
   private buildBoard(grid: InfernoSymbol[][]): void {
@@ -335,6 +349,7 @@ export class InfernoUI {
 
   private buildHUD(selectedStake: number): void {
     const s = this.scene;
+    this.bakeButtonFaces();
     // header: home (44px), title, demo credits, settings (44px)
     this.iconButton(12 + ICON_BTN / 2, HEADER_H / 2, '‹', () => this.callbacks.onHome());
     s.add.text(64, HEADER_H / 2, 'INFERNO', { fontFamily: FONT_PRIMARY, fontSize: FONT_SIZE_LG, color: STR_TEXT, fontStyle: 'bold' })
@@ -344,12 +359,14 @@ export class InfernoUI {
     this.balanceText = s.add.text(W - 66, HEADER_H / 2 + 9, '—', { fontFamily: FONT_PRIMARY, fontSize: FONT_SIZE_LG, color: STR_TEXT, fontStyle: 'bold' })
       .setOrigin(1, 0.5).setDepth(D_HUD);
     this.settingsButton = this.iconButton(W - 12 - ICON_BTN / 2, HEADER_H / 2, '', () => this.openSettings());
-    // vector gear (no platform emoji glyph)
-    const gear = s.add.graphics().setDepth(D_HUD + 1);
+    // vector gear (no platform emoji glyph), baked once
     const gx = W - 12 - ICON_BTN / 2; const gy = HEADER_H / 2;
-    gear.fillStyle(0xe8e3d6, 1);
-    for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4; gear.fillCircle(gx + Math.cos(a) * 8, gy + Math.sin(a) * 8, 2.6); }
-    gear.fillCircle(gx, gy, 8).fillStyle(C_PANEL, 1).fillCircle(gx, gy, 3.4);
+    this.bake('inferno-gear', 28, 28, (g) => {
+      g.fillStyle(0xe8e3d6, 1);
+      for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4; g.fillCircle(14 + Math.cos(a) * 8, 14 + Math.sin(a) * 8, 2.6); }
+      g.fillCircle(14, 14, 8).fillStyle(C_PANEL, 1).fillCircle(14, 14, 3.4);
+    });
+    const gear = s.add.image(gx, gy, 'inferno-gear').setDepth(D_HUD + 1);
     this.gearIcon = gear;
 
     // heat meter on the hood
@@ -358,16 +375,21 @@ export class InfernoUI {
     this.heatLabel = s.add.text(BOARD_X + BOARD_W, WINDOW_Y + 22, 'INFERNO SPIN AT 5', { fontFamily: FONT_PRIMARY, fontSize: FONT_SIZE_XS, color: STR_MUTED })
       .setOrigin(1, 0.5).setDepth(D_HUD).setLetterSpacing(1);
     const segW = (BOARD_W - HEAT_SEG_GAP * 4) / 5;
-    const base = s.add.graphics().setDepth(D_HUD);
+    this.bake(HEAT_BASE_KEY, BOARD_W, HEAT_SEG_H, (g) => {
+      for (let i = 0; i < 5; i++) {
+        const x = i * (segW + HEAT_SEG_GAP);
+        g.fillStyle(C_HEAT_OFF, 1).fillRoundedRect(x, 0, segW, HEAT_SEG_H, 4);
+        g.lineStyle(1, 0x3a312c, 1).strokeRoundedRect(x + 0.5, 0.5, segW - 1, HEAT_SEG_H - 1, 4);
+      }
+    });
+    s.add.image(BOARD_X, HEAT_Y, HEAT_BASE_KEY).setOrigin(0, 0).setDepth(D_HUD);
     for (let i = 0; i < 5; i++) {
       const x = BOARD_X + i * (segW + HEAT_SEG_GAP);
-      base.fillStyle(C_HEAT_OFF, 1).fillRoundedRect(x, HEAT_Y, segW, HEAT_SEG_H, 4);
-      base.lineStyle(1, 0x3a312c, 1).strokeRoundedRect(x, HEAT_Y, segW, HEAT_SEG_H, 4);
-      const on = s.add.graphics().setDepth(D_HUD + 1);
-      on.fillStyle(C_HEAT_ON[i], 1).fillRoundedRect(0, 0, segW, HEAT_SEG_H, 4);
-      on.fillStyle(0xffe2b0, 0.35).fillRoundedRect(3, 2, segW - 6, 3, 1.5);
-      on.setPosition(x, HEAT_Y).setAlpha(0);
-      this.heatOn.push(on);
+      const key = this.bake(`${HEAT_ON_KEY}${i}`, Math.ceil(segW), HEAT_SEG_H, (g) => {
+        g.fillStyle(C_HEAT_ON[i], 1).fillRoundedRect(0, 0, segW, HEAT_SEG_H, 4);
+        g.fillStyle(0xffe2b0, 0.35).fillRoundedRect(3, 2, segW - 6, 3, 1.5);
+      });
+      this.heatOn.push(s.add.image(x, HEAT_Y, key).setOrigin(0, 0).setDepth(D_HUD + 1).setAlpha(0));
     }
 
     // status line
@@ -391,14 +413,14 @@ export class InfernoUI {
     const chipGap = (BOARD_W - n * STAKE_CHIP_W) / Math.max(1, n - 1);
     this.stakes.forEach((stake, i) => {
       const cx = BOARD_X + STAKE_CHIP_W / 2 + i * (STAKE_CHIP_W + chipGap);
-      const btn = drawButton(s, cx, STAKE_ROW_Y, STAKE_CHIP_W, STAKE_CHIP_H, String(stake), 'secondary', D_HUD);
+      const btn = this.facedButton(cx, STAKE_ROW_Y, STAKE_CHIP_W, STAKE_CHIP_H, String(stake), CHIP_KEYS.normal, D_HUD);
       btn.bg.on('pointerup', () => { if (!this.controlsLocked) this.callbacks.onStake(stake); });
       this.stakeChips.push(btn);
     });
     this.setStake(selectedStake, false);
 
-    this.spinButton = drawButton(s, W / 2, SPIN_Y, BOARD_W, SPIN_H, 'SPIN', 'primary', D_HUD);
-    this.spinButton.text.setFontSize(FONT_SIZE_LG).setLetterSpacing(2);
+    this.spinButton = this.facedButton(W / 2, SPIN_Y, BOARD_W, SPIN_H, 'SPIN', SPIN_FACE_KEY, D_HUD);
+    this.spinButton.text.setFontSize(FONT_SIZE_LG).setLetterSpacing(2).setColor('#000000');
     this.spinButton.bg.on('pointerdown', () => this.pressFeedback(this.spinButton));
     this.spinButton.bg.on('pointerup', () => this.callbacks.onSpin());
     s.add.text(W / 2, FOOTNOTE_Y, 'DEMO CREDITS HAVE NO CASH VALUE', { fontFamily: FONT_PRIMARY, fontSize: FONT_SIZE_XS, color: STR_MUTED })
@@ -406,7 +428,7 @@ export class InfernoUI {
   }
 
   private iconButton(x: number, y: number, glyph: string, onUp: () => void): Button {
-    const btn = drawButton(this.scene, x, y, ICON_BTN, ICON_BTN, glyph, 'secondary', D_HUD);
+    const btn = this.facedButton(x, y, ICON_BTN, ICON_BTN, glyph, ICON_FACE_KEY, D_HUD);
     btn.text.setFontSize(FONT_SIZE_XL).setColor(STR_TEXT);
     btn.bg.on('pointerup', onUp);
     return btn;
@@ -438,10 +460,7 @@ export class InfernoUI {
     this.stakeChips.forEach((chip, i) => {
       const selected = this.stakes[i] === stake;
       chip.text.setColor(selected ? '#0d0d0d' : STR_GOLD);
-      chip.bg.clear();
-      const x = (chip.text.x - STAKE_CHIP_W / 2); const y = STAKE_ROW_Y - STAKE_CHIP_H / 2;
-      if (selected) chip.bg.fillStyle(COLOR_GOLD, locked ? 0.55 : 1).fillRoundedRect(x, y, STAKE_CHIP_W, STAKE_CHIP_H, 8);
-      else chip.bg.fillStyle(C_PANEL, 1).fillRoundedRect(x, y, STAKE_CHIP_W, STAKE_CHIP_H, 8).lineStyle(1.5, COLOR_GOLD, locked ? 0.3 : 0.8).strokeRoundedRect(x, y, STAKE_CHIP_W, STAKE_CHIP_H, 8);
+      chip.face?.setTexture(selected ? (locked ? CHIP_KEYS.selectedLocked : CHIP_KEYS.selected) : (locked ? CHIP_KEYS.normalLocked : CHIP_KEYS.normal));
       chip.text.setAlpha(locked && !selected ? 0.4 : 1);
     });
   }
@@ -453,7 +472,7 @@ export class InfernoUI {
    */
   public lockControls(locked: boolean): void {
     this.controlsLocked = locked;
-    this.settingsButton.bg.setAlpha(locked ? 0.5 : 1);
+    this.settingsButton.face?.setAlpha(locked ? 0.5 : 1);
     this.settingsButton.text.setAlpha(locked ? 0.5 : 1);
     this.gearIcon?.setAlpha(locked ? 0.5 : 1);
   }
@@ -466,7 +485,7 @@ export class InfernoUI {
    */
   public setSpinButton(label: string, enabled: boolean): void {
     this.spinButton.text.setText(label);
-    this.spinButton.bg.setAlpha(enabled ? 1 : 0.55);
+    this.spinButton.face?.setAlpha(enabled ? 1 : 0.55);
     this.spinButton.text.setAlpha(enabled ? 1 : 0.7);
   }
 
@@ -773,7 +792,7 @@ export class InfernoUI {
     this.crownCoin = s.add.image(W / 2, py + 82, ATLAS_KEY, 'coin').setDisplaySize(64, 64).setDepth(D_OVERLAY);
     const atRisk = s.add.text(W / 2, py + 128, 'AMOUNT AT RISK', { fontFamily: FONT_PRIMARY, fontSize: FONT_SIZE_XS, color: STR_MUTED }).setOrigin(0.5).setDepth(D_OVERLAY).setLetterSpacing(1);
     this.crownAmount = s.add.text(W / 2, py + 158, '0.00', { fontFamily: FONT_PRIMARY, fontSize: FONT_SIZE_3XL, color: STR_TEXT, fontStyle: 'bold' }).setOrigin(0.5).setDepth(D_OVERLAY);
-    this.crownInfo = s.add.text(W / 2, py + 194, 'Flip: 50% double, 50% lose it all.\nCollect keeps this amount.', { fontFamily: FONT_PRIMARY, fontSize: FONT_SIZE_SM, color: STR_NEUTRAL, align: 'center' }).setOrigin(0.5).setDepth(D_OVERLAY);
+    this.crownInfo = s.add.text(W / 2, py + 194, 'Flip: 50% double, 50% lose it all.\nCollect keeps this amount.', { fontFamily: FONT_PRIMARY, fontSize: FONT_SIZE_SM, color: STR_NEUTRAL, align: 'center', wordWrap: { width: pw - 40 } }).setOrigin(0.5).setDepth(D_OVERLAY);
     this.crownCollect = drawButton(s, W / 2, py + 250, pw - 40, 52, 'COLLECT', 'primary', D_OVERLAY + 1);
     this.crownFlip = drawButton(s, W / 2, py + 302, pw - 40, 44, 'FLIP (DOUBLE OR NOTHING)', 'secondary', D_OVERLAY + 1);
     this.crownCollect.bg.on('pointerup', () => this.crownPress('collect'));
@@ -806,7 +825,7 @@ export class InfernoUI {
     this.crownRoundId = roundId;
     this.crownAmount.setText(formatCredits(amountMilli));
     this.crownCollect.text.setText(`COLLECT ${formatCredits(amountMilli)}`);
-    this.crownInfo.setText(flipsWon > 0 ? `Flips won: ${flipsWon}. Flip again: 50% double, 50% lose it all.\nCollect keeps this amount.` : 'Flip: 50% double, 50% lose it all.\nCollect keeps this amount.');
+    this.crownInfo.setText(flipsWon > 0 ? `Flips won: ${flipsWon}. Flip again: 50% double, 50% lose it all. Collect keeps this amount.` : 'Flip: 50% double, 50% lose it all.\nCollect keeps this amount.');
     this.crownObjects.forEach((o) => (o as unknown as Phaser.GameObjects.Components.Visible).setVisible(true));
     this.crownCoin.setDisplaySize(64, 64).setAngle(0);
     this.setCrownLocked(false);
@@ -843,7 +862,7 @@ export class InfernoUI {
 
   private buildSettings(): void {
     const s = this.scene;
-    const pw = WINDOW_W - 24; const ph = 560; const px = W / 2 - pw / 2; const py = 120;
+    const pw = WINDOW_W - 24; const ph = 700; const px = W / 2 - pw / 2; const py = 78;
     const shade = s.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.72).setDepth(D_OVERLAY).setInteractive();
     const panel = s.add.graphics().setDepth(D_OVERLAY);
     panel.fillStyle(C_PANEL, 1).fillRoundedRect(px, py, pw, ph, 16).lineStyle(1, C_SHELL_LINE, 1).strokeRoundedRect(px, py, pw, ph, 16);
@@ -1056,6 +1075,29 @@ function drawSymbolTile(ctx: CanvasRenderingContext2D, sym: InfernoSymbol, size:
   ctx.restore();
 }
 
+/** Static shell art in world coordinates (header, hood, grate, bottom panel). */
+function drawShellArt(g: Phaser.GameObjects.Graphics): void {
+  g.fillStyle(C_SHELL, 1).fillRect(0, 0, W, WINDOW_Y);
+  g.lineStyle(1, C_SHELL_LINE, 1).lineBetween(0, HEADER_H, W, HEADER_H);
+  // hood: dark iron band with two rivets lines; heat meter sits on it
+  g.fillStyle(0x17120f, 1).fillRoundedRect(WINDOW_X, WINDOW_Y, WINDOW_W, HOOD_H, { tl: WINDOW_R, tr: WINDOW_R, bl: 0, br: 0 });
+  g.fillStyle(C_RIB, 1).fillRect(WINDOW_X, WINDOW_Y + HOOD_H - 4, WINDOW_W, 4);
+  g.fillStyle(0x4a4f58, 1);
+  for (let x = WINDOW_X + 22; x < WINDOW_X + WINDOW_W - 10; x += 38) g.fillCircle(x, WINDOW_Y + HOOD_H - 2, 1.5);
+  // grate: iron bars with a warm glow showing between them (the "small warm glow below the board")
+  const grateH = WINDOW_Y + WINDOW_H - GRATE_Y;
+  g.fillStyle(0x1a1310, 1).fillRoundedRect(WINDOW_X, GRATE_Y, WINDOW_W, grateH, { tl: 0, tr: 0, bl: WINDOW_R, br: WINDOW_R });
+  for (let i = 0; i < 9; i++) {
+    const gx = BOARD_X + 6 + i * (BOARD_W - 12) / 8;
+    g.fillStyle(0xff7a33, 0.18).fillRect(gx - 9, GRATE_Y + 12, 18, grateH - 22);
+    g.fillStyle(0xffa24d, 0.22).fillRect(gx - 4, GRATE_Y + 16, 8, grateH - 30);
+  }
+  g.fillStyle(C_RIB, 1).fillRect(WINDOW_X, GRATE_Y, WINDOW_W, 4);
+  // bottom panel
+  g.fillStyle(C_PANEL, 1).fillRoundedRect(WINDOW_X, PANEL_Y - 6, WINDOW_W, PANEL_H, 16);
+  g.lineStyle(1, C_SHELL_LINE, 1).strokeRoundedRect(WINDOW_X, PANEL_Y - 6, WINDOW_W, PANEL_H, 16);
+}
+
 /** Draws the Crown coin: champagne disc with a simple three-point crown. */
 function drawCrownCoin(ctx: CanvasRenderingContext2D, size: number): void {
   const c = size / 2; const u = size / 100;
@@ -1104,4 +1146,6 @@ function drawForgeBackground(ctx: CanvasRenderingContext2D, w: number, h: number
     ctx.strokeStyle = 'rgba(255,140,60,0.10)'; ctx.lineWidth = 1; ctx.stroke();
   }
   ctx.restore();
+  roundRectPath(ctx, 0.5, 0.5, w - 1, h - 1, WINDOW_R);
+  ctx.strokeStyle = toCss(C_SHELL_LINE); ctx.lineWidth = 1; ctx.stroke();
 }

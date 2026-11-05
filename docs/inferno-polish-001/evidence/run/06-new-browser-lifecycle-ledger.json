@@ -156,7 +156,7 @@
     "samples": [
       {
         "cycle": 10,
-        "displayList": 84,
+        "displayList": 90,
         "tweens": 1,
         "timers": 0,
         "timeEvents": 1,
@@ -164,16 +164,16 @@
         "keyboardListeners": 1,
         "sounds": 3,
         "voices": 2,
-        "textures": 46,
+        "textures": 59,
         "audioContexts": {
           "audioContextsCreated": 1,
           "audioContextsClosed": 0
         },
-        "heap": 82
+        "heap": 30
       },
       {
         "cycle": 20,
-        "displayList": 84,
+        "displayList": 90,
         "tweens": 1,
         "timers": 0,
         "timeEvents": 1,
@@ -181,16 +181,16 @@
         "keyboardListeners": 1,
         "sounds": 3,
         "voices": 2,
-        "textures": 46,
+        "textures": 59,
         "audioContexts": {
           "audioContextsCreated": 1,
           "audioContextsClosed": 0
         },
-        "heap": 82
+        "heap": 30
       },
       {
         "cycle": 30,
-        "displayList": 84,
+        "displayList": 90,
         "tweens": 1,
         "timers": 0,
         "timeEvents": 1,
@@ -198,16 +198,16 @@
         "keyboardListeners": 1,
         "sounds": 3,
         "voices": 2,
-        "textures": 46,
+        "textures": 59,
         "audioContexts": {
           "audioContextsCreated": 1,
           "audioContextsClosed": 0
         },
-        "heap": 82
+        "heap": 30
       },
       {
         "cycle": 40,
-        "displayList": 84,
+        "displayList": 90,
         "tweens": 1,
         "timers": 0,
         "timeEvents": 1,
@@ -215,16 +215,16 @@
         "keyboardListeners": 1,
         "sounds": 3,
         "voices": 2,
-        "textures": 46,
+        "textures": 59,
         "audioContexts": {
           "audioContextsCreated": 1,
           "audioContextsClosed": 0
         },
-        "heap": 82
+        "heap": 30
       },
       {
         "cycle": 50,
-        "displayList": 84,
+        "displayList": 90,
         "tweens": 1,
         "timers": 0,
         "timeEvents": 1,
@@ -232,12 +232,12 @@
         "keyboardListeners": 1,
         "sounds": 3,
         "voices": 2,
-        "textures": 46,
+        "textures": 59,
         "audioContexts": {
           "audioContextsCreated": 1,
           "audioContextsClosed": 0
         },
-        "heap": 82
+        "heap": 30
       }
     ]
   },
@@ -282,7 +282,7 @@
         "blur": 1,
         "focus": 1
       },
-      "pauseDurationMs": 433
+      "pauseDurationMs": 431
     },
     "spinAfterResume": {
       "phase": "decision",

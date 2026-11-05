@@ -1,0 +1,132 @@
+[
+ {
+  "file": "keyframes/kf-00.png",
+  "msSincePress": 226,
+  "uiPhase": "spinning"
+ },
+ {
+  "file": "keyframes/kf-01.png",
+  "msSincePress": 465,
+  "uiPhase": "spinning"
+ },
+ {
+  "file": "keyframes/kf-02.png",
+  "msSincePress": 655,
+  "uiPhase": "spinning"
+ },
+ {
+  "file": "keyframes/kf-03.png",
+  "msSincePress": 885,
+  "uiPhase": "evaluating"
+ },
+ {
+  "file": "keyframes/kf-04.png",
+  "msSincePress": 1146,
+  "uiPhase": "removing"
+ },
+ {
+  "file": "keyframes/kf-05.png",
+  "msSincePress": 1443,
+  "uiPhase": "falling"
+ },
+ {
+  "file": "keyframes/kf-06.png",
+  "msSincePress": 1736,
+  "uiPhase": "evaluating"
+ },
+ {
+  "file": "keyframes/kf-07.png",
+  "msSincePress": 1978,
+  "uiPhase": "evaluating"
+ },
+ {
+  "file": "keyframes/kf-08.png",
+  "msSincePress": 2230,
+  "uiPhase": "falling"
+ },
+ {
+  "file": "keyframes/kf-09.png",
+  "msSincePress": 2467,
+  "uiPhase": "falling"
+ },
+ {
+  "file": "keyframes/kf-10.png",
+  "msSincePress": 2814,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-11.png",
+  "msSincePress": 3118,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-12.png",
+  "msSincePress": 3437,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-13.png",
+  "msSincePress": 3697,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-14.png",
+  "msSincePress": 3964,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-15.png",
+  "msSincePress": 4256,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-16.png",
+  "msSincePress": 4527,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-17.png",
+  "msSincePress": 4811,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-18.png",
+  "msSincePress": 5068,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-19.png",
+  "msSincePress": 5358,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-20.png",
+  "msSincePress": 5636,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-21.png",
+  "msSincePress": 5888,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-22.png",
+  "msSincePress": 6171,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-23.png",
+  "msSincePress": 6431,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-24.png",
+  "msSincePress": 6679,
+  "uiPhase": "idle"
+ },
+ {
+  "file": "keyframes/kf-25.png",
+  "msSincePress": 6925,
+  "uiPhase": "idle"
+ }
+]
