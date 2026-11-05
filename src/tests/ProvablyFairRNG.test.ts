@@ -6,7 +6,7 @@
  * @license Proprietary – available for licensing
  */
 
-import { ProvablyFairRNG } from '../shared/rng/ProvablyFairRNG';
+import { ProvablyFairRNG, RNG_ALGORITHM_V2, RNG_ALGORITHM_LEGACY_V1, createSeedString } from '../shared/rng/ProvablyFairRNG';
 
 describe('ProvablyFairRNG', () => {
   it('1. Deterministic: two instances with same seed produce identical sequences for 100 calls', () => {
@@ -170,5 +170,83 @@ describe('ProvablyFairRNG', () => {
     for (let i = 0; i < 50; i++) {
       expect(rngOriginal.random()).toBe(rngClone.random());
     }
+  });
+});
+
+/**
+ * v2 corrections (polish-003). Reference values come from an independent Python
+ * implementation of SplitMix64 + xoroshiro128+ (24/16/37); SplitMix64(0) reproduces the
+ * published first output 0xe220a8397b1dcdaf.
+ */
+describe('ProvablyFairRNG v2 (xoroshiro128plus-v2)', () => {
+  type Internals = { s0: bigint; s1: bigint };
+
+  it('defaults to the v2 algorithm', () => {
+    expect(new ProvablyFairRNG('x').getAlgorithm()).toBe(RNG_ALGORITHM_V2);
+  });
+
+  it('matches known-answer vectors for numeric and string seeds', () => {
+    const a = new ProvablyFairRNG(12345);
+    expect([a.random(), a.random(), a.random()]).toEqual([0.3378963020230864, 0.9093167225142686, 0.40508234762734696]);
+    const b = new ProvablyFairRNG('jett');
+    expect([b.random(), b.random()]).toEqual([0.9349173696531129, 0.42445723917720213]);
+  });
+
+  it('matches raw xoroshiro128+ step vectors from state (1, 2)', () => {
+    const r = ProvablyFairRNG.fromState({ algorithm: RNG_ALGORITHM_V2, seed: 'vector', s0: '1', s1: '2' });
+    expect([r.random(), r.random(), r.random(), r.random()]).toEqual([0, 2.2352661943614294e-8, 0.12794511090214666, 0.5039291621771002]);
+  });
+
+  it('keeps state within 64 bits after 100,000 calls', () => {
+    const r = new ProvablyFairRNG(7) as unknown as Internals & { random(): number };
+    for (let i = 0; i < 100000; i++) r.random();
+    expect(r.s0 < (1n << 64n)).toBe(true);
+    expect(r.s1 < (1n << 64n)).toBe(true);
+  });
+
+  it('returns values in [0, 1) including from adversarial all-ones state', () => {
+    const r = ProvablyFairRNG.fromState({ algorithm: RNG_ALGORITHM_V2, seed: 'max', s0: 'ffffffffffffffff', s1: 'ffffffffffffffff' });
+    for (let i = 0; i < 10000; i++) { const v = r.random(); expect(v).toBeGreaterThanOrEqual(0); expect(v).toBeLessThan(1); }
+  });
+
+  it('separates adjacent millisecond seeds', () => {
+    const firsts = [0, 1, 2, 3].map((d) => new ProvablyFairRNG(1730000000000 + d).random());
+    expect(new Set(firsts).size).toBe(4);
+    expect(Math.max(...firsts) - Math.min(...firsts)).toBeGreaterThan(0.05);
+  });
+
+  it('round-trips state through JSON and continues identically', () => {
+    const a = new ProvablyFairRNG('replay');
+    for (let i = 0; i < 37; i++) a.random();
+    const snap = JSON.parse(JSON.stringify(a.getState()));
+    const b = ProvablyFairRNG.fromState(snap);
+    for (let i = 0; i < 200; i++) expect(b.random()).toBe(a.random());
+  });
+
+  it('rejects a snapshot from a different algorithm', () => {
+    const legacy = new ProvablyFairRNG('x', { algorithm: RNG_ALGORITHM_LEGACY_V1 });
+    expect(() => new ProvablyFairRNG('x').setState(legacy.getState())).toThrow(/algorithm mismatch/);
+  });
+
+  it('passes a 10-bucket chi-square smoke test (100k draws, df=9, critical 27.88 at p=0.001)', () => {
+    const r = new ProvablyFairRNG('uniform');
+    const buckets = new Array(10).fill(0);
+    for (let i = 0; i < 100000; i++) buckets[Math.floor(r.random() * 10)]++;
+    const chi = buckets.reduce((s, o) => s + ((o - 10000) ** 2) / 10000, 0);
+    expect(chi).toBeLessThan(27.88);
+  });
+
+  it('createSeedString yields 16 hex digits', () => {
+    expect(createSeedString()).toMatch(/^[0-9a-f]{16}$/);
+  });
+});
+
+describe('ProvablyFairRNG legacy-v1 (retained for old seeded fixtures)', () => {
+  it('reproduces the original sequence and still grows unbounded (documented defect)', () => {
+    const r = new ProvablyFairRNG(12345, { algorithm: RNG_ALGORITHM_LEGACY_V1 }) as unknown as { s1: bigint; random(): number };
+    const first = r.random();
+    expect(first).toBeGreaterThanOrEqual(0);
+    for (let i = 0; i < 200; i++) r.random();
+    expect(r.s1.toString(2).length).toBeGreaterThan(64);
   });
 });

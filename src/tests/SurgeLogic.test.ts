@@ -16,7 +16,7 @@ import {
   SurgeState,
   SurgeSymbol,
 } from '../games/SurgeLogic';
-import { ProvablyFairRNG, createRNG } from '../shared/rng/ProvablyFairRNG';
+import { ProvablyFairRNG, createRNG, RNG_ALGORITHM_LEGACY_V1 } from '../shared/rng/ProvablyFairRNG';
 
 const BET_AMOUNT = 10;
 
@@ -135,7 +135,9 @@ describe('SurgeLogic', () => {
 
   // 6. surgeMeter increments on winning spin
   test('6. surgeMeter increments on winning spin', () => {
-    const rng = createRNG('win_seed_1'); // Seed for a guaranteed win
+    // 'win_seed_1' was chosen against the original generator. Pinned to legacy-v1 so the seed keeps its
+    // intended outcome; under xoroshiro128plus-v2 it no longer does. Owner decision D-7 (polish-003).
+    const rng = createRNG('win_seed_1', { algorithm: RNG_ALGORITHM_LEGACY_V1 });
     let state = createSurgeState(BET_AMOUNT);
     state = spinSurge(state, { rng });
     expect(state.totalWin).toBeGreaterThan(0);

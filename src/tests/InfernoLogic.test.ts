@@ -17,7 +17,7 @@ import {
   InfernoState,
   InfernoSymbol,
 } from '../games/InfernoLogic';
-import { ProvablyFairRNG, createRNG } from '../shared/rng/ProvablyFairRNG';
+import { ProvablyFairRNG, createRNG, RNG_ALGORITHM_LEGACY_V1 } from '../shared/rng/ProvablyFairRNG';
 
 describe('InfernoLogic', () => {
   const BET_AMOUNT = 10;
@@ -305,7 +305,9 @@ describe('InfernoLogic', () => {
   });
 
   it('8. flipCrown loses win on unlucky flip (test with seeded RNG)', () => {
-    const rng = createRNG('lose_flip'); // Seed that guarantees rng.random() >= 0.5
+    // 'lose_flip' was chosen against the original generator. Pinned to legacy-v1 so the seed keeps its
+    // intended outcome; under xoroshiro128plus-v2 it no longer does. Owner decision D-7 (polish-003).
+    const rng = createRNG('lose_flip', { algorithm: RNG_ALGORITHM_LEGACY_V1 });
     let state = createInfernoState(BET_AMOUNT);
     state.totalWin = 100;
     state.isInCrownFlip = true;

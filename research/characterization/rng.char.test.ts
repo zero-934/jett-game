@@ -5,7 +5,11 @@
  * @date 2026-11-05
  * @license Proprietary – available for licensing
  */
-import { ProvablyFairRNG as Current } from '../../src/shared/rng/ProvablyFairRNG';
+import { ProvablyFairRNG as Production, RNG_ALGORITHM_LEGACY_V1 } from '../../src/shared/rng/ProvablyFairRNG';
+
+// polish-003: production now defaults to xoroshiro128plus-v2. The defect characterizations below
+// target the retained legacy-v1 algorithm explicitly; corrected regressions live in src/tests.
+class Current extends Production { constructor(seed?: string | number) { super(seed, { algorithm: RNG_ALGORITHM_LEGACY_V1 }); } }
 import { ProvablyFairRNG as Masked } from '../../research/patches/ProvablyFairRNG.masked';
 
 type Internals = { s0: bigint; s1: bigint };
@@ -22,9 +26,10 @@ describe('ProvablyFairRNG characterization', () => {
     expect(Math.max(...v) - Math.min(...v)).toBeLessThan(1e-3); // a uniform RNG would spread ~0.5
   });
 
-  test('[CURRENT-DEFECT] clone() does not survive JSON; there is no state export', () => {
-    const r = new Current('seed');
-    expect((r as unknown as Record<string, unknown>).getState).toBeUndefined();
+  test('[FIXED in polish-003] state export exists and round-trips through JSON', () => {
+    const r = new Production('seed'); r.random();
+    const copy = Production.fromState(JSON.parse(JSON.stringify(r.getState())));
+    expect(copy.random()).toBe(r.random());
   });
 
   test('proposed masked RNG: bounded state, distinct first values, checkpoint round-trip', () => {
