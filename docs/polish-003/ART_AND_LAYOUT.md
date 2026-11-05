@@ -1,5 +1,7 @@
 # Artist specification — Direction B: Soft Depth
 
+**Latest approved environment revision:** read [VISUAL_REVISION_004.md](VISUAL_REVISION_004.md) and `renders/approved-refined-2d-target-v2.png`. Keep existing character assets. Its restrained orbital/rooftop/glass-shaft backgrounds supersede the older sparse SVG scenery. The exact layout, geometry, interaction, accessibility and glass-break requirements below remain in force. Do not copy approximate dimensions from the generated PNG.
+
 ## Art language
 
 Premium means quiet hierarchy, crisp type, believable materials and immediate control feedback. Use small, softly shaded 2D characters; matte slate hazards with readable lit edges; transparent blue-grey glass; sparse depth layers; one muted casino accent. Avoid ornamental gold frames, serif typography, giant mascots, glossy capsule buttons, dense stars, full-screen bloom and cinematic artwork that cannot be reproduced in Phaser on mobile.
@@ -50,7 +52,7 @@ Golden screenshot fixture: stake10, altitude400, one granted coin, multiplier1.4
 
 Side-facing wizard travels right, purple robe/hat and pale face/beard, broom visible at small size. The supplied study faces right. Bake 3 short flight/flap poses; slight pitch follows visual velocity, with collision box unaffected. The mockup has a very small wizard because it preserves the existing world scale: final art may extend a small non-colliding broom beyond the body, but provide a hitbox overlay and do not make a larger sprite feel arbitrarily lethal.
 
-Pipe material: desaturated brushed steel with a soft cylindrical highlight. Actual obstacle bodies and end caps fit **within the 30 px world collision width**. No 42 px cap intruding into an apparently safe route. Keep top and bottom boundaries obvious; no busy decorations inside the opening.
+Pipe material: desaturated teal with one soft cylindrical highlight and simple muted brass end bands, as specified in revision004. Actual obstacle bodies and end caps fit **within the 30 px world collision width**. No 42 px cap intruding into an apparently safe route. Keep top and bottom boundaries obvious; no busy decorations inside the opening.
 
 | Source behaviour at baseline | World pixels | Reference-screen pixels |
 |---|---:|---:|

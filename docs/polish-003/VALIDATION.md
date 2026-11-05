@@ -1,5 +1,9 @@
 # Handoff validation — 2026-11-05
 
+## Approved art revision004
+
+Updated the handoff to the owner-approved Refined 2D environment reference, `renders/approved-refined-2d-target-v2.png`, and added `VISUAL_REVISION_004.md`. README, artist specification, asset manifest and cloud prompt now identify the new art target and retain the older SVGs only for layout/state guidance. Existing character PNGs and production files are unchanged. The new image was copied byte-for-byte from the approved generated output; it is a reference image, not a production sprite sheet. This is a documentation/reference-only revision: the test/build results below are the earlier baseline runs, not new runs or proof of an implemented visual change. No gameplay performance result or new test pass is claimed. Verify actual renderer output and performance during implementation as required by the build contract.
+
 ## Source integrity
 
 Fetched `origin/research/jett-polish-002` and verified exact commit `151a5005753d9be45deb82b2ec7b96031ef88549`. Its parent is the requested baseline `616fd82b5a5552ad0ae26a9dbaddb78213d0f96f`. Cherry-picked onto `fix/polish-003-opus-handoff` as `b1c7482`; no patch file needed.

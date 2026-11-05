@@ -28,11 +28,12 @@ Optional asset sources: [Kenney](https://kenney.nl/assets) (check each pack's CC
 
 | File | Origin / purpose | Production status |
 |---|---|---|
+| `renders/approved-refined-2d-target-v2.png` | Built-in image-tool refinement, explicitly approved by the owner: cleaner two/three-tone art, simple orbital/rooftop/shaft backgrounds | **Current environment/style target**; approximate geometry, not a runtime texture or replacement character atlas. See VISUAL_REVISION_004.md. |
 | `assets/approved-direction-b-reference.png` | Earlier generated A/B/C comparison supplied in this task; **only B** is selected | Direction reference; do not use screenshot/UI as a texture |
 | `assets/jett-pilot-study.png` | Generated with the built-in image tool for this task: one isolated compact ivory-suit pilot, gold visor, small rear jetpack and short warm exhaust, soft shaded2D, transparent background | Usable study; requires downsample/readability and atlas QA; no collision geometry implied |
 | `assets/flap-wizard-study.png` | Generated with the built-in image tool for this task: isolated side-view wizard facing right on broom, purple robe/hat, pale beard, soft shaded2D, transparent background | Usable study; animation frames and small-size simplification still needed |
-| `renders/*.svg` | Original code-authored layouts/material approximations from `render-mockups.cjs`, embedding the two studies | Editable art/layout references, not browser gameplay evidence |
-| `renders/*-board.jpg` and `renders/glass-sequence.jpg` | Local browser captures of the SVG reference viewer | Review images only; full-resolution SVGs remain authoritative |
+| `renders/*.svg` | Original code-authored layouts/material approximations from `render-mockups.cjs`, embedding the two studies | Earlier layout/state references; backgrounds superseded by revision004. Not browser gameplay evidence. |
+| `renders/*-board.jpg` and `renders/glass-sequence.jpg` | Local browser captures of the earlier SVG reference viewer | Earlier layout/state studies and retained glass timing reference. Current environment/style is revision004; exact geometry comes from the written spec. |
 | `renders/before-after.jpg` | Existing Opus baseline screenshots next to proposed SVGs | Clearly labelled actual baseline versus concept; not a measured after implementation |
 
 No competitor image was copied into these assets. Preserve this provenance and obtain the project's normal rights review before external commercial distribution; generated art is not a warranty of exclusivity. Keep PNGs as source masters in docs, not as huge full-size runtime textures. Export reviewed game sprites to the game's normal public asset path in a later implementation commit.
