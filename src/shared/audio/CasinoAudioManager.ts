@@ -284,6 +284,43 @@ export class CasinoAudioManager {
   }
 
   /**
+   * Plays a short dry glass crack: a high-passed noise burst with a fast decay.
+   * Not celebratory; used for a losing Shatter Step pane.
+   * @example
+   * audioManager.playGlassBreak();
+   */
+  public playGlassBreak(): void {
+    if (!this.audioCtx || !this._enabled || !this.masterGain) return;
+    const GLASS_DURATION_SEC = 0.18;
+    const GLASS_HIGHPASS_HZ = 2400;
+    const GLASS_PEAK_GAIN = NOTE_PEAK_GAIN * 0.6;
+    const ctx = this.audioCtx;
+    const length = Math.floor(ctx.sampleRate * GLASS_DURATION_SEC);
+    const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    // Deterministic pseudo-noise (cosmetic; never touches gameplay RNG).
+    let seed = 0x9e3779b9;
+    for (let i = 0; i < length; i++) {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      data[i] = (seed / 0xffffffff) * 2 - 1;
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = GLASS_HIGHPASS_HZ;
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(GLASS_PEAK_GAIN, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + GLASS_DURATION_SEC);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain);
+    source.start(now);
+    source.stop(now + GLASS_DURATION_SEC);
+  }
+
+  /**
    * Plays a bright, ascending tone for coin collection.
    * Quick and satisfying feedback for the player.
    * @public

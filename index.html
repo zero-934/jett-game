@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>jett.game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,12 +15,16 @@
         justify-content: center;
         align-items: center;
         height: 100vh;
+        height: 100dvh;
         overflow: hidden;
         /* Sharp text rendering */
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
       #app {
+        /* Keep the whole game inside the OS safe areas (notch, home indicator). */
+        box-sizing: border-box;
+        padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -30,9 +34,8 @@
       #app canvas {
         display: block;
         margin: 0 auto;
-        /* Sharpen canvas rendering */
-        image-rendering: crisp-edges;
-        image-rendering: pixelated;
+        /* polish-003: no forced pixelated upscaling (it made text and vector edges blocky on
+           high-DPR phones). Default smoothing until a higher backing store is adopted. */
       }
 
       /* Mines HTML UI Overlays — Professional Game Style */

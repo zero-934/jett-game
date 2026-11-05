@@ -128,9 +128,37 @@ export const SAFE_TOP = HUD_HEIGHT;
 export const SAFE_BOTTOM = CANVAS_H - NAV_HEIGHT;
 
 // ─── Helper: draw a rounded pill button using Graphics + Text ────────────────
+/** Optional colour overrides for themed shells (polish-003). Omit for the classic gold look. */
+export interface ButtonColors {
+  /** Fill colour (Phaser int). */
+  fill: number;
+  /** Label colour (CSS string). */
+  text: string;
+  /** Optional 1.5 px border colour. */
+  stroke?: number;
+  /** Optional font family for the label. */
+  fontFamily?: string;
+  /** Optional font size for the label, e.g. '14px'. */
+  fontSize?: string;
+}
+
 /**
  * Draws a primary (gold) or secondary (outlined) button.
  * Returns the Graphics and Text objects for easy positioning.
+ * Wire events on the returned `bg` only.
+ *
+ * @param scene - Owning scene.
+ * @param x - Centre X.
+ * @param y - Centre Y.
+ * @param width - Width.
+ * @param height - Height.
+ * @param label - Label text.
+ * @param variant - Visual variant.
+ * @param depth - Display depth.
+ * @param colors - Optional theme overrides (additive; existing callers unchanged).
+ * @returns The interactive background and the label.
+ * @example
+ * const { bg } = drawButton(scene, 195, 780, 350, 52, 'CASH OUT', 'primary', 30, { fill: 0xd6b76f, text: '#1a1408' });
  */
 export function drawButton(
   scene: Phaser.Scene,
@@ -138,12 +166,20 @@ export function drawButton(
   width: number, height: number,
   label: string,
   variant: 'primary' | 'secondary' | 'danger' = 'primary',
-  depth = 10
+  depth = 10,
+  colors?: ButtonColors
 ): { bg: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text } {
   const bg = scene.add.graphics().setDepth(depth);
   const radius = variant === 'primary' ? BTN_PRIMARY_RADIUS : BTN_SECONDARY_RADIUS;
 
-  if (variant === 'primary') {
+  if (colors) {
+    bg.fillStyle(colors.fill, 1);
+    bg.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
+    if (colors.stroke !== undefined) {
+      bg.lineStyle(1.5, colors.stroke, 1);
+      bg.strokeRoundedRect(x - width / 2, y - height / 2, width, height, radius);
+    }
+  } else if (variant === 'primary') {
     bg.fillStyle(BTN_PRIMARY_BG, 1);
     bg.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
   } else if (variant === 'secondary') {
@@ -164,7 +200,10 @@ export function drawButton(
     Phaser.Geom.Rectangle.Contains
   );
 
-  const textStyle = variant === 'primary' ? TEXT_STYLE_BTN_PRIMARY : TEXT_STYLE_BTN_SECONDARY;
+  const baseStyle = variant === 'primary' ? TEXT_STYLE_BTN_PRIMARY : TEXT_STYLE_BTN_SECONDARY;
+  const textStyle = colors
+    ? { ...baseStyle, color: colors.text, ...(colors.fontFamily ? { fontFamily: colors.fontFamily } : {}), ...(colors.fontSize ? { fontSize: colors.fontSize } : {}) }
+    : baseStyle;
   const text = scene.add.text(x, y, label, textStyle)
     .setOrigin(0.5)
     .setDepth(depth + 1);
