@@ -1,0 +1,50 @@
+{
+  "full": {
+    "samples": 49,
+    "frameP50ms": 16,
+    "hitsLockedAt": 9,
+    "flashAt": 9,
+    "cracksAt": 41,
+    "paneGoneAt": 101,
+    "shardsVisibleAt": 101,
+    "maxShards": 16,
+    "shardsGoneAt": 652,
+    "resultAt": 325,
+    "playAgainEnabledAt": 760,
+    "final": {
+      "t": 903,
+      "pane": false,
+      "cracks": false,
+      "shards": 0,
+      "flash": false,
+      "result": true,
+      "phase": "settled",
+      "ctaEnabled": true,
+      "hits": 0
+    }
+  },
+  "reducedMotion": {
+    "samples": 51,
+    "frameP50ms": 16,
+    "hitsLockedAt": 14,
+    "flashAt": null,
+    "cracksAt": 14,
+    "paneGoneAt": 103,
+    "shardsVisibleAt": null,
+    "maxShards": 0,
+    "shardsGoneAt": null,
+    "resultAt": 151,
+    "playAgainEnabledAt": 151,
+    "final": {
+      "t": 903,
+      "pane": false,
+      "cracks": false,
+      "shards": 0,
+      "flash": false,
+      "result": true,
+      "phase": "settled",
+      "ctaEnabled": true,
+      "hits": 0
+    }
+  }
+}

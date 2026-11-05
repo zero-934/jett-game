@@ -642,6 +642,9 @@ export class SoftDepthShell {
 
   private syncDomDialog(): void {
     const d = this.dialog; if (!d) return;
+    // Rebuilding must not drop keyboard focus: remember which control had it.
+    const focusables = [...d.querySelectorAll('input, button')];
+    const focusedIndex = focusables.indexOf(document.activeElement as Element);
     d.innerHTML = '';
     for (const row of this.settingRows()) {
       const label = document.createElement('label');
@@ -665,6 +668,7 @@ export class SoftDepthShell {
     close.style.position = 'static'; close.style.pointerEvents = 'auto';
     close.addEventListener('click', () => { this.closeSettings(); this.domButtons.settings?.focus(); });
     d.appendChild(close);
+    if (focusedIndex >= 0) (d.querySelectorAll('input, button')[focusedIndex] as HTMLElement | undefined)?.focus();
   }
 
   private closeDomDialog(): void {

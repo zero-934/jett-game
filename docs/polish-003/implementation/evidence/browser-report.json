@@ -1,0 +1,1533 @@
+{
+  "meta": {
+    "date": "2026-11-05T18:45:53.882Z",
+    "chromium": "153.0.8010.12",
+    "base": "http://localhost:5199/jett-game",
+    "sections": [
+      "pacing",
+      "input",
+      "isolation",
+      "shatter",
+      "restarts",
+      "a11y",
+      "layout",
+      "perf",
+      "smoke",
+      "captures"
+    ],
+    "note": "Headless Chromium on SwiftShader (software WebGL). Performance figures are relative to this environment only, not mobile measurements.",
+    "pacingSeconds": 47.861,
+    "inputSeconds": 2.604,
+    "isolationSeconds": 2.987,
+    "shatterSeconds": 30.929,
+    "restartsSeconds": 21.366,
+    "a11ySeconds": 1.444,
+    "layoutSeconds": 16.637,
+    "perfSeconds": 69.892,
+    "smokeSeconds": 26.062,
+    "capturesSeconds": 10.752
+  },
+  "results": {
+    "pacing": [
+      {
+        "name": "flap @30 Hz: ticks after 2 s wall == 125 (±1)",
+        "ok": true,
+        "detail": {
+          "ticks": 125
+        }
+      },
+      {
+        "name": "flap @60 Hz: ticks after 2 s wall == 125 (±1)",
+        "ok": true,
+        "detail": {
+          "ticks": 125
+        }
+      },
+      {
+        "name": "flap @120 Hz: ticks after 2 s wall == 125 (±1)",
+        "ok": true,
+        "detail": {
+          "ticks": 125
+        }
+      },
+      {
+        "name": "flap @144 Hz: ticks after 2 s wall == 125 (±1)",
+        "ok": true,
+        "detail": {
+          "ticks": 125
+        }
+      },
+      {
+        "name": "jett @30 Hz: ticks after 2 s wall == 125 (±1)",
+        "ok": true,
+        "detail": {
+          "ticks": 125
+        }
+      },
+      {
+        "name": "jett @60 Hz: ticks after 2 s wall == 125 (±1)",
+        "ok": true,
+        "detail": {
+          "ticks": 125
+        }
+      },
+      {
+        "name": "jett @120 Hz: ticks after 2 s wall == 125 (±1)",
+        "ok": true,
+        "detail": {
+          "ticks": 125
+        }
+      },
+      {
+        "name": "jett @144 Hz: ticks after 2 s wall == 125 (±1)",
+        "ok": true,
+        "detail": {
+          "ticks": 125
+        }
+      },
+      {
+        "name": "flap unfocused @30 Hz keeps real-time pace (was 0.50×)",
+        "ok": true,
+        "detail": {
+          "ticks": 125
+        }
+      },
+      {
+        "name": "500 ms hitch: debt kept (≤8 ticks/frame, 31 ticks recovered)",
+        "ok": true,
+        "detail": {
+          "afterHitchFrame": 8,
+          "recovered": 31,
+          "phase": "paused",
+          "paused": "hitch"
+        }
+      },
+      {
+        "name": "1.5 s hitch: explicit pause boundary",
+        "ok": true,
+        "detail": {
+          "afterHitchFrame": 8,
+          "recovered": 31,
+          "phase": "paused",
+          "paused": "hitch"
+        }
+      }
+    ],
+    "replay": [
+      {
+        "name": "flap: 30 Hz final state/RNG/settlement identical to 60 Hz",
+        "ok": true,
+        "detail": {
+          "settlement": {
+            "reason": "crash",
+            "tick": 225,
+            "multiplier": 1.0573,
+            "payout": 0,
+            "returnHundredths": 0
+          }
+        }
+      },
+      {
+        "name": "flap: 120 Hz final state/RNG/settlement identical to 60 Hz",
+        "ok": true,
+        "detail": {
+          "settlement": {
+            "reason": "crash",
+            "tick": 225,
+            "multiplier": 1.0573,
+            "payout": 0,
+            "returnHundredths": 0
+          }
+        }
+      },
+      {
+        "name": "flap: 144 Hz final state/RNG/settlement identical to 60 Hz",
+        "ok": true,
+        "detail": {
+          "settlement": {
+            "reason": "crash",
+            "tick": 225,
+            "multiplier": 1.0573,
+            "payout": 0,
+            "returnHundredths": 0
+          }
+        }
+      },
+      {
+        "name": "jett: 30 Hz final state/RNG/settlement identical to 60 Hz",
+        "ok": true,
+        "detail": {
+          "settlement": {
+            "reason": "cashout",
+            "tick": 400,
+            "multiplier": 1.7249,
+            "payout": 17.25,
+            "returnHundredths": 1725,
+            "altitude": 603.9778368986756,
+            "coins": 0
+          }
+        }
+      },
+      {
+        "name": "jett: 120 Hz final state/RNG/settlement identical to 60 Hz",
+        "ok": true,
+        "detail": {
+          "settlement": {
+            "reason": "cashout",
+            "tick": 400,
+            "multiplier": 1.7249,
+            "payout": 17.25,
+            "returnHundredths": 1725,
+            "altitude": 603.9778368986756,
+            "coins": 0
+          }
+        }
+      },
+      {
+        "name": "jett: 144 Hz final state/RNG/settlement identical to 60 Hz",
+        "ok": true,
+        "detail": {
+          "settlement": {
+            "reason": "cashout",
+            "tick": 400,
+            "multiplier": 1.7249,
+            "payout": 17.25,
+            "returnHundredths": 1725,
+            "altitude": 603.9778368986756,
+            "coins": 0
+          }
+        }
+      }
+    ],
+    "input": [
+      {
+        "name": "Space in ready starts the round and applies the first flap",
+        "ok": true,
+        "detail": {
+          "phase": "playing",
+          "v": -7.05
+        }
+      },
+      {
+        "name": "held Space with 30 auto-repeat keydowns adds no flaps",
+        "ok": true,
+        "detail": {
+          "flaps": 0
+        }
+      },
+      {
+        "name": "quick real tap between ticks applies exactly one flap",
+        "ok": true,
+        "detail": {
+          "v": -7.05
+        }
+      },
+      {
+        "name": "two simultaneous touches in the stage flap once this tick (impulse not doubled)",
+        "ok": true,
+        "detail": {
+          "queued": [
+            {
+              "tick": 42,
+              "seq": 1,
+              "type": "flap"
+            },
+            {
+              "tick": 42,
+              "seq": 2,
+              "type": "flap"
+            }
+          ],
+          "v": -7.05,
+          "a": 1
+        }
+      }
+    ],
+    "isolation": [
+      {
+        "name": "Jett: CASH OUT tap does not steer (target unchanged) and settles once",
+        "ok": true,
+        "detail": {
+          "before": 63,
+          "target": 63,
+          "settlement": {
+            "reason": "cashout",
+            "tick": 6,
+            "multiplier": 0.9767,
+            "payout": 9.77,
+            "returnHundredths": 977,
+            "altitude": 7.220029654331964,
+            "coins": 0
+          }
+        }
+      },
+      {
+        "name": "Jett: no steer action carries the CTA x (318/195 world) from the footer tap",
+        "ok": true,
+        "detail": {
+          "steers": [
+            48,
+            63
+          ]
+        }
+      },
+      {
+        "name": "Flap: footer and settings taps never flap",
+        "ok": true,
+        "detail": {
+          "a0": 1,
+          "flaps": 1,
+          "phase": "paused",
+          "paused": "settings",
+          "settingsOpen": true
+        }
+      },
+      {
+        "name": "Flap: opening settings pauses the round (no hidden danger)",
+        "ok": true,
+        "detail": {
+          "flaps": 1,
+          "phase": "paused",
+          "paused": "settings",
+          "settingsOpen": true
+        }
+      },
+      {
+        "name": "Flap: taps on the open settings panel do not reach the stage",
+        "ok": true,
+        "detail": {
+          "flaps": 1,
+          "paused": "settings"
+        }
+      },
+      {
+        "name": "Flap: Escape closes settings and leaves the round paused until an explicit resume",
+        "ok": true,
+        "detail": {
+          "phase": "paused",
+          "settingsOpen": false
+        }
+      },
+      {
+        "name": "Jett: cash-out queued before a lethal tick settles as cash-out at that tick (D-6)",
+        "ok": true,
+        "detail": {
+          "tickAtQueue": 10,
+          "settlement": {
+            "reason": "cashout",
+            "tick": 10,
+            "multiplier": 0.9812,
+            "payout": 9.81,
+            "returnHundredths": 981,
+            "altitude": 12.060178123918122,
+            "coins": 0
+          }
+        }
+      }
+    ],
+    "shatter": [
+      {
+        "name": "40 UI rounds: chosen pane decides outcome; losing pane never revealed safe; every pick matches the committed board",
+        "ok": true,
+        "detail": {
+          "rounds": 40,
+          "losses": 40,
+          "bad": []
+        }
+      },
+      {
+        "name": "after each round: no shards left, no interactive panes",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "no page errors over 40 rounds",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "only the current row (2 panes) is interactive",
+        "ok": true,
+        "detail": [
+          0,
+          1
+        ]
+      },
+      {
+        "name": "re-entrant double pick on the same row records one pick",
+        "ok": true,
+        "detail": {
+          "picks": 1
+        }
+      }
+    ],
+    "restarts": [
+      {
+        "name": "jett: 50 restarts keep listeners/DOM/display list flat",
+        "ok": true,
+        "detail": {
+          "before": {
+            "updateListeners": 5,
+            "shutdownListeners": 14,
+            "timers": 0,
+            "tweens": 0,
+            "displayList": 29,
+            "a11yRoots": 1,
+            "domButtons": 3,
+            "audioContexts": 1
+          },
+          "after": {
+            "updateListeners": 5,
+            "shutdownListeners": 14,
+            "timers": 0,
+            "tweens": 0,
+            "displayList": 29,
+            "a11yRoots": 1,
+            "domButtons": 3,
+            "audioContexts": 1
+          }
+        }
+      },
+      {
+        "name": "jett: timers/tweens bounded after 50 restarts (mid-break/result)",
+        "ok": true,
+        "detail": {
+          "timers": [
+            0,
+            0
+          ],
+          "tweens": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "jett: at most one AudioContext ever (Phaser sound + app audio service)",
+        "ok": true,
+        "detail": {
+          "before": 1,
+          "after": 1
+        }
+      },
+      {
+        "name": "jett: heap after forced GC within +3 MB",
+        "ok": true,
+        "detail": {
+          "deltaMB": 2.16
+        }
+      },
+      {
+        "name": "jett: no page errors (no ghost callbacks after restart)",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "flap: 50 restarts keep listeners/DOM/display list flat",
+        "ok": true,
+        "detail": {
+          "before": {
+            "updateListeners": 5,
+            "shutdownListeners": 14,
+            "timers": 0,
+            "tweens": 0,
+            "displayList": 26,
+            "a11yRoots": 1,
+            "domButtons": 4,
+            "audioContexts": 1
+          },
+          "after": {
+            "updateListeners": 5,
+            "shutdownListeners": 14,
+            "timers": 0,
+            "tweens": 0,
+            "displayList": 26,
+            "a11yRoots": 1,
+            "domButtons": 4,
+            "audioContexts": 1
+          }
+        }
+      },
+      {
+        "name": "flap: timers/tweens bounded after 50 restarts (mid-break/result)",
+        "ok": true,
+        "detail": {
+          "timers": [
+            0,
+            0
+          ],
+          "tweens": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "flap: at most one AudioContext ever (Phaser sound + app audio service)",
+        "ok": true,
+        "detail": {
+          "before": 1,
+          "after": 1
+        }
+      },
+      {
+        "name": "flap: heap after forced GC within +3 MB",
+        "ok": true,
+        "detail": {
+          "deltaMB": 2.35
+        }
+      },
+      {
+        "name": "flap: no page errors (no ghost callbacks after restart)",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "shatter: 50 restarts keep listeners/DOM/display list flat",
+        "ok": true,
+        "detail": {
+          "before": {
+            "updateListeners": 4,
+            "shutdownListeners": 14,
+            "timers": 0,
+            "tweens": 0,
+            "displayList": 129,
+            "a11yRoots": 1,
+            "domButtons": 5,
+            "audioContexts": 1
+          },
+          "after": {
+            "updateListeners": 4,
+            "shutdownListeners": 14,
+            "timers": 0,
+            "tweens": 0,
+            "displayList": 129,
+            "a11yRoots": 1,
+            "domButtons": 5,
+            "audioContexts": 1
+          }
+        }
+      },
+      {
+        "name": "shatter: timers/tweens bounded after 50 restarts (mid-break/result)",
+        "ok": true,
+        "detail": {
+          "timers": [
+            0,
+            0
+          ],
+          "tweens": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "shatter: at most one AudioContext ever (Phaser sound + app audio service)",
+        "ok": true,
+        "detail": {
+          "before": 1,
+          "after": 1
+        }
+      },
+      {
+        "name": "shatter: heap after forced GC within +3 MB",
+        "ok": true,
+        "detail": {
+          "deltaMB": 2.33
+        }
+      },
+      {
+        "name": "shatter: no page errors (no ghost callbacks after restart)",
+        "ok": true,
+        "detail": []
+      }
+    ],
+    "a11y": [
+      {
+        "name": "labelled controls exist: Back, Settings, CTA, current-row panes",
+        "ok": true,
+        "detail": [
+          "Back to lobby",
+          "Settings",
+          "Start round, stake 10.00 demo credits",
+          "Row 1, left pane",
+          "Row 1, right pane"
+        ]
+      },
+      {
+        "name": "Tab focuses a shell control with a visible outline",
+        "ok": true,
+        "detail": {
+          "label": "Back to lobby",
+          "outline": "solid",
+          "width": "3px"
+        }
+      },
+      {
+        "name": "keyboard: Enter on CTA starts; Enter on a pane button picks once",
+        "ok": true,
+        "detail": {
+          "started": "armed",
+          "picked": 1
+        }
+      },
+      {
+        "name": "aria-live region announces round events",
+        "ok": true,
+        "detail": {
+          "live": "Round started. Stake 10.00 demo credits. Choose a pane on row 1."
+        }
+      },
+      {
+        "name": "OS prefers-reduced-motion is the default setting",
+        "ok": true,
+        "detail": {
+          "rm": true
+        }
+      },
+      {
+        "name": "settings dialog is modal, focus moves into it, toggling persists",
+        "ok": true,
+        "detail": {
+          "open": true,
+          "modal": "true",
+          "boxes": 5,
+          "focused": "checkbox",
+          "hc": true,
+          "saved": "{\"sound\":true,\"music\":false,\"reducedMotion\":true,\"highContrast\":true,\"haptics\":false,\"theme\":\"gold\"}"
+        }
+      }
+    ],
+    "layout": [
+      {
+        "name": "jett 320×568@1x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            28,
+            0,
+            262,
+            568
+          ],
+          "cta": [
+            41,
+            507,
+            236,
+            35
+          ],
+          "vw": 320,
+          "vh": 568,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "jett 390×844@2x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            0,
+            0,
+            390,
+            844
+          ],
+          "cta": [
+            20,
+            754,
+            350,
+            52
+          ],
+          "vw": 390,
+          "vh": 844,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "jett 430×932@3x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            0,
+            1,
+            430,
+            931
+          ],
+          "cta": [
+            22,
+            832,
+            386,
+            57
+          ],
+          "vw": 430,
+          "vh": 932,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "jett 844×390@2x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            331,
+            0,
+            180,
+            390
+          ],
+          "cta": [
+            340,
+            348,
+            162,
+            24
+          ],
+          "vw": 844,
+          "vh": 390,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "jett 568×320@1x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            210,
+            0,
+            148,
+            320
+          ],
+          "cta": [
+            218,
+            286,
+            133,
+            20
+          ],
+          "vw": 568,
+          "vh": 320,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "flap 320×568@1x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            28,
+            0,
+            262,
+            568
+          ],
+          "cta": [
+            41,
+            507,
+            236,
+            35
+          ],
+          "vw": 320,
+          "vh": 568,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "flap 390×844@2x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            0,
+            0,
+            390,
+            844
+          ],
+          "cta": [
+            20,
+            754,
+            350,
+            52
+          ],
+          "vw": 390,
+          "vh": 844,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "flap 430×932@3x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            0,
+            1,
+            430,
+            931
+          ],
+          "cta": [
+            22,
+            832,
+            386,
+            57
+          ],
+          "vw": 430,
+          "vh": 932,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "flap 844×390@2x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            331,
+            0,
+            180,
+            390
+          ],
+          "cta": [
+            340,
+            348,
+            162,
+            24
+          ],
+          "vw": 844,
+          "vh": 390,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "flap 568×320@1x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            210,
+            0,
+            148,
+            320
+          ],
+          "cta": [
+            218,
+            286,
+            133,
+            20
+          ],
+          "vw": 568,
+          "vh": 320,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "shatter 320×568@1x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            28,
+            0,
+            262,
+            568
+          ],
+          "cta": [
+            41,
+            507,
+            236,
+            35
+          ],
+          "vw": 320,
+          "vh": 568,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "shatter 390×844@2x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            0,
+            0,
+            390,
+            844
+          ],
+          "cta": [
+            20,
+            754,
+            350,
+            52
+          ],
+          "vw": 390,
+          "vh": 844,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "shatter 430×932@3x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            0,
+            1,
+            430,
+            931
+          ],
+          "cta": [
+            22,
+            832,
+            386,
+            57
+          ],
+          "vw": 430,
+          "vh": 932,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "shatter 844×390@2x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            331,
+            0,
+            180,
+            390
+          ],
+          "cta": [
+            340,
+            348,
+            162,
+            24
+          ],
+          "vw": 844,
+          "vh": 390,
+          "store": [
+            390,
+            844
+          ]
+        }
+      },
+      {
+        "name": "shatter 568×320@1x: CTA fully visible, aspect preserved, no errors",
+        "ok": true,
+        "detail": {
+          "canvas": [
+            210,
+            0,
+            148,
+            320
+          ],
+          "cta": [
+            218,
+            286,
+            133,
+            20
+          ],
+          "vw": 568,
+          "vh": 320,
+          "store": [
+            390,
+            844
+          ]
+        }
+      }
+    ],
+    "perf": [
+      {
+        "game": "jett",
+        "cpuThrottle": 1,
+        "environment": "on",
+        "idleStepMs": {
+          "n": 120,
+          "p50": 0.7,
+          "p95": 1,
+          "p99": 1.2,
+          "max": 1.7,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 120,
+          "p50": 16.7,
+          "p95": 17,
+          "p99": 19.1,
+          "max": 21,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 232,
+          "p50": 1.3,
+          "p95": 2.1,
+          "p99": 3.5,
+          "max": 4.6,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 232,
+          "p50": 16.7,
+          "p95": 20.6,
+          "p99": 50.5,
+          "max": 52.6,
+          "over33": 3,
+          "over50": 3
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "jett",
+        "cpuThrottle": 1,
+        "environment": "off",
+        "idleStepMs": {
+          "n": 120,
+          "p50": 0.5,
+          "p95": 1,
+          "p99": 1.3,
+          "max": 2,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 120,
+          "p50": 16.7,
+          "p95": 17,
+          "p99": 18.2,
+          "max": 41.4,
+          "over33": 1,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 236,
+          "p50": 1.2,
+          "p95": 1.7,
+          "p99": 2.6,
+          "max": 3.5,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 236,
+          "p50": 16.7,
+          "p95": 17,
+          "p99": 39.9,
+          "max": 46.3,
+          "over33": 3,
+          "over50": 0
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "flap",
+        "cpuThrottle": 1,
+        "environment": "on",
+        "idleStepMs": {
+          "n": 121,
+          "p50": 0.9,
+          "p95": 1.4,
+          "p99": 1.9,
+          "max": 2.5,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 121,
+          "p50": 16.6,
+          "p95": 17,
+          "p99": 17.3,
+          "max": 23.7,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 238,
+          "p50": 1.1,
+          "p95": 2.1,
+          "p99": 3.4,
+          "max": 8,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 238,
+          "p50": 16.7,
+          "p95": 18.4,
+          "p99": 22,
+          "max": 56.3,
+          "over33": 1,
+          "over50": 1
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "flap",
+        "cpuThrottle": 1,
+        "environment": "off",
+        "idleStepMs": {
+          "n": 119,
+          "p50": 0.5,
+          "p95": 0.8,
+          "p99": 1,
+          "max": 1.2,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 119,
+          "p50": 16.7,
+          "p95": 16.9,
+          "p99": 17.1,
+          "max": 50.8,
+          "over33": 1,
+          "over50": 1
+        },
+        "activeStepMs": {
+          "n": 239,
+          "p50": 0.8,
+          "p95": 1.3,
+          "p99": 2.9,
+          "max": 6,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 239,
+          "p50": 16.7,
+          "p95": 16.9,
+          "p99": 19,
+          "max": 47.5,
+          "over33": 1,
+          "over50": 0
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "shatter",
+        "cpuThrottle": 1,
+        "environment": "on",
+        "idleStepMs": {
+          "n": 120,
+          "p50": 0.6,
+          "p95": 1.2,
+          "p99": 1.6,
+          "max": 1.7,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 120,
+          "p50": 16.7,
+          "p95": 18.6,
+          "p99": 21.6,
+          "max": 24.3,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 47,
+          "p50": 0.9,
+          "p95": 3.6,
+          "p99": 12.9,
+          "max": 12.9,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 47,
+          "p50": 16.7,
+          "p95": 23.7,
+          "p99": 86.8,
+          "max": 86.8,
+          "over33": 2,
+          "over50": 2
+        },
+        "endedPhase": "settled"
+      },
+      {
+        "game": "shatter",
+        "cpuThrottle": 1,
+        "environment": "off",
+        "idleStepMs": {
+          "n": 121,
+          "p50": 0.6,
+          "p95": 0.9,
+          "p99": 1.4,
+          "max": 2,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 121,
+          "p50": 16.7,
+          "p95": 17,
+          "p99": 20.2,
+          "max": 22.7,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 49,
+          "p50": 0.8,
+          "p95": 3.5,
+          "p99": 12.8,
+          "max": 12.8,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 49,
+          "p50": 16.6,
+          "p95": 27.5,
+          "p99": 87.5,
+          "max": 87.5,
+          "over33": 2,
+          "over50": 2
+        },
+        "endedPhase": "settled"
+      },
+      {
+        "game": "jett",
+        "cpuThrottle": 4,
+        "environment": "on",
+        "idleStepMs": {
+          "n": 78,
+          "p50": 3.7,
+          "p95": 6.6,
+          "p99": 9.4,
+          "max": 9.4,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 78,
+          "p50": 25.3,
+          "p95": 31.6,
+          "p99": 36.6,
+          "max": 36.6,
+          "over33": 1,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 129,
+          "p50": 7,
+          "p95": 11.4,
+          "p99": 19.9,
+          "max": 31,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 129,
+          "p50": 29.5,
+          "p95": 38,
+          "p99": 91,
+          "max": 94.2,
+          "over33": 21,
+          "over50": 3
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "jett",
+        "cpuThrottle": 4,
+        "environment": "off",
+        "idleStepMs": {
+          "n": 110,
+          "p50": 2.4,
+          "p95": 5.4,
+          "p99": 8.6,
+          "max": 8.8,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 110,
+          "p50": 17.5,
+          "p95": 23,
+          "p99": 38.3,
+          "max": 53.5,
+          "over33": 2,
+          "over50": 1
+        },
+        "activeStepMs": {
+          "n": 179,
+          "p50": 5.4,
+          "p95": 9,
+          "p99": 14.6,
+          "max": 14.6,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 179,
+          "p50": 21.3,
+          "p95": 27.7,
+          "p99": 58.4,
+          "max": 64.6,
+          "over33": 3,
+          "over50": 2
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "flap",
+        "cpuThrottle": 4,
+        "environment": "on",
+        "idleStepMs": {
+          "n": 85,
+          "p50": 4.2,
+          "p95": 8,
+          "p99": 10.2,
+          "max": 10.2,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 85,
+          "p50": 23.2,
+          "p95": 32.3,
+          "p99": 35.1,
+          "max": 35.1,
+          "over33": 2,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 139,
+          "p50": 5.9,
+          "p95": 10.6,
+          "p99": 26.1,
+          "max": 33,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 139,
+          "p50": 27.5,
+          "p95": 36.6,
+          "p99": 53.1,
+          "max": 86.6,
+          "over33": 15,
+          "over50": 2
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "flap",
+        "cpuThrottle": 4,
+        "environment": "off",
+        "idleStepMs": {
+          "n": 113,
+          "p50": 2.4,
+          "p95": 4.3,
+          "p99": 5.2,
+          "max": 6.3,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 113,
+          "p50": 17.3,
+          "p95": 21.6,
+          "p99": 23.5,
+          "max": 45.2,
+          "over33": 1,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 194,
+          "p50": 3.6,
+          "p95": 6.6,
+          "p99": 17.3,
+          "max": 21.7,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 194,
+          "p50": 19.8,
+          "p95": 25.7,
+          "p99": 42,
+          "max": 73.4,
+          "over33": 4,
+          "over50": 1
+        },
+        "endedPhase": "playing"
+      },
+      {
+        "game": "shatter",
+        "cpuThrottle": 4,
+        "environment": "on",
+        "idleStepMs": {
+          "n": 84,
+          "p50": 2.8,
+          "p95": 5.2,
+          "p99": 8.2,
+          "max": 8.2,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 84,
+          "p50": 23.3,
+          "p95": 29.5,
+          "p99": 32.5,
+          "max": 32.5,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 29,
+          "p50": 4.7,
+          "p95": 20.7,
+          "p99": 34.1,
+          "max": 34.1,
+          "over33": 1,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 29,
+          "p50": 26,
+          "p95": 74,
+          "p99": 104.9,
+          "max": 104.9,
+          "over33": 4,
+          "over50": 3
+        },
+        "endedPhase": "settled"
+      },
+      {
+        "game": "shatter",
+        "cpuThrottle": 4,
+        "environment": "off",
+        "idleStepMs": {
+          "n": 90,
+          "p50": 2.8,
+          "p95": 4.7,
+          "p99": 6.7,
+          "max": 6.7,
+          "over33": 0,
+          "over50": 0
+        },
+        "idleFrameIntervalMs": {
+          "n": 90,
+          "p50": 21.7,
+          "p95": 29.5,
+          "p99": 32.5,
+          "max": 32.5,
+          "over33": 0,
+          "over50": 0
+        },
+        "activeStepMs": {
+          "n": 28,
+          "p50": 4.4,
+          "p95": 31.5,
+          "p99": 37.9,
+          "max": 37.9,
+          "over33": 1,
+          "over50": 0
+        },
+        "activeFrameIntervalMs": {
+          "n": 28,
+          "p50": 27.3,
+          "p95": 63.9,
+          "p99": 119.7,
+          "max": 119.7,
+          "over33": 6,
+          "over50": 3
+        },
+        "endedPhase": "settled"
+      }
+    ],
+    "smoke": [
+      {
+        "name": "production entry HomeScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "production entry JettScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "production entry ShatterStepScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "production entry FlapFortuneScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "production entry DiceScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "production entry MinesScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "production entry BallDropScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "production entry MasqueradeScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "production entry AlchemistScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "production entry InfernoScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "production entry SurgeScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      },
+      {
+        "name": "production entry DiceDuelScene: boots without page errors",
+        "ok": true,
+        "detail": []
+      }
+    ]
+  }
+}
