@@ -19,16 +19,18 @@ import { getPageLedger, nextRoundId, toHundredths, formatCredits } from '../shar
 import { createSeedString, RNG_ALGORITHM_V2 } from '../shared/rng/ProvablyFairRNG';
 import { SoftDepthShell } from '../shared/ui/SoftDepthShell';
 import type { ShellKey, StagePointer } from '../shared/ui/SoftDepthShell';
-import { hexToInt } from '../shared/ui/SoftDepthTheme';
+import { hexToInt, fitWorld, LAYOUT_IMMERSIVE } from '../shared/ui/SoftDepthTheme';
 import { AudioService } from '../shared/audio/AudioService';
 
 // ─── World fit ───────────────────────────────────────────────────────────────
-const STAGE = { x: 16, y: 136, width: 358, height: 544 };
+// Immersive shell layout (as Flap): unchanged 390×844 world fitted at k ≈ 0.787 (was 0.645).
 const WORLD_W = 390;
 const WORLD_H = 844;
-const K = Math.min(STAGE.width / WORLD_W, STAGE.height / WORLD_H);
-const ORIGIN_X = STAGE.x + (STAGE.width - WORLD_W * K) / 2;
-const ORIGIN_Y = STAGE.y;
+const STAGE = LAYOUT_IMMERSIVE.stage;
+const FIT = fitWorld(STAGE, WORLD_W, WORLD_H);
+const K = FIT.k;
+const ORIGIN_X = FIT.originX;
+const ORIGIN_Y = FIT.originY;
 /** Player's fixed screen row in world units (unchanged from the original UI: 62% of 844). */
 const PLAYER_SCREEN_WORLD_Y = WORLD_H * 0.62;
 
@@ -161,6 +163,7 @@ export class JettUI {
     this.betHundredths = toHundredths(bet);
     this.shell = new SoftDepthShell(this.scene, {
       title: 'Jett',
+      layout: LAYOUT_IMMERSIVE,
       onBack: () => { window.location.href = 'https://zero-934.github.io/jett-landing/'; },
       onPrimary: () => this.onPrimary(),
       onStageDown: (p) => this.onSteer(p),

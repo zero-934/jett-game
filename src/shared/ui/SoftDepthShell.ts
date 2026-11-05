@@ -32,9 +32,15 @@ import { formatCredits } from '../sim/DemoLedger';
 /** Font stack. Inter is preferred when available; self-hosting it is a follow-up. */
 export const SHELL_FONT = '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
 
-const DEPTH = { stageInput: 38, hudScrim: 39, fillet: 40, panel: 41, panelContent: 42, cta: 44, result: 60, pause: 58, settings: 80 } as const;
+const DEPTH = { stageInput: 38, hudScrim: 4, /* above backdrops, below hazards */ fillet: 40, panel: 41, panelContent: 42, cta: 44, result: 60, pause: 58, settings: 80 } as const;
 const RESULT_FADE_MS = 160;
 const LETTER_SPACING_CAPS = 1.6;
+const ICON_HIT_W = 64;
+const ICON_HIT_H = 56;
+const CTA_HIT_PAD = 8;
+/** Below this CSS scale the shell reflows its primary controls into a visible DOM rail. */
+const RAIL_SCALE_THRESHOLD = 0.6;
+const RAIL_WIDTH_PX = 176;
 const STAGE_POINTERS = 2;
 
 /** Pointer data passed to games, in logical (390×844) and stage-local coordinates. */
@@ -456,12 +462,22 @@ export class SoftDepthShell {
 
   private buildHitZones(): void {
     const mk = (x: number, y: number, fn: () => void) => {
-      const z = this.scene.add.rectangle(x, y, SHELL.iconHit, SHELL.iconHit, 0, 0).setDepth(DEPTH.cta).setInteractive({ useHandCursor: true });
+      const z = this.scene.add.rectangle(x, y, ICON_HIT_W, ICON_HIT_H, 0, 0).setDepth(DEPTH.cta).setInteractive({ useHandCursor: true });
       z.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, ev: Phaser.Types.Input.EventData) => { ev?.stopPropagation?.(); fn(); });
       this.hitZones.push(z);
     };
-    mk(24, 28, () => { if (!this.settingsOpenValue) this.opts.onBack(); });
-    mk(SHELL.width - 30, 28, () => this.toggleSettings());
+    mk(ICON_HIT_W / 2, 28, () => { if (!this.settingsOpenValue) this.opts.onBack(); });
+    mk(SHELL.width - ICON_HIT_W / 2, 28, () => this.toggleSettings());
+    // Extra CTA hit band (invisible): +CTA_HIT_PAD above and below the drawn 52 px button, so the
+    // CSS target stays >= 44 px on narrow phones. Entirely inside the footer, never over the stage.
+    const c = this.layout.cta;
+    const band = this.scene.add.rectangle(c.x + c.width / 2, c.y + c.height / 2, c.width, c.height + CTA_HIT_PAD * 2, 0, 0).setDepth(DEPTH.cta - 1).setInteractive({ useHandCursor: true });
+    band.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, ev: Phaser.Types.Input.EventData) => {
+      ev?.stopPropagation?.();
+      AudioService.unlock();
+      if (this.footer?.ctaEnabled && !this.settingsOpenValue) this.opts.onPrimary();
+    });
+    this.hitZones.push(band);
   }
 
   private wireStageZone(): void {
@@ -577,13 +593,16 @@ export class SoftDepthShell {
 .sd-a11y button:disabled{cursor:not-allowed}
 .sd-a11y .sd-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .sd-a11y .sd-dialog{position:absolute;pointer-events:auto;opacity:0.001}
-.sd-a11y .sd-dialog label{display:block;font:14px sans-serif}`;
+.sd-a11y .sd-dialog label{display:block;font:14px sans-serif}
+.sd-a11y.sd-rail button[data-id=cta],.sd-a11y.sd-rail button[data-id=back],.sd-a11y.sd-rail button[data-id=settings]{pointer-events:auto;color:var(--sd-cta-text);background:var(--sd-cta);font:700 15px/1.2 system-ui,sans-serif;border-radius:10px;min-height:48px;padding:0 12px}
+.sd-a11y.sd-rail button[data-id=back],.sd-a11y.sd-rail button[data-id=settings]{background:var(--sd-surface);color:var(--sd-text);border:1px solid var(--sd-line)}
+.sd-a11y.sd-rail button[data-id=cta]:disabled{background:var(--sd-surface);color:var(--sd-muted)}`;
     root.appendChild(style);
     this.dom = root;
     document.body.appendChild(root);
-    this.makeDomButton('back', 'Back to lobby', { x: 2, y: 6, width: 44, height: 44 }, () => this.opts.onBack());
-    this.makeDomButton('settings', 'Settings', { x: SHELL.width - 52, y: 6, width: 44, height: 44 }, () => this.toggleSettings());
-    this.makeDomButton('cta', 'Start', this.layout.cta, () => { AudioService.unlock(); if (this.footer?.ctaEnabled && !this.settingsOpenValue) this.opts.onPrimary(); });
+    this.makeDomButton('back', 'Back to lobby', { x: 0, y: 0, width: ICON_HIT_W, height: ICON_HIT_H }, () => this.opts.onBack());
+    this.makeDomButton('settings', 'Settings', { x: SHELL.width - ICON_HIT_W, y: 0, width: ICON_HIT_W, height: ICON_HIT_H }, () => this.toggleSettings());
+    this.makeDomButton('cta', 'Start', { ...this.layout.cta, y: this.layout.cta.y - CTA_HIT_PAD, height: this.layout.cta.height + CTA_HIT_PAD * 2 }, () => { AudioService.unlock(); if (this.footer?.ctaEnabled && !this.settingsOpenValue) this.opts.onPrimary(); });
     const live = document.createElement('div');
     live.className = 'sd-live';
     live.setAttribute('aria-live', 'polite');
@@ -620,15 +639,32 @@ export class SoftDepthShell {
     const r = canvas.getBoundingClientRect();
     const k = r.width / SHELL.width;
     Object.assign(this.dom.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+    // Short landscape / tiny canvases: reflow primary controls into a real DOM rail beside the
+    // canvas instead of shrinking them below usable touch sizes.
+    const spaceRight = window.innerWidth - r.right;
+    const rail = k < RAIL_SCALE_THRESHOLD && spaceRight >= RAIL_WIDTH_PX + 16;
+    this.dom.classList.toggle('sd-rail', rail);
+    const railOrder = ['cta', 'settings', 'back'];
     for (const b of Object.values(this.domButtons)) {
       const rect = JSON.parse(b.dataset.rect || '{}') as { x: number; y: number; width: number; height: number };
-      Object.assign(b.style, { left: `${rect.x * k}px`, top: `${rect.y * k}px`, width: `${rect.width * k}px`, height: `${rect.height * k}px` });
+      const idx = railOrder.indexOf(b.dataset.id || '');
+      if (rail && idx >= 0) {
+        const h = 52; const gap = 12; const top = r.height / 2 - (h * 3 + gap * 2) / 2 + idx * (h + gap);
+        Object.assign(b.style, { left: `${r.width + 16}px`, top: `${top}px`, width: `${RAIL_WIDTH_PX}px`, height: `${h}px` });
+        if (b.dataset.id === 'back') b.textContent = 'Back';
+        if (b.dataset.id === 'settings') b.textContent = 'Settings';
+      } else {
+        Object.assign(b.style, { left: `${rect.x * k}px`, top: `${rect.y * k}px`, width: `${rect.width * k}px`, height: `${rect.height * k}px` });
+      }
     }
     if (this.dialog) Object.assign(this.dialog.style, { left: `${28 * k}px`, top: `${150 * k}px`, width: `${334 * k}px` });
   }
 
   private updateDomTheme(): void {
-    this.dom?.style.setProperty('--sd-focus', this.tokens.focus);
+    const t = this.tokens; const st = this.dom?.style;
+    if (!st) return;
+    st.setProperty('--sd-focus', t.focus); st.setProperty('--sd-cta', t.cta); st.setProperty('--sd-cta-text', t.ctaText);
+    st.setProperty('--sd-surface', t.surfaceRaised); st.setProperty('--sd-text', t.text); st.setProperty('--sd-muted', t.muted); st.setProperty('--sd-line', t.line);
   }
 
   private onWindowKey(e: KeyboardEvent, type: 'down' | 'up'): void {

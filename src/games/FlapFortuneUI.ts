@@ -50,7 +50,7 @@ const PIPE_BAND = 0xc9a24f;
 const PIPE_BAND_DARK = 0x8f7234;
 const GUTTER_DIM_ALPHA = 0.28;
 const PIPE_BAND_WORLD_H = 16;
-const WIZARD_DISPLAY_WORLD_H = 56; // hat-to-broom; at this size the robed body ≈ the 28×28 collision box (verified with ?debug=1)
+const WIZARD_DISPLAY_WORLD_H = 60; // +7% vs 56: largest size whose robed body still sits inside the 28×28 hitbox (63 overhangs it) // hat-to-broom; at this size the robed body ≈ the 28×28 collision box (verified with ?debug=1)
 const WIZARD_TEXTURE = 'flap-wizard';
 const SKYLINE_FAR_KEY = 'flap-skyline-far';
 const SKYLINE_NEAR_KEY = 'flap-skyline-near';

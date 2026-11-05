@@ -418,6 +418,35 @@ async function smoke(browser) {
   }
 }
 
+// ─── Actual CSS touch-target sizes + HUD coverage ────────────────────────────
+async function targets(browser) {
+  const viewports = [[320, 568, 2], [390, 844, 3], [430, 932, 3], [568, 320, 2], [844, 390, 2]];
+  for (const game of ['jett', 'flap', 'shatter']) {
+    for (const [w, h, dpr] of viewports) {
+      const { ctx, page } = await openGame(browser, game, { viewport: { width: w, height: h }, dpr, seed: 'targets' });
+      await page.waitForTimeout(200);
+      const m = await page.evaluate(() => {
+        const ui = window.__ui(); const sh = ui.shell;
+        const c = window.__game.canvas.getBoundingClientRect(); const k = c.width / 390;
+        const rail = sh.domRoot.classList.contains('sd-rail');
+        const dom = (id) => { const b = sh.domRoot.querySelector(`button[data-id="${id}"]`); const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; };
+        const zones = sh.hitZones.map((z) => [Math.round(z.width * k), Math.round(z.height * k)]);
+        const stage = sh.stage;
+        const hudBoxes = sh.layout.hudOverlay ? ['phase', 'multiplier', 'progress'].map((n) => sh.texts[n].getBounds()) : [];
+        const hudArea = hudBoxes.reduce((a, b) => a + b.width * b.height, 0);
+        const hudBottom = hudBoxes.length ? Math.max(...hudBoxes.map((b) => b.y + b.height)) : 0;
+        return { scale: +k.toFixed(3), rail, back: rail ? dom('back') : zones[0], settings: rail ? dom('settings') : zones[1], cta: rail ? dom('cta') : zones[2],
+          hudCoversStagePct: +((100 * hudArea) / (stage.width * stage.height)).toFixed(1), hudBandPctOfHeight: hudBoxes.length ? +((100 * (hudBottom - stage.y)) / stage.height).toFixed(1) : 0 };
+      });
+      const min = Math.min(m.back[1], m.settings[1], m.cta[1], m.back[0], m.settings[0]);
+      const ok = m.cta[1] >= 44 && min >= 24 && (m.rail || m.scale >= 0.6);
+      check('targets', `${game} ${w}×${h}: CTA ≥ 44 px tall, icons ≥ 24 px (CSS)${m.rail ? ' — rail reflow' : ''}`, ok, m);
+      if (w === 568) await page.screenshot({ path: path.join(OUT, 'screenshots', `targets-${game}-568x320-rail.png`) });
+      await ctx.close();
+    }
+  }
+}
+
 // ─── Review captures (seeded) ────────────────────────────────────────────────
 async function captures(browser) {
   for (const theme of ['gold', 'emerald', 'violet']) {
@@ -433,7 +462,7 @@ async function captures(browser) {
 
 (async () => {
   const which = process.argv.slice(2);
-  const all = { pacing: pacingAndReplay, input, isolation, shatter, restarts, a11y, layout, perf, smoke, captures };
+  const all = { pacing: pacingAndReplay, input, isolation, shatter, restarts, a11y, layout, targets, perf, smoke, captures };
   const browser = await chromium.launch({ args: ['--enable-precise-memory-info'] });
   report.meta = { date: new Date().toISOString(), chromium: browser.version(), base: BASE, sections: which.length ? which : Object.keys(all), note: 'Headless Chromium on SwiftShader (software WebGL). Performance figures are relative to this environment only, not mobile measurements.' };
   for (const [name, fn] of Object.entries(all)) {
