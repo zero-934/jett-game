@@ -1,0 +1,11 @@
+  console.log
+    Simulated RTP over 2000 rounds: 0.9540
+
+      at Object.<anonymous> (src/tests/InfernoLogic.test.ts:339:13)
+
+Test Suites: 1 passed, 1 total
+Tests:       16 passed, 16 total
+Snapshots:   0 total
+Time:        7.288 s
+Ran all test suites matching src/tests/InfernoLogic.test.ts.
+Test results written to: docs\inferno-polish-001\evidence\baseline-tests.json
