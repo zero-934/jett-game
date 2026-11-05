@@ -1,0 +1,73 @@
+{
+  "label": "scene-rng-option-wild-pays-400k",
+  "generatedAt": "2026-11-05T20:40:53.278Z",
+  "sourceRoot": ".",
+  "codeSha": "77ec2516594e2848ad3126bd49d21a8a4aaf7de5",
+  "sourceDirty": true,
+  "mathVersion": "inferno-math-2",
+  "configFingerprint": "06ec4b38",
+  "prng": "ProvablyFairRNG production (unmasked BigInt xoroshiro-style)",
+  "runner": "exports",
+  "rngScope": "round",
+  "rules": {
+    "wildOnlyCluster": "pays-as-top-symbol"
+  },
+  "crownPolicy": {
+    "kind": "collect"
+  },
+  "stake": 1,
+  "batches": 100,
+  "cyclesPerBatch": 4000,
+  "seedScheme": "deriveSeed(FNV-1a64+splitmix64) of inferno-polish-001:scene-rng-option-wild-pays-400k:batch-NNN (one fresh RNG + fresh state (heat 0) per batch; state carried within a batch)",
+  "distinctBatchOutcomes": 100,
+  "paidCycles": 400000,
+  "paidSpins": 400000,
+  "freeSpins": 102085,
+  "totalPaidCredits": 400000,
+  "grossReturnCredits": 2391982.575,
+  "rtpPooled": 5.9799564375,
+  "rtpBatchMean": 5.9799564375,
+  "batchSd": 0.1445445442560567,
+  "ci95": [
+    5.951625706825813,
+    6.008287168174188
+  ],
+  "ciMethod": "batch means, Student t (df=99); batches are independent seeded sessions",
+  "hitFrequency": 0.74477,
+  "outcomeRates": {
+    "zero": 0.25523,
+    "partialBelowStake": 0.2666075,
+    "breakEven": 0.010805,
+    "profit": 0.4673575
+  },
+  "infernoSpinsPerPaidCycle": 0.2396725,
+  "infernoSpinMeanReturnCredits": 20.94592438640228,
+  "freeSpinAwardsPerPaidCycle": 0.0510425,
+  "freeSpinsPerPaidCycle": 0.2552125,
+  "crownOffersPerPaidCycle": 0.7338375,
+  "crownFlips": 0,
+  "crownFlipWinRate": null,
+  "cascadeHistogramBySpin": [
+    127861,
+    158446,
+    103817,
+    56704,
+    28459,
+    14052,
+    6655,
+    3196,
+    1524,
+    721,
+    351,
+    299
+  ],
+  "maxCascadesObserved": 17,
+  "maxObservedCycleReturnCredits": 271.25,
+  "maxObservedSpinReturnCredits": 35.65,
+  "unresolvedSpins": 0,
+  "unresolvedSeeds": [],
+  "nonFiniteEvents": 0,
+  "pendingFreeSpinsAtBatchEnds": 0,
+  "runtimeMs": 18887,
+  "crosscheck": null
+}

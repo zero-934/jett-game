@@ -1,132 +1,132 @@
 [
  {
   "file": "keyframes/kf-00.png",
-  "msSincePress": 226,
+  "msSincePress": 210,
   "uiPhase": "spinning"
  },
  {
   "file": "keyframes/kf-01.png",
-  "msSincePress": 465,
+  "msSincePress": 359,
   "uiPhase": "spinning"
  },
  {
   "file": "keyframes/kf-02.png",
-  "msSincePress": 655,
+  "msSincePress": 548,
   "uiPhase": "spinning"
  },
  {
   "file": "keyframes/kf-03.png",
-  "msSincePress": 885,
-  "uiPhase": "evaluating"
+  "msSincePress": 718,
+  "uiPhase": "spinning"
  },
  {
   "file": "keyframes/kf-04.png",
-  "msSincePress": 1146,
-  "uiPhase": "removing"
+  "msSincePress": 954,
+  "uiPhase": "evaluating"
  },
  {
   "file": "keyframes/kf-05.png",
-  "msSincePress": 1443,
+  "msSincePress": 1216,
   "uiPhase": "falling"
  },
  {
   "file": "keyframes/kf-06.png",
-  "msSincePress": 1736,
-  "uiPhase": "evaluating"
+  "msSincePress": 1415,
+  "uiPhase": "falling"
  },
  {
   "file": "keyframes/kf-07.png",
-  "msSincePress": 1978,
+  "msSincePress": 1698,
   "uiPhase": "evaluating"
  },
  {
   "file": "keyframes/kf-08.png",
-  "msSincePress": 2230,
-  "uiPhase": "falling"
+  "msSincePress": 1949,
+  "uiPhase": "evaluating"
  },
  {
   "file": "keyframes/kf-09.png",
-  "msSincePress": 2467,
+  "msSincePress": 2158,
   "uiPhase": "falling"
  },
  {
   "file": "keyframes/kf-10.png",
-  "msSincePress": 2814,
-  "uiPhase": "idle"
+  "msSincePress": 2315,
+  "uiPhase": "falling"
  },
  {
   "file": "keyframes/kf-11.png",
-  "msSincePress": 3118,
+  "msSincePress": 2676,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-12.png",
-  "msSincePress": 3437,
+  "msSincePress": 2944,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-13.png",
-  "msSincePress": 3697,
+  "msSincePress": 3202,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-14.png",
-  "msSincePress": 3964,
+  "msSincePress": 3458,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-15.png",
-  "msSincePress": 4256,
+  "msSincePress": 3731,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-16.png",
-  "msSincePress": 4527,
+  "msSincePress": 3997,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-17.png",
-  "msSincePress": 4811,
+  "msSincePress": 4267,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-18.png",
-  "msSincePress": 5068,
+  "msSincePress": 4528,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-19.png",
-  "msSincePress": 5358,
+  "msSincePress": 4789,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-20.png",
-  "msSincePress": 5636,
+  "msSincePress": 5054,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-21.png",
-  "msSincePress": 5888,
+  "msSincePress": 5331,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-22.png",
-  "msSincePress": 6171,
+  "msSincePress": 5593,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-23.png",
-  "msSincePress": 6431,
+  "msSincePress": 5835,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-24.png",
-  "msSincePress": 6679,
+  "msSincePress": 6083,
   "uiPhase": "idle"
  },
  {
   "file": "keyframes/kf-25.png",
-  "msSincePress": 6925,
+  "msSincePress": 6342,
   "uiPhase": "idle"
  }
 ]

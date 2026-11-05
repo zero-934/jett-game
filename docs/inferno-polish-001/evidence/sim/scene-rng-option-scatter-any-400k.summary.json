@@ -1,0 +1,73 @@
+{
+  "label": "scene-rng-option-scatter-any-400k",
+  "generatedAt": "2026-11-05T20:41:07.309Z",
+  "sourceRoot": ".",
+  "codeSha": "77ec2516594e2848ad3126bd49d21a8a4aaf7de5",
+  "sourceDirty": true,
+  "mathVersion": "inferno-math-2",
+  "configFingerprint": "792f593f",
+  "prng": "ProvablyFairRNG production (unmasked BigInt xoroshiro-style)",
+  "runner": "exports",
+  "rngScope": "round",
+  "rules": {
+    "scatterAward": "any-landed-board"
+  },
+  "crownPolicy": {
+    "kind": "collect"
+  },
+  "stake": 1,
+  "batches": 100,
+  "cyclesPerBatch": 4000,
+  "seedScheme": "deriveSeed(FNV-1a64+splitmix64) of inferno-polish-001:scene-rng-option-scatter-any-400k:batch-NNN (one fresh RNG + fresh state (heat 0) per batch; state carried within a batch)",
+  "distinctBatchOutcomes": 100,
+  "paidCycles": 400000,
+  "paidSpins": 400000,
+  "freeSpins": 96090,
+  "totalPaidCredits": 400000,
+  "grossReturnCredits": 380520.825,
+  "rtpPooled": 0.9513020625,
+  "rtpBatchMean": 0.9513020624999996,
+  "batchSd": 0.026032187639312063,
+  "ci95": [
+    0.9461997537226945,
+    0.9564043712773047
+  ],
+  "ciMethod": "batch means, Student t (df=99); batches are independent seeded sessions",
+  "hitFrequency": 0.56686,
+  "outcomeRates": {
+    "zero": 0.43314,
+    "partialBelowStake": 0.267855,
+    "breakEven": 0.010735,
+    "profit": 0.28827
+  },
+  "infernoSpinsPerPaidCycle": 0.2376,
+  "infernoSpinMeanReturnCredits": 0,
+  "freeSpinAwardsPerPaidCycle": 0.048045,
+  "freeSpinsPerPaidCycle": 0.240225,
+  "crownOffersPerPaidCycle": 0.54942,
+  "crownFlips": 0,
+  "crownFlipWinRate": null,
+  "cascadeHistogramBySpin": [
+    220440,
+    126338,
+    73826,
+    38383,
+    19183,
+    9414,
+    4509,
+    2160,
+    966,
+    455,
+    228,
+    188
+  ],
+  "maxCascadesObserved": 18,
+  "maxObservedCycleReturnCredits": 35.6,
+  "maxObservedSpinReturnCredits": 19.475,
+  "unresolvedSpins": 0,
+  "unresolvedSeeds": [],
+  "nonFiniteEvents": 0,
+  "pendingFreeSpinsAtBatchEnds": 0,
+  "runtimeMs": 13595,
+  "crosscheck": null
+}

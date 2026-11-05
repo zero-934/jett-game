@@ -1,3 +1,8 @@
+/**
+ * @file smoke.cjs
+ * @purpose RESEARCH ONLY — quick harness smoke check (ready → one spin → settled) with screenshots to /tmp/claude-0.
+ * @author Agent 934  @date 2026-11-05  @license Proprietary – available for licensing
+ */
 const { open, tap, dbg, waitPhase } = require('./lib.cjs');
 (async () => {
   const { browser, page, errors } = await open('seed=smoke');

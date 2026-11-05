@@ -25,11 +25,11 @@
         "id": 1,
         "stake": 10,
         "paidStakeMilli": 10000,
-        "returnedMilli": 14000,
+        "returnedMilli": 42000,
         "spins": 6,
         "freeSpins": 5
       },
-      "balanceMilli": 10500
+      "balanceMilli": 38500
     }
   },
   "freeErrors": [],
@@ -169,7 +169,7 @@
           "audioContextsCreated": 1,
           "audioContextsClosed": 0
         },
-        "heap": 30
+        "heap": 82
       },
       {
         "cycle": 20,
@@ -186,7 +186,7 @@
           "audioContextsCreated": 1,
           "audioContextsClosed": 0
         },
-        "heap": 30
+        "heap": 82
       },
       {
         "cycle": 30,
@@ -203,7 +203,7 @@
           "audioContextsCreated": 1,
           "audioContextsClosed": 0
         },
-        "heap": 30
+        "heap": 82
       },
       {
         "cycle": 40,
@@ -220,7 +220,7 @@
           "audioContextsCreated": 1,
           "audioContextsClosed": 0
         },
-        "heap": 30
+        "heap": 82
       },
       {
         "cycle": 50,
@@ -237,7 +237,7 @@
           "audioContextsCreated": 1,
           "audioContextsClosed": 0
         },
-        "heap": 30
+        "heap": 82
       }
     ]
   },
@@ -282,7 +282,7 @@
         "blur": 1,
         "focus": 1
       },
-      "pauseDurationMs": 431
+      "pauseDurationMs": 439
     },
     "spinAfterResume": {
       "phase": "decision",

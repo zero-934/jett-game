@@ -48,7 +48,8 @@ async function freshPage(query) { return open(query); }
     const afterPaid = await dbg(page);
     // drop the balance to zero mid-cycle to prove free spins need no balance
     await page.evaluate(() => { const s = window.__inferno.scene(); s.session = { ...s.session, balanceMilli: 0 }; });
-    await page.waitForFunction(() => { const d = window.__inferno.debug(); return d.phase === 'ready' && d.freeSpins === 0 && d.cycle === null; }, null, { timeout: 60000 });
+    // drain the award cycle; if the final free spin opens a Crown decision, collect it
+    await page.waitForFunction(() => { const d = window.__inferno.debug(); if (d.phase === 'decision') window.__inferno.scene().handleCollect(d.roundId); return d.phase === 'ready' && d.freeSpins === 0 && d.cycle === null; }, null, { timeout: 90000, polling: 200 });
     let d = await dbg(page);
     if (d.phase === 'decision') await page.evaluate(() => window.__inferno.scene().handleCollect(window.__inferno.debug().roundId));
     d = await dbg(page);
@@ -162,7 +163,10 @@ async function freshPage(query) { return open(query); }
     await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, get: () => false }); document.dispatchEvent(new Event('visibilitychange')); window.onfocus && window.onfocus(); });
     await page.waitForTimeout(400);
     const visible = await page.evaluate(() => ({ ctx: window.__inferno.scene().sound.context?.state, events: { ...window.__vis }, pauseDurationMs: Math.round(window.__inferno.game.loop.pauseDuration) }));
-    // a spin still completes after blur/focus (no stuck UI)
+    // a spin still completes after blur/focus (no stuck UI); first close any Crown decision from round 1
+    await page.waitForFunction(() => ['ready', 'decision'].includes(window.__inferno.debug().phase), null, { timeout: 20000 });
+    await page.evaluate(() => { const d = window.__inferno.debug(); if (d.phase === 'decision') window.__inferno.scene().handleCollect(d.roundId); });
+    await page.waitForFunction(() => window.__inferno.debug().phase === 'ready', null, { timeout: 20000 });
     await tap(page, ...SPIN);
     await page.waitForFunction(() => ['ready', 'decision'].includes(window.__inferno.debug().phase) && window.__inferno.debug().roundId >= 2, null, { timeout: 20000 });
     const afterResume = await dbg(page);

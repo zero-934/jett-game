@@ -1,0 +1,80 @@
+{
+  "label": "option-wild-pays-collect",
+  "generatedAt": "2026-11-05T20:35:26.973Z",
+  "sourceRoot": ".",
+  "codeSha": "77ec2516594e2848ad3126bd49d21a8a4aaf7de5",
+  "sourceDirty": true,
+  "mathVersion": "inferno-math-2",
+  "configFingerprint": "06ec4b38",
+  "prng": "ProvablyFairRNG production (unmasked BigInt xoroshiro-style)",
+  "runner": "exports",
+  "rngScope": "batch",
+  "rules": {
+    "wildOnlyCluster": "pays-as-top-symbol"
+  },
+  "crownPolicy": {
+    "kind": "collect"
+  },
+  "stake": 1,
+  "batches": 40,
+  "cyclesPerBatch": 1000,
+  "seedScheme": "deriveSeed(FNV-1a64+splitmix64) of inferno-polish-001:option-wild-pays-collect:batch-NNN (one fresh RNG + fresh state (heat 0) per batch; state carried within a batch)",
+  "distinctBatchOutcomes": 40,
+  "paidCycles": 40000,
+  "paidSpins": 40000,
+  "freeSpins": 9940,
+  "totalPaidCredits": 40000,
+  "grossReturnCredits": 239843.85,
+  "rtpPooled": 5.99609625,
+  "rtpBatchMean": 5.996096250000001,
+  "batchSd": 0.2245965344497972,
+  "ci95": [
+    5.9264930628627015,
+    6.0656994371373
+  ],
+  "ciMethod": "batch means, Student t (df=39); batches are independent seeded sessions",
+  "hitFrequency": 0.745425,
+  "outcomeRates": {
+    "zero": 0.254575,
+    "partialBelowStake": 0.26145,
+    "breakEven": 0.010775,
+    "profit": 0.4732
+  },
+  "infernoSpinsPerPaidCycle": 0.240275,
+  "infernoSpinMeanReturnCredits": 20.962272396212672,
+  "freeSpinAwardsPerPaidCycle": 0.0497,
+  "freeSpinsPerPaidCycle": 0.2485,
+  "crownOffersPerPaidCycle": 0.7338,
+  "crownFlips": 0,
+  "crownFlipWinRate": null,
+  "cascadeHistogramBySpin": [
+    12714,
+    15397,
+    10491,
+    5715,
+    2884,
+    1408,
+    695,
+    342,
+    160,
+    67,
+    46,
+    21
+  ],
+  "maxCascadesObserved": 14,
+  "maxObservedCycleReturnCredits": 161.475,
+  "maxObservedSpinReturnCredits": 33.05,
+  "unresolvedSpins": 0,
+  "unresolvedSeeds": [],
+  "nonFiniteEvents": 0,
+  "pendingFreeSpinsAtBatchEnds": 0,
+  "runtimeMs": 44880,
+  "crosscheck": {
+    "seed": "inferno-polish-001:option-wild-pays-collect:batch-000",
+    "thisRunner": "exports",
+    "grossThis": 5889275,
+    "grossOther": 5889275,
+    "cascadesEqual": true,
+    "equal": true
+  }
+}

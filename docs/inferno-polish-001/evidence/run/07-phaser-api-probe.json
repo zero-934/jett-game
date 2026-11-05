@@ -8,8 +8,8 @@
     "remaining": 0
   },
   "timeScale": {
-    "tween400msAtX4": 101,
-    "delayedCall400msAtX4": 116,
+    "tween400msAtX4": 113,
+    "delayedCall400msAtX4": 120,
     "removedDelayedCallFired": 0
   },
   "particles": {

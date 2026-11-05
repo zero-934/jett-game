@@ -1,0 +1,80 @@
+{
+  "label": "option-scatter-any-collect",
+  "generatedAt": "2026-11-05T20:35:57.976Z",
+  "sourceRoot": ".",
+  "codeSha": "77ec2516594e2848ad3126bd49d21a8a4aaf7de5",
+  "sourceDirty": true,
+  "mathVersion": "inferno-math-2",
+  "configFingerprint": "792f593f",
+  "prng": "ProvablyFairRNG production (unmasked BigInt xoroshiro-style)",
+  "runner": "exports",
+  "rngScope": "batch",
+  "rules": {
+    "scatterAward": "any-landed-board"
+  },
+  "crownPolicy": {
+    "kind": "collect"
+  },
+  "stake": 1,
+  "batches": 40,
+  "cyclesPerBatch": 1000,
+  "seedScheme": "deriveSeed(FNV-1a64+splitmix64) of inferno-polish-001:option-scatter-any-collect:batch-NNN (one fresh RNG + fresh state (heat 0) per batch; state carried within a batch)",
+  "distinctBatchOutcomes": 40,
+  "paidCycles": 40000,
+  "paidSpins": 40000,
+  "freeSpins": 9535,
+  "totalPaidCredits": 40000,
+  "grossReturnCredits": 37873.075,
+  "rtpPooled": 0.946826875,
+  "rtpBatchMean": 0.946826875,
+  "batchSd": 0.04967846822042286,
+  "ci95": [
+    0.9314313581960069,
+    0.962222391803993
+  ],
+  "ciMethod": "batch means, Student t (df=39); batches are independent seeded sessions",
+  "hitFrequency": 0.566775,
+  "outcomeRates": {
+    "zero": 0.433225,
+    "partialBelowStake": 0.270575,
+    "breakEven": 0.010225,
+    "profit": 0.285975
+  },
+  "infernoSpinsPerPaidCycle": 0.23555,
+  "infernoSpinMeanReturnCredits": 0,
+  "freeSpinAwardsPerPaidCycle": 0.047675,
+  "freeSpinsPerPaidCycle": 0.238375,
+  "crownOffersPerPaidCycle": 0.549575,
+  "crownFlips": 0,
+  "crownFlipWinRate": null,
+  "cascadeHistogramBySpin": [
+    22039,
+    12695,
+    7350,
+    3710,
+    1925,
+    954,
+    464,
+    204,
+    92,
+    53,
+    25,
+    24
+  ],
+  "maxCascadesObserved": 14,
+  "maxObservedCycleReturnCredits": 33.475,
+  "maxObservedSpinReturnCredits": 14.825,
+  "unresolvedSpins": 0,
+  "unresolvedSeeds": [],
+  "nonFiniteEvents": 0,
+  "pendingFreeSpinsAtBatchEnds": 0,
+  "runtimeMs": 30537,
+  "crosscheck": {
+    "seed": "inferno-polish-001:option-scatter-any-collect:batch-000",
+    "thisRunner": "exports",
+    "grossThis": 967200,
+    "grossOther": 967200,
+    "cascadesEqual": true,
+    "equal": true
+  }
+}

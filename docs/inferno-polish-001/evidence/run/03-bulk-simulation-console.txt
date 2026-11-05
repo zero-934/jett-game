@@ -1,14 +1,26 @@
-{"label":"before-math1-collect","rtpPooled":0.9053425,"ci95":[0.8911534729202188,0.9195315270797817],"paidCycles":40000,"unresolved":0,"runtimeMs":24537,"crosscheck":null}
-{"label":"before-math1-flip-once","rtpPooled":0.901358125,"ci95":[0.8861217027388612,0.9165945472611389],"paidCycles":40000,"unresolved":0,"runtimeMs":25631,"crosscheck":null}
-{"label":"after-math2-collect","rtpPooled":0.9023725,"ci95":[0.8918745888552851,0.9128704111447145],"paidCycles":100000,"unresolved":0,"runtimeMs":62220,"crosscheck":{"seed":"inferno-polish-001:after-math2-collect:batch-000","thisRunner":"exports","grossThis":905300,"grossOther":905300,"cascadesEqual":true,"equal":true}}
-{"label":"after-math2-flip-once","rtpPooled":0.890925,"ci95":[0.8741731931896805,0.9076768068103188],"paidCycles":40000,"unresolved":0,"runtimeMs":26373,"crosscheck":null}
-{"label":"after-math2-flip-up-to-3","rtpPooled":0.80606625,"ci95":[0.7948589041367096,0.8172735958632913],"paidCycles":40000,"unresolved":0,"runtimeMs":28998,"crosscheck":null}
-{"label":"option-wild-pays-collect","rtpPooled":6.063485,"ci95":[5.961898473278086,6.16507152672192],"paidCycles":40000,"unresolved":0,"runtimeMs":45232,"crosscheck":{"seed":"inferno-polish-001:option-wild-pays-collect:batch-000","thisRunner":"exports","grossThis":5871425,"grossOther":5871425,"cascadesEqual":true,"equal":true}}
-{"label":"option-scatter-any-collect","rtpPooled":0.97288625,"ci95":[0.9564833853189508,0.9892891146810491],"paidCycles":40000,"unresolved":0,"runtimeMs":29685,"crosscheck":{"seed":"inferno-polish-001:option-scatter-any-collect:batch-000","thisRunner":"exports","grossThis":971575,"grossOther":971575,"cascadesEqual":true,"equal":true}}
-{"label":"option-both-collect","rtpPooled":6.25178875,"ci95":[6.170207290739975,6.33337020926002],"paidCycles":40000,"unresolved":0,"runtimeMs":47958,"crosscheck":null}
-{"label":"sensitivity-after-math2-short-batches","rtpPooled":0.945956875,"ci95":[0.9290803268373298,0.9628334231626714],"paidCycles":40000,"unresolved":0,"runtimeMs":7236,"crosscheck":null}
-{"label":"sensitivity-after-math2-masked-prng","rtpPooled":0.899120625,"ci95":[0.8818881703658943,0.9163530796341064],"paidCycles":40000,"unresolved":0,"runtimeMs":816,"crosscheck":null}
+{"label":"before-math1-collect","distinct":40,"rtpPooled":0.90938375,"ci95":[0.8892143514937345,0.9295531485062658],"paidCycles":40000,"unresolved":0,"runtimeMs":25602,"crosscheck":null}
+{"label":"before-math1-flip-once","distinct":40,"rtpPooled":0.907794375,"ci95":[0.8882190281216676,0.9273697218783322],"paidCycles":40000,"unresolved":0,"runtimeMs":26946,"crosscheck":null}
+{"label":"after-math2-collect","distinct":100,"rtpPooled":0.90564025,"ci95":[0.8959703945033216,0.9153101054966789],"paidCycles":100000,"unresolved":0,"runtimeMs":64638,"crosscheck":{"seed":"inferno-polish-001:after-math2-collect:batch-000","thisRunner":"exports","grossThis":884275,"grossOther":884275,"cascadesEqual":true,"equal":true}}
+{"label":"after-math2-flip-once","distinct":40,"rtpPooled":0.91452875,"ci95":[0.8916313043922262,0.9374261956077738],"paidCycles":40000,"unresolved":0,"runtimeMs":28234,"crosscheck":null}
+{"label":"after-math2-flip-up-to-3","distinct":40,"rtpPooled":0.951596875,"ci95":[0.9143182693560051,0.9888754806439951],"paidCycles":40000,"unresolved":0,"runtimeMs":29989,"crosscheck":null}
+{"label":"option-wild-pays-collect","distinct":40,"rtpPooled":5.99609625,"ci95":[5.9264930628627015,6.0656994371373],"paidCycles":40000,"unresolved":0,"runtimeMs":44880,"crosscheck":{"seed":"inferno-polish-001:option-wild-pays-collect:batch-000","thisRunner":"exports","grossThis":5889275,"grossOther":5889275,"cascadesEqual":true,"equal":true}}
+{"label":"option-scatter-any-collect","distinct":40,"rtpPooled":0.946826875,"ci95":[0.9314313581960069,0.962222391803993],"paidCycles":40000,"unresolved":0,"runtimeMs":30537,"crosscheck":{"seed":"inferno-polish-001:option-scatter-any-collect:batch-000","thisRunner":"exports","grossThis":967200,"grossOther":967200,"cascadesEqual":true,"equal":true}}
+{"label":"option-both-collect","distinct":40,"rtpPooled":6.220059375,"ci95":[6.132605721196431,6.307513028803569],"paidCycles":40000,"unresolved":0,"runtimeMs":49356,"crosscheck":null}
+{"label":"sensitivity-after-math2-short-batches","distinct":160,"rtpPooled":0.911305625,"ci95":[0.8965293209661231,0.9260819290338771],"paidCycles":40000,"unresolved":0,"runtimeMs":6922,"crosscheck":null}
+{"label":"sensitivity-after-math2-masked-prng","distinct":40,"rtpPooled":0.9013175,"ci95":[0.8886730197826512,0.9139619802173488],"paidCycles":40000,"unresolved":0,"runtimeMs":811,"crosscheck":null}
+{"label":"sensitivity-after-math2-masked-prng-2M","distinct":200,"rtpPooled":0.907485025,"ci95":[0.9054057975065275,0.9095642524934722],"paidCycles":2000000,"unresolved":0,"runtimeMs":40987,"crosscheck":null}
+{"label":"after-math2-collect-round-rng-like-scene","distinct":40,"rtpPooled":0.926881875,"ci95":[0.9101157752248437,0.9436479747751563],"paidCycles":40000,"unresolved":0,"runtimeMs":1655,"crosscheck":null}
 
-real	5m3.283s
-user	5m1.604s
-sys	0m9.427s
+real	6m1.772s
+user	5m51.116s
+sys	0m13.016s
+{"label":"HEADLINE-after-math2-scene-rng-collect-2M","distinct":200,"rtpPooled":0.9075896375,"ci95":[0.9054988485661293,0.9096804264338718],"paidCycles":2000000,"unresolved":0,"runtimeMs":70718,"crosscheck":null}
+{"label":"scene-rng-flip-once-400k","distinct":100,"rtpPooled":0.9111428125,"ci95":[0.9052119425239801,0.9170736824760198],"paidCycles":400000,"unresolved":0,"runtimeMs":12983,"crosscheck":null}
+{"label":"scene-rng-flip-up-to-3-400k","distinct":100,"rtpPooled":0.9024565,"ci95":[0.8927834023555018,0.9121295976444984],"paidCycles":400000,"unresolved":0,"runtimeMs":13372,"crosscheck":null}
+{"label":"scene-rng-option-wild-pays-400k","distinct":100,"rtpPooled":5.9799564375,"ci95":[5.951625706825813,6.008287168174188],"paidCycles":400000,"unresolved":0,"runtimeMs":18887,"crosscheck":null}
+{"label":"scene-rng-option-scatter-any-400k","distinct":100,"rtpPooled":0.9513020625,"ci95":[0.9461997537226945,0.9564043712773047],"paidCycles":400000,"unresolved":0,"runtimeMs":13595,"crosscheck":null}
+{"label":"scene-rng-before-math1-collect-400k","distinct":100,"rtpPooled":0.911292375,"ci95":[0.9069238246840557,0.9156609253159443],"paidCycles":400000,"unresolved":0,"runtimeMs":12036,"crosscheck":null}
+
+real	2m24.325s
+user	2m24.747s
+sys	0m1.270s

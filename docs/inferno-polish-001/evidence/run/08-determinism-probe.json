@@ -3,64 +3,64 @@
   "summary": [
     {
       "name": "raf-default",
-      "wallMs": 23686,
-      "finalBalanceMilli": 939500,
+      "wallMs": 24911,
+      "finalBalanceMilli": 1063750,
       "identicalToRaf": true,
       "errors": 0
     },
     {
       "name": "fps30",
-      "wallMs": 24209,
-      "finalBalanceMilli": 939500,
+      "wallMs": 25651,
+      "finalBalanceMilli": 1063750,
       "identicalToRaf": true,
       "errors": 0
     },
     {
       "name": "fps60",
-      "wallMs": 23602,
-      "finalBalanceMilli": 939500,
+      "wallMs": 24980,
+      "finalBalanceMilli": 1063750,
       "identicalToRaf": true,
       "errors": 0
     },
     {
       "name": "fps120",
-      "wallMs": 24876,
-      "finalBalanceMilli": 939500,
+      "wallMs": 25138,
+      "finalBalanceMilli": 1063750,
       "identicalToRaf": true,
       "errors": 0
     },
     {
       "name": "fps144",
-      "wallMs": 24819,
-      "finalBalanceMilli": 939500,
+      "wallMs": 25426,
+      "finalBalanceMilli": 1063750,
       "identicalToRaf": true,
       "errors": 0
     },
     {
       "name": "reduced-motion",
-      "wallMs": 14991,
-      "finalBalanceMilli": 939500,
+      "wallMs": 15754,
+      "finalBalanceMilli": 1063750,
       "identicalToRaf": true,
       "errors": 0
     },
     {
       "name": "quick-spin",
-      "wallMs": 14585,
-      "finalBalanceMilli": 939500,
+      "wallMs": 14732,
+      "finalBalanceMilli": 1063750,
       "identicalToRaf": true,
       "errors": 0
     },
     {
       "name": "skip-every-spin",
-      "wallMs": 6361,
-      "finalBalanceMilli": 939500,
+      "wallMs": 6577,
+      "finalBalanceMilli": 1063750,
       "identicalToRaf": true,
       "errors": 0
     },
     {
       "name": "audio-muted",
-      "wallMs": 24040,
-      "finalBalanceMilli": 939500,
+      "wallMs": 25030,
+      "finalBalanceMilli": 1063750,
       "identicalToRaf": true,
       "errors": 0
     }
@@ -68,87 +68,87 @@
   "referenceRows": [
     {
       "r": 1,
-      "bal": 999250,
-      "heat": 3,
+      "bal": 990000,
+      "heat": 0,
       "fs": 0,
-      "grid": "EM,AS,FL|EM,SC,SC|CO,FL,CO"
+      "grid": "SM,SC,CO|AS,CO,AS|AS,EM,AS"
     },
     {
       "r": 2,
-      "bal": 996750,
-      "heat": 4,
+      "bal": 980000,
+      "heat": 0,
       "fs": 0,
-      "grid": "SM,AS,CO|SM,CO,SM|AS,AS,SC"
+      "grid": "CO,AS,SM|SM,AS,SC|AS,SM,CO"
     },
     {
       "r": 3,
-      "bal": 988250,
-      "heat": 5,
+      "bal": 992250,
+      "heat": 3,
       "fs": 0,
-      "grid": "AS,SM,CO|SM,FL,SM|AS,AS,SM"
+      "grid": "FL,CO,SM|FL,SM,EM|AS,SC,SM"
     },
     {
       "r": 4,
-      "bal": 978250,
-      "heat": 0,
+      "bal": 1006000,
+      "heat": 5,
       "fs": 0,
-      "grid": "WI,WI,WI|WI,WI,WI|WI,WI,WI"
+      "grid": "AS,AS,SM|SM,CO,FL|AS,FL,AS"
     },
     {
       "r": 5,
-      "bal": 977500,
-      "heat": 3,
+      "bal": 996000,
+      "heat": 0,
       "fs": 0,
-      "grid": "EM,AS,FL|EM,SC,SC|CO,FL,CO"
+      "grid": "WI,WI,WI|WI,WI,WI|WI,WI,WI"
     },
     {
       "r": 6,
-      "bal": 975000,
-      "heat": 4,
+      "bal": 989750,
+      "heat": 1,
       "fs": 0,
-      "grid": "SM,AS,CO|SM,CO,SM|AS,AS,SC"
+      "grid": "CO,EM,SC|CO,SM,SM|AS,AS,EM"
     },
     {
       "r": 7,
-      "bal": 966500,
-      "heat": 5,
+      "bal": 990000,
+      "heat": 3,
       "fs": 0,
-      "grid": "AS,SM,CO|SM,FL,SM|AS,AS,SM"
+      "grid": "SC,AS,CO|SM,AS,FL|CO,SC,FL"
     },
     {
       "r": 8,
-      "bal": 956500,
-      "heat": 0,
+      "bal": 1059750,
+      "heat": 5,
       "fs": 0,
-      "grid": "WI,WI,WI|WI,WI,WI|WI,WI,WI"
+      "grid": "AS,FL,AS|FL,SM,EM|CO,FL,CO"
     },
     {
       "r": 9,
-      "bal": 955750,
-      "heat": 3,
-      "fs": 0,
-      "grid": "EM,AS,FL|EM,SC,SC|CO,FL,CO"
-    },
-    {
-      "r": 10,
-      "bal": 959500,
-      "heat": 5,
-      "fs": 0,
-      "grid": "SM,CO,SC|FL,AS,SM|SC,FL,SM"
-    },
-    {
-      "r": 11,
-      "bal": 949500,
+      "bal": 1049750,
       "heat": 0,
       "fs": 0,
       "grid": "WI,WI,WI|WI,WI,WI|WI,WI,WI"
     },
     {
-      "r": 12,
-      "bal": 939500,
+      "r": 10,
+      "bal": 1039750,
       "heat": 0,
       "fs": 0,
-      "grid": "SM,CO,SM|FL,SM,AS|FL,EM,AS"
+      "grid": "FL,SM,CO|CO,AS,CO|SM,CO,AS"
+    },
+    {
+      "r": 11,
+      "bal": 1065000,
+      "heat": 3,
+      "fs": 0,
+      "grid": "AS,SM,SM|CO,FL,CO|SM,EM,AS"
+    },
+    {
+      "r": 12,
+      "bal": 1063750,
+      "heat": 4,
+      "fs": 0,
+      "grid": "SM,SM,FL|SC,CO,SM|EM,SC,SM"
     }
   ]
 }
