@@ -1,0 +1,60 @@
+  console.log
+    tickFlapFortune avg 2.46 us/tick (includes per-tick RNG construction)
+
+      at Object.<anonymous> (research/characterization/flap.char.test.ts:55:13)
+
+  console.log
+    hz30: ticks=260 zeroTickFrames=0 maxTicks/frame=3
+    hz60: ticks=260 zeroTickFrames=0 maxTicks/frame=2
+    hz120: ticks=260 zeroTickFrames=240 maxTicks/frame=1
+    hz144: ticks=260 zeroTickFrames=340 maxTicks/frame=1
+    jitter: ticks=260 zeroTickFrames=39 maxTicks/frame=2
+    hitch: ticks=260 zeroTickFrames=0 maxTicks/frame=7
+
+      at Object.<anonymous> (research/characterization/fixedstep.char.test.ts:61:13)
+
+  console.log
+    Jett  cash-out@alt 100: ticks=80 survival=0.9374 mult=1.067 EV=1.000
+    Jett  cash-out@alt 250: ticks=188 survival=0.8572 mult=1.232 EV=1.056
+    Jett  cash-out@alt 500: ticks=343 survival=0.7502 mult=1.563 EV=1.173
+    Jett  cash-out@alt 1000: ticks=591 survival=0.5973 mult=2.520 EV=1.505
+    Jett  cash-out@alt 2000: ticks=952 survival=0.4108 mult=6.530 EV=2.682
+    Jett  cash-out@alt 3000: ticks=1286 survival=0.2750 mult=16.969 EV=4.666
+    Jett  cash-out@alt 5000: ticks=1952 survival=0.1053 mult=113.939 EV=11.997
+    Jett  cash-out@alt 8000: ticks=2952 survival=0.0167 mult=1988.162 EV=33.178
+    Jett  best EV 62.11x at altitude 12843
+    Flap  dive after gate 1: survival=0.9624 mult=1.057 EV=1.018
+    Flap  dive after gate 5: survival=0.8255 mult=1.492 EV=1.232
+    Flap  dive after gate 10: survival=0.6815 mult=2.296 EV=1.565
+    Flap  dive after gate 20: survival=0.4544 mult=5.436 EV=2.470
+    Flap  dive after gate 40: survival=0.1455 mult=30.467 EV=4.433
+    Flap  dive after gate 60: survival=0.0294 mult=170.750 EV=5.019
+    Flap  dive after gate 80: survival=0.0037 mult=956.955 EV=3.585
+    Flap  best EV 5.08x after gate 55
+
+      at Object.<anonymous> (research/probes/skill-ev.probe.ts:34:11)
+
+  console.log
+    Jett waves spawned=818, waves landing in an already-occupied 20-unit band (approximate duplicate-band rate)=149 (18.2%)
+
+      at Object.<anonymous> (research/characterization/jett.char.test.ts:108:13)
+
+  console.log
+    calls=     0  s0.bits=    7443  s1.bits=    7464  cost/call=2.0us
+    calls=    10  s0.bits=   14843  s1.bits=   14864  cost/call=4.5us
+    calls=   100  s0.bits=   22243  s1.bits=   22264  cost/call=15.4us
+    calls=  1000  s0.bits=   44443  s1.bits=   44464  cost/call=10.2us
+    calls=  5000  s0.bits=  192443  s1.bits=  192464  cost/call=52.6us
+    calls= 10000  s0.bits=  377443  s1.bits=  377464  cost/call=79.5us
+    calls= 20000  s0.bits=  747443  s1.bits=  747464  cost/call=144.1us
+    first output index differing from masked reference: 2
+    identical seeds -> identical first value: true
+    first values for consecutive-ms seeds: 0.733611, 0.733611, 0.733611, 0.733611
+
+      at Object.<anonymous> (research/probes/rng-growth.probe.ts:48:11)
+
+Test Suites: 7 passed, 7 total
+Tests:       36 passed, 36 total
+Snapshots:   0 total
+Time:        6.444 s
+Ran all test suites.

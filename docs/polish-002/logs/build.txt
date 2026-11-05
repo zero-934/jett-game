@@ -1,0 +1,21 @@
+
+> jetpack-phaser@0.0.0 build
+> tsc && vite build
+
+vite v8.0.8 building client environment for production...
+[2Ktransforming...✓ 51 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                    5.57 kB │ gzip:   1.40 kB
+dist/assets/index-BLubKIkA.js  1,543.94 kB │ gzip: 398.75 kB
+
+✓ built in 1.06s
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+real	0m3.779s
+user	0m6.230s
+sys	0m0.705s

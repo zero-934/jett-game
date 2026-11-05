@@ -1,0 +1,44 @@
+36 / 36
+## research/characterization/shatter.char.test.ts 3.5 s
+   passed | [CURRENT-DEFECT] theoretical RTP is at most 72.75% for every stopping strategy (target 96%)
+   passed | outcome is independent of the chosen side (pick has no effect on the roll)
+   passed | cash-out guards: before first pick, repeated, after loss, after auto cash-out at top
+   passed | re-entrant pick after settlement is ignored at logic level
+   passed | [CURRENT-DEFECT] UI LCG (ShatterStepUI._rng) can return exactly 1.0 and loses precision on Date.now() seeds
+## research/characterization/rng.char.test.ts 3.7 s
+   passed | [CURRENT-DEFECT] state grows without bound (~37 bits per call)
+   passed | [CURRENT-DEFECT] nearby millisecond seeds produce near-identical first values
+   passed | [CURRENT-DEFECT] clone() does not survive JSON; there is no state export
+   passed | proposed masked RNG: bounded state, distinct first values, checkpoint round-trip
+   passed | proposed masked RNG: uniformity smoke check (10 buckets, 100k draws, chi-square < 30)
+## research/characterization/flap.char.test.ts 0.1 s
+   passed | [CURRENT-DEFECT] gate artwork is wider than the logic hitbox
+   passed | [CURRENT-DEFECT] combustion floor 0.0005 overrides configured 0.0003 (and 0)
+   passed | [CURRENT-DEFECT] a new ProvablyFairRNG is constructed on every tick even when config.rng exists
+   passed | deterministic given seeded rng + identical flap schedule (logic layer only)
+   passed | dive cash-out only after first gate; floor before first gate is a loss
+   passed | ceiling at y < 14 is death — and the 36px nav bar overlaps the playfield above it
+   passed | collision edges: wizard right edge == pipe.x is NOT a hit; 1e-9 overlap is
+## research/characterization/fixedstep.char.test.ts 0.1 s
+   passed | same seed + same per-tick decisions => identical final state on every schedule
+   passed | replay of the action log reproduces the state exactly
+   passed | quick tap (press+release between ticks) is retained as a flap action
+   passed | checkpoint (state + RNG snapshot + tick) restores and continues identically
+   passed | settle() is idempotent; queue() after settlement is ignored
+   passed | queue() before begin() is ignored (ready phase input never reaches gameplay)
+## research/probes/skill-ev.probe.ts 0.0 s
+   passed | perfect-play EV curves
+## research/characterization/jett.char.test.ts 4.2 s
+   passed | [CURRENT-DEFECT] multiplier drops below 1.0 on the first tick (x0.9711)
+   passed | first coin: world Y 675.2, off-screen at start, visible at altitude ~101.9, collectable at ~675
+   passed | [CURRENT-DEFECT] coin X uses Math.random(), bypassing injected RNG — same seed, different state
+   passed | [CURRENT-DEFECT] combustion floor: configured chance 0 still combusts at 0.0008/tick
+   passed | [CURRENT-DEFECT] negative vertical scatter re-spawns the same wave band
+   passed | duplicate-band frequency under a realistic seeded RNG (measured, informational)
+   passed | [CURRENT-DEFECT] horizontal teleport tunnels through an asteroid (no swept collision)
+   passed | [CURRENT-DEFECT] state is not JSON-serializable for checkpoints (rng is a function)
+   passed | cash-out guards: after death, repeated, and before any tick
+   passed | asteroid wave with count=5 can place x outside its own slot (slotWidth < 2*radius)
+   passed | [CURRENT-DEFECT] collision tangency is float-rounding dependent (exact touch at x=195+35.1 registers a hit)
+## research/probes/rng-growth.probe.ts 1.6 s
+   passed | ProvablyFairRNG state growth and cost

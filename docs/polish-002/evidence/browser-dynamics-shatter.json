@@ -1,0 +1,18 @@
+{
+  "shatterReveal": {
+    "isAlive": false,
+    "lastPick": "left",
+    "status": "✗ SHATTERED",
+    "chosenSide": "left",
+    "revealClaimsCorrectSide": "left (Math.random=0.9 => left)",
+    "restarted": true,
+    "screenshot": "docs/polish-002/evidence/screenshots/shatter-loss-reveal-contradiction.png"
+  },
+  "meta": {
+    "probe": "browser-dynamics",
+    "which": "shatter",
+    "durationSec": 3.706,
+    "chromium": "153.0.8010.12",
+    "date": "2026-11-05T16:13:06.084Z"
+  }
+}

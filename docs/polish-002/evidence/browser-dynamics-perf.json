@@ -1,0 +1,137 @@
+{
+  "frameCost": {
+    "JettScene@cpu1x": [
+      {
+        "label": "ready",
+        "frames": 180,
+        "fps": 60,
+        "stepMsP50": 0.8,
+        "stepMsP95": 1.2,
+        "stepMsMax": 2,
+        "intervalP95": 17
+      },
+      {
+        "label": "active",
+        "frames": 301,
+        "fps": 60.2,
+        "stepMsP50": 2.3,
+        "stepMsP95": 3.2,
+        "stepMsMax": 8,
+        "intervalP95": 19.1
+      },
+      {
+        "label": "aliveAfterActive",
+        "alive": true
+      }
+    ],
+    "FlapFortuneScene@cpu1x": [
+      {
+        "label": "ready",
+        "frames": 181,
+        "fps": 60.3,
+        "stepMsP50": 1.4,
+        "stepMsP95": 2,
+        "stepMsMax": 3,
+        "intervalP95": 16.9
+      },
+      {
+        "label": "active",
+        "frames": 298,
+        "fps": 59.6,
+        "stepMsP50": 1.2,
+        "stepMsP95": 1.8,
+        "stepMsMax": 7.6,
+        "intervalP95": 17.8
+      },
+      {
+        "label": "aliveAfterActive",
+        "alive": false
+      }
+    ],
+    "ShatterStepScene@cpu1x": [
+      {
+        "label": "ready",
+        "frames": 143,
+        "fps": 47.7,
+        "stepMsP50": 3.2,
+        "stepMsP95": 5.2,
+        "stepMsMax": 7.1,
+        "intervalP95": 25.4
+      },
+      {
+        "label": "aliveAfterActive",
+        "alive": true
+      }
+    ],
+    "JettScene@cpu4x": [
+      {
+        "label": "ready",
+        "frames": 136,
+        "fps": 45.3,
+        "stepMsP50": 3.9,
+        "stepMsP95": 7.4,
+        "stepMsMax": 9.5,
+        "intervalP95": 28.2
+      },
+      {
+        "label": "active",
+        "frames": 150,
+        "fps": 30,
+        "stepMsP50": 12.4,
+        "stepMsP95": 22.6,
+        "stepMsMax": 27.6,
+        "intervalP95": 43.6
+      },
+      {
+        "label": "aliveAfterActive",
+        "alive": true
+      }
+    ],
+    "FlapFortuneScene@cpu4x": [
+      {
+        "label": "ready",
+        "frames": 130,
+        "fps": 43.3,
+        "stepMsP50": 6.6,
+        "stepMsP95": 10.4,
+        "stepMsMax": 14.2,
+        "intervalP95": 28.4
+      },
+      {
+        "label": "active",
+        "frames": 201,
+        "fps": 40.2,
+        "stepMsP50": 5.8,
+        "stepMsP95": 10.6,
+        "stepMsMax": 18.2,
+        "intervalP95": 30.4
+      },
+      {
+        "label": "aliveAfterActive",
+        "alive": false
+      }
+    ],
+    "ShatterStepScene@cpu4x": [
+      {
+        "label": "ready",
+        "frames": 71,
+        "fps": 23.7,
+        "stepMsP50": 14.8,
+        "stepMsP95": 24.2,
+        "stepMsMax": 28.3,
+        "intervalP95": 53.9
+      },
+      {
+        "label": "aliveAfterActive",
+        "alive": true
+      }
+    ]
+  },
+  "meta": {
+    "probe": "browser-dynamics",
+    "which": "perf",
+    "durationSec": 46.875,
+    "chromium": "153.0.8010.12",
+    "date": "2026-11-05T16:14:59.401Z"
+  }
+}

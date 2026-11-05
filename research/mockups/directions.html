@@ -1,0 +1,193 @@
+<!doctype html>
+<!--
+  @file directions.html
+  @purpose REVIEW-ONLY composition studies for JETT-POLISH-002 visual directions.
+           Original vector art drawn for this study. NOT implemented gameplay. NOT measured results.
+           Render: research/probes/render-mockups.cjs  (?dir=lux | ?dir=ill)
+  @author Agent 934 (research branch)
+  @date 2026-11-05
+  @license Proprietary – available for licensing
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Visual Direction Studies (proposal)</title>
+<style>
+  :root {
+    --charcoal: #0d0d0d; --surface: #141414; --line: #262626; --gold: #c9a84c; --gold-hi: #e6c977;
+    --ivory: #f3ecd9; --muted: #8b8577; --danger: #d9534f; --safe: #3fbf8f;
+    --indigo: #1a1640; --violet: #3b2a73; --teal: #2bb3a3; --ember: #e0763a; --night: #0f1230;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #050505; font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--ivory); padding: 28px; }
+  h1 { font-size: 22px; letter-spacing: .08em; color: var(--gold); font-weight: 700; }
+  .sub { color: var(--muted); font-size: 13px; margin: 6px 0 22px; max-width: 1240px; line-height: 1.5; }
+  .row { display: flex; gap: 28px; }
+  .phone { width: 390px; height: 844px; border-radius: 34px; overflow: hidden; position: relative; outline: 1px solid #2a2a2a; flex: none; }
+  .phone svg { position: absolute; inset: 0; }
+  .label { margin-top: 10px; font-size: 12px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+  .stamp { position: absolute; left: 50%; transform: translateX(-50%); bottom: 6px; font-size: 9px; letter-spacing: .14em; color: rgba(243,236,217,.45); white-space: nowrap; }
+  /* Shared HUD contract (identical DOM in both directions; theme swaps tokens only) */
+  .hud-top { position: absolute; top: 0; left: 0; right: 0; height: 92px; padding: 54px 16px 0; display: flex; align-items: center; justify-content: space-between; }
+  .iconbtn { width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center; font-size: 18px; }
+  .credits { font-size: 12px; letter-spacing: .08em; text-align: center; line-height: 1.3; }
+  .credits b { display: block; font-size: 15px; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+  .mult { position: absolute; top: 108px; left: 0; right: 0; text-align: center; font-variant-numeric: tabular-nums; }
+  .mult .v { font-size: 56px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+  .mult .k { font-size: 11px; letter-spacing: .22em; margin-top: 6px; }
+  .action { position: absolute; left: 24px; right: 24px; bottom: 54px; height: 64px; border-radius: 32px; display: grid; place-items: center; font-weight: 800; letter-spacing: .14em; font-size: 16px; }
+  .action small { display: block; font-weight: 600; letter-spacing: .04em; font-size: 12px; opacity: .8; text-align: center; }
+  .demo { position: absolute; left: 0; right: 0; bottom: 30px; text-align: center; font-size: 10px; letter-spacing: .1em; }
+  .chip { position: absolute; padding: 6px 12px; border-radius: 14px; font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+  /* Direction A: Midnight Luxury */
+  .lux { background: var(--charcoal); }
+  .lux .iconbtn { border: 1px solid #3a3322; color: var(--gold); background: rgba(13,13,13,.6); }
+  .lux .credits { color: var(--muted); } .lux .credits b { color: var(--ivory); }
+  .lux .mult .v { color: var(--gold-hi); } .lux .mult .k { color: var(--muted); }
+  .lux .action { background: var(--gold); color: #120f06; box-shadow: 0 0 0 1px #e6c977 inset, 0 10px 30px rgba(201,168,76,.18); }
+  .lux .demo { color: #5d584c; }
+  .lux .chip { border: 1px solid #3a3322; background: rgba(13,13,13,.8); color: var(--gold); }
+  /* Direction B: Illustrated Night */
+  .ill { background: var(--night); font-family: "Fredoka", "Inter", system-ui, sans-serif; }
+  .ill .iconbtn { background: rgba(15,18,48,.75); border: 2px solid var(--gold); color: var(--gold-hi); }
+  .ill .credits { color: #b9b3d9; } .ill .credits b { color: #fff; }
+  .ill .mult .v { color: #fff; text-shadow: 0 3px 0 #7a5d1b, 0 0 24px rgba(230,201,119,.45); }
+  .ill .mult .k { color: var(--gold-hi); }
+  .ill .action { background: linear-gradient(#e6c977, #c9a84c); color: #2a1d05; border: 3px solid #fff3c9; box-shadow: 0 6px 0 #7a5d1b; }
+  .ill .demo { color: #6f6a9a; }
+  .ill .chip { background: var(--teal); color: #062a26; border: 2px solid #b8fff4; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const dir = new URLSearchParams(location.search).get('dir') || 'lux';
+const L = dir === 'lux';
+const title = L ? 'Direction A — Midnight Luxury' : 'Direction B — Illustrated Night';
+const sub = L
+  ? 'Restrained: charcoal #0d0d0d + gold #c9a84c, ivory type, one hazard red. Hairline gold rim-light on hazards, gold line-art characters, no outlines thicker than 2px. Motion is short, eased, and rare; reward moments use light, not confetti. PROPOSAL — composition study only, not implemented gameplay or measured results.'
+  : 'Expressive: keeps charcoal/gold as UI anchors and adds a night palette (indigo, violet, teal, ember) for worlds. Chunky 3px outlines, layered parallax, characters with silhouettes readable at 32px. Celebrations only on net wins. PROPOSAL — composition study only, not implemented gameplay or measured results.';
+
+function hud(opts) {
+  return `<div style="position:absolute;left:0;right:0;top:0;height:200px;background:linear-gradient(${L?'rgba(13,13,13,.92)':'rgba(15,18,48,.9)'} 55%,transparent)"></div>${opts.noBottomScrim ? '' : `<div style="position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(transparent,${L?'rgba(13,13,13,.92)':'rgba(15,18,48,.9)'} 45%)"></div>`}
+  <div class="hud-top"><div class="iconbtn" aria-label="Back">‹</div>
+    <div class="credits">DEMO CREDITS<b>1,000.00</b></div>
+    <div class="iconbtn" aria-label="Settings">⚙</div></div>
+  <div class="mult"><div class="v">${opts.mult}</div><div class="k">${opts.k}</div></div>
+  <div class="action">${opts.action}</div>
+  <div class="demo">DEMO · CREDITS HAVE NO CASH VALUE</div>
+  <div class="stamp">PROPOSAL MOCKUP — NOT GAMEPLAY</div>`;
+}
+
+/* ---------- JETT ---------- */
+function jett() {
+  const bg = L
+    ? `<rect width="390" height="844" fill="#0d0d0d"/>
+       <radialGradient id="jg" cx=".5" cy=".15" r=".8"><stop offset="0" stop-color="#1b1710"/><stop offset="1" stop-color="#0d0d0d"/></radialGradient>
+       <rect width="390" height="844" fill="url(#jg)"/>
+       ${Array.from({length:60},(_,i)=>`<circle cx="${(i*73)%390}" cy="${(i*131)%844}" r="${i%7?0.7:1.3}" fill="#e6c977" opacity="${0.15+((i*37)%50)/100}"/>`).join('')}
+       <circle cx="318" cy="250" r="46" fill="none" stroke="#3a3322" stroke-width="1"/><circle cx="318" cy="250" r="46" fill="#141210"/>
+       <path d="M276 262 a46 46 0 0 0 84 10" stroke="#c9a84c" stroke-width="1.2" fill="none" opacity=".7"/>`
+    : `<linearGradient id="jg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1640"/><stop offset=".6" stop-color="#2a1c5a"/><stop offset="1" stop-color="#3b2a73"/></linearGradient>
+       <rect width="390" height="844" fill="url(#jg)"/>
+       ${Array.from({length:70},(_,i)=>`<circle cx="${(i*73)%390}" cy="${(i*131)%844}" r="${i%5?1:2}" fill="#fff" opacity="${0.3+((i*37)%50)/100}"/>`).join('')}
+       <circle cx="80" cy="300" r="64" fill="#2bb3a3" stroke="#0b0b22" stroke-width="3"/><path d="M40 280 q30 -30 70 -6 q-10 30 -40 30 z" fill="#1f8a7e"/>
+       <ellipse cx="80" cy="300" rx="96" ry="18" fill="none" stroke="#e0763a" stroke-width="3" opacity=".8"/>`;
+  const rock = (x,y,r,a) => L
+    ? `<g transform="translate(${x} ${y}) rotate(${a})"><polygon points="${Array.from({length:7},(_,i)=>{const t=i/7*Math.PI*2;const rr=r*(0.78+0.22*Math.sin(i*2.1));return `${(Math.cos(t)*rr).toFixed(1)},${(Math.sin(t)*rr).toFixed(1)}`}).join(' ')}" fill="#1a1814" stroke="#c9a84c" stroke-width="1.2" stroke-opacity=".55"/><path d="M${-r*.6} ${-r*.3} L${r*.1} ${-r*.75}" stroke="#e6c977" stroke-opacity=".35"/></g>`
+    : `<g transform="translate(${x} ${y}) rotate(${a})"><polygon points="${Array.from({length:7},(_,i)=>{const t=i/7*Math.PI*2;const rr=r*(0.78+0.22*Math.sin(i*2.1));return `${(Math.cos(t)*rr).toFixed(1)},${(Math.sin(t)*rr).toFixed(1)}`}).join(' ')}" fill="#8a5a3c" stroke="#0b0b22" stroke-width="3"/><circle cx="${-r*.25}" cy="${-r*.2}" r="${r*.18}" fill="#5e3a26"/><path d="M${-r*.5} ${-r*.4} q${r*.3} ${-r*.3} ${r*.7} ${-r*.2}" stroke="#d99a6c" stroke-width="3" fill="none"/></g>`;
+  const coin = (x,y) => L
+    ? `<circle cx="${x}" cy="${y}" r="11" fill="none" stroke="#e6c977" stroke-width="1.5"/><circle cx="${x}" cy="${y}" r="6" fill="#c9a84c"/><circle cx="${x}" cy="${y}" r="20" fill="#c9a84c" opacity=".07"/>`
+    : `<circle cx="${x}" cy="${y}" r="13" fill="#e6c977" stroke="#7a5d1b" stroke-width="3"/><text x="${x}" y="${y+5}" font-size="14" text-anchor="middle" fill="#7a5d1b" font-weight="800">J</text>`;
+  const pilot = L
+    ? `<g transform="translate(195 600)"><path d="M0 -26 a8 8 0 1 1 0.1 0 M-7 -14 h14 l4 22 h-22 z" fill="none" stroke="#e6c977" stroke-width="1.8"/><rect x="9" y="-12" width="8" height="20" rx="2" fill="none" stroke="#c9a84c" stroke-width="1.5"/><path d="M13 10 l-5 22 l10 0 z" fill="#c9a84c" opacity=".9"/><path d="M13 12 l-2 12 l4 0 z" fill="#fff3c9"/></g>`
+    : `<g transform="translate(195 600)"><rect x="10" y="-14" width="14" height="26" rx="5" fill="#e0763a" stroke="#0b0b22" stroke-width="3"/><path d="M-10 -12 h20 l3 26 h-26 z" fill="#f3ecd9" stroke="#0b0b22" stroke-width="3"/><circle cx="0" cy="-24" r="12" fill="#f3ecd9" stroke="#0b0b22" stroke-width="3"/><rect x="-7" y="-29" width="14" height="9" rx="4" fill="#2bb3a3" stroke="#0b0b22" stroke-width="2"/><path d="M17 12 q-8 26 0 40 q8 -14 0 -40" fill="#ffcf4d" stroke="#e0763a" stroke-width="3"/></g>`;
+  return `<svg viewBox="0 0 390 844" width="390" height="844">${bg}${rock(110,420,34,10)}${rock(300,360,26,40)}${rock(250,470,20,80)}${coin(150,520)}${pilot}
+    ${L ? '' : '<path d="M150 520 m-22 0 l-8 -6 M150 520 m22 0 l8 -6" stroke="#fff" stroke-width="2"/>'}</svg>
+    <div class="chip" style="top:520px;left:178px">+0.03×</div>
+    ${hud({ mult: '1.48×', k: 'ALTITUDE 412 m', action: 'CASH OUT<small>14.80 credits</small>' })}`;
+}
+
+/* ---------- FLAP FORTUNE ---------- */
+function flap() {
+  const bg = L
+    ? `<rect width="390" height="844" fill="#0d0d0d"/>
+       <path d="M0 640 L40 600 L70 610 L110 560 L150 590 L200 520 L240 575 L300 540 L340 590 L390 560 V844 H0 Z" fill="#121110"/>
+       <path d="M0 700 H390" stroke="#262626"/>
+       <circle cx="300" cy="190" r="26" fill="none" stroke="#c9a84c" stroke-opacity=".6"/><circle cx="310" cy="184" r="22" fill="#0d0d0d"/>`
+    : `<linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1640"/><stop offset="1" stop-color="#5a2a4a"/></linearGradient>
+       <rect width="390" height="844" fill="url(#fg)"/>
+       <circle cx="300" cy="190" r="40" fill="#fff0c0" stroke="#0b0b22" stroke-width="3"/>
+       <path d="M0 640 L40 590 L40 560 L60 540 L80 560 L80 600 L130 590 L150 520 L170 520 L170 600 L230 610 L260 560 L280 560 L280 610 L390 600 V844 H0 Z" fill="#241a44" stroke="#0b0b22" stroke-width="3"/>
+       ${[60,160,270].map(x=>`<rect x="${x}" y="610" width="10" height="14" rx="3" fill="#ffcf4d"/>`).join('')}`;
+  const gate = (x, top, gap) => L
+    ? `<g><rect x="${x}" y="0" width="38" height="${top}" fill="#121212" stroke="#c9a84c" stroke-opacity=".5"/>
+         <rect x="${x-4}" y="${top-10}" width="46" height="10" fill="#1a1814" stroke="#c9a84c"/>
+         <rect x="${x}" y="${top+gap}" width="38" height="${844-top-gap}" fill="#121212" stroke="#c9a84c" stroke-opacity=".5"/>
+         <rect x="${x-4}" y="${top+gap}" width="46" height="10" fill="#1a1814" stroke="#c9a84c"/>
+         ${[8,19,30].map(d=>`<line x1="${x+d}" y1="0" x2="${x+d}" y2="${top-10}" stroke="#c9a84c" stroke-opacity=".18"/><line x1="${x+d}" y1="${top+gap+10}" x2="${x+d}" y2="844" stroke="#c9a84c" stroke-opacity=".18"/>`).join('')}
+         <rect x="${x}" y="${top}" width="38" height="${gap}" fill="#c9a84c" opacity=".04"/></g>`
+    : `<g><rect x="${x}" y="-4" width="40" height="${top+4}" rx="4" fill="#5a524a" stroke="#0b0b22" stroke-width="3"/>
+         <rect x="${x-6}" y="${top-16}" width="52" height="16" rx="4" fill="#8a7e70" stroke="#0b0b22" stroke-width="3"/>
+         <rect x="${x}" y="${top+gap}" width="40" height="${844-top-gap+4}" rx="4" fill="#5a524a" stroke="#0b0b22" stroke-width="3"/>
+         <rect x="${x-6}" y="${top+gap}" width="52" height="16" rx="4" fill="#8a7e70" stroke="#0b0b22" stroke-width="3"/>
+         <circle cx="${x+20}" cy="${top-8}" r="4" fill="#ffcf4d"/><circle cx="${x+20}" cy="${top+gap+8}" r="4" fill="#ffcf4d"/></g>`;
+  const wiz = L
+    ? `<g transform="translate(96 410) rotate(-8)"><line x1="-24" y1="12" x2="22" y2="12" stroke="#c9a84c" stroke-width="2"/><path d="M-24 12 l-10 -5 m10 5 l-10 0 m10 0 l-10 5" stroke="#c9a84c"/>
+        <path d="M-6 10 l4 -22 h6 l4 22 z" fill="none" stroke="#e6c977" stroke-width="1.6"/><circle cx="1" cy="-17" r="6" fill="none" stroke="#e6c977" stroke-width="1.6"/><path d="M-8 -21 l9 -20 l9 20 z" fill="none" stroke="#e6c977" stroke-width="1.6"/>
+        <circle cx="22" cy="12" r="10" fill="#c9a84c" opacity=".12"/></g>`
+    : `<g transform="translate(96 410) rotate(-8)"><rect x="-30" y="9" width="54" height="7" rx="3" fill="#a8772a" stroke="#0b0b22" stroke-width="2.5"/><path d="M-30 12 l-14 -10 v20 z" fill="#e0b44a" stroke="#0b0b22" stroke-width="2.5"/>
+        <path d="M-9 12 l5 -26 h10 l5 26 z" fill="#5b2a9a" stroke="#0b0b22" stroke-width="3"/><circle cx="1" cy="-18" r="8" fill="#f4c48a" stroke="#0b0b22" stroke-width="3"/>
+        <path d="M-11 -22 l12 -28 l12 28 z" fill="#3b2a73" stroke="#0b0b22" stroke-width="3"/><circle cx="4" cy="-36" r="2.5" fill="#ffcf4d"/>
+        ${[0,1,2].map(i=>`<circle cx="${-40-i*12}" cy="${14+i*3}" r="${3-i*.6}" fill="#2bb3a3" opacity="${.9-i*.25}"/>`).join('')}</g>`;
+  const exit = L
+    ? `<rect x="0" y="770" width="390" height="2" fill="#c9a84c" opacity=".8"/><text x="195" y="792" text-anchor="middle" fill="#c9a84c" font-size="10" letter-spacing="3">DIVE BELOW THIS LINE TO CASH OUT</text>`
+    : `<rect x="0" y="766" width="390" height="10" fill="#2bb3a3" opacity=".35"/><text x="195" y="792" text-anchor="middle" fill="#b8fff4" font-size="11" font-weight="700" letter-spacing="2">▼ DIVE TO CASH OUT ▼</text>`;
+  return `<svg viewBox="0 0 390 844" width="390" height="844">${bg}${gate(170,250,170)}${gate(330,340,170)}${wiz}${exit}</svg>
+    <div class="chip" style="top:200px;left:24px">GATE 4 · EXIT OPEN</div>
+    ${hud({ mult: '1.37×', k: 'NEXT GATE 1.49×', action: 'TAP TO FLAP<small>dive to the line to bank 13.70</small>', noBottomScrim: true }).replace('class="action"', 'class="action" style="opacity:.55;bottom:96px"')}`;
+}
+
+/* ---------- SHATTER STEP ---------- */
+function shatter() {
+  const rows = 8, top = 220, h = 50, gap = 8;
+  const mults = [1.94, 3.88, 7.76, 15.5, 31.0, 62.1, 124, 248];
+  let tiles = '';
+  for (let i = 0; i < rows; i++) {
+    const y = top + (rows - 1 - i) * (h + gap); const cleared = i < 3; const active = i === 3;
+    for (const [side, x] of [['L', 28], ['R', 180]]) {
+      const picked = cleared && ((i % 2 === 0) === (side === 'L'));
+      if (L) {
+        const stroke = active ? '#e6c977' : picked ? '#c9a84c' : '#2c2a24';
+        const fill = picked ? 'rgba(201,168,76,.16)' : active ? 'rgba(230,201,119,.06)' : 'rgba(255,255,255,.025)';
+        tiles += `<rect x="${x}" y="${y}" width="140" height="${h}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="${active ? 1.6 : 1}"/>`;
+        if (cleared && !picked) tiles += `<rect x="${x}" y="${y}" width="140" height="${h}" rx="8" fill="#0d0d0d" stroke="#1d1d1d" stroke-dasharray="3 4"/>`;
+      } else {
+        const fill = picked ? '#2bb3a3' : active ? '#7ad7ff' : '#4b5aa8';
+        tiles += `<rect x="${x}" y="${y}" width="140" height="${h}" rx="10" fill="${fill}" fill-opacity="${active ? .55 : picked ? .8 : .35}" stroke="#0b0b22" stroke-width="3"/>
+                  <rect x="${x+8}" y="${y+6}" width="124" height="10" rx="5" fill="#fff" opacity=".35"/>`;
+        if (cleared && !picked) tiles += `<path d="M${x+40} ${y+6} l20 18 l-12 10 l26 12 M${x+60} ${y+24} l30 -12" stroke="#fff" stroke-width="2" fill="none" opacity=".6"/>`;
+      }
+    }
+    tiles += `<text x="372" y="${y + 30}" text-anchor="end" font-size="10" fill="${L ? (active ? '#e6c977' : '#5d584c') : (active ? '#ffcf4d' : '#8f8ac2')}" font-weight="${active ? 800 : 500}">${mults[i]}×</text>`;
+  }
+  const bg = L ? `<rect width="390" height="844" fill="#0d0d0d"/><rect x="174" y="210" width="2" height="480" fill="#1a1a1a"/>`
+               : `<linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f1230"/><stop offset="1" stop-color="#1a1640"/></linearGradient><rect width="390" height="844" fill="url(#sg)"/>
+                  ${Array.from({length:40},(_,i)=>`<circle cx="${(i*97)%390}" cy="${(i*53)%200+30}" r="1" fill="#fff" opacity=".5"/>`).join('')}`;
+  const hero = L ? `<g transform="translate(98 ${top + 4*(h+gap) + 6})"><circle cy="-18" r="6" fill="none" stroke="#e6c977" stroke-width="1.6"/><path d="M-6 -10 h12 l2 18 h-16 z" fill="none" stroke="#e6c977" stroke-width="1.6"/></g>`
+                 : `<g transform="translate(98 ${top + 4*(h+gap) + 4})"><circle cy="-20" r="9" fill="#f3ecd9" stroke="#0b0b22" stroke-width="3"/><path d="M-9 -10 h18 l3 20 h-24 z" fill="#e0763a" stroke="#0b0b22" stroke-width="3"/></g>`;
+  return `<svg viewBox="0 0 390 844" width="390" height="844">${bg}${tiles}${hero}</svg>
+    <div class="chip" style="top:186px;left:28px">ROW 4 · 50 / 50 · PICK A PANE</div>
+    ${hud({ mult: '7.76×', k: 'BANKED IF YOU STOP NOW', action: 'CASH OUT<small>77.60 credits</small>' })}`;
+}
+
+document.getElementById('root').innerHTML = `
+  <h1>${title}</h1><p class="sub">${sub}</p>
+  <div class="row">
+    <div><div class="phone ${dir}">${jett()}</div><div class="label">Jett · mid-flight, coin pickup</div></div>
+    <div><div class="phone ${dir}">${flap()}</div><div class="label">Flap Fortune · gate traversal, exit open</div></div>
+    <div><div class="phone ${dir}">${shatter()}</div><div class="label">Shatter Step · row 4 decision, ladder preview</div></div>
+  </div>`;
+</script>
+</body>
+</html>

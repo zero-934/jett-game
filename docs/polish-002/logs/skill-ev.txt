@@ -1,0 +1,17 @@
+    Jett  cash-out@alt 100: ticks=80 survival=0.9374 mult=1.067 EV=1.000
+    Jett  cash-out@alt 250: ticks=188 survival=0.8572 mult=1.232 EV=1.056
+    Jett  cash-out@alt 500: ticks=343 survival=0.7502 mult=1.563 EV=1.173
+    Jett  cash-out@alt 1000: ticks=591 survival=0.5973 mult=2.520 EV=1.505
+    Jett  cash-out@alt 2000: ticks=952 survival=0.4108 mult=6.530 EV=2.682
+    Jett  cash-out@alt 3000: ticks=1286 survival=0.2750 mult=16.969 EV=4.666
+    Jett  cash-out@alt 5000: ticks=1952 survival=0.1053 mult=113.939 EV=11.997
+    Jett  cash-out@alt 8000: ticks=2952 survival=0.0167 mult=1988.162 EV=33.178
+    Jett  best EV 62.11x at altitude 12843
+    Flap  dive after gate 1: survival=0.9624 mult=1.057 EV=1.018
+    Flap  dive after gate 5: survival=0.8255 mult=1.492 EV=1.232
+    Flap  dive after gate 10: survival=0.6815 mult=2.296 EV=1.565
+    Flap  dive after gate 20: survival=0.4544 mult=5.436 EV=2.470
+    Flap  dive after gate 40: survival=0.1455 mult=30.467 EV=4.433
+    Flap  dive after gate 60: survival=0.0294 mult=170.750 EV=5.019
+    Flap  dive after gate 80: survival=0.0037 mult=956.955 EV=3.585
+    Flap  best EV 5.08x after gate 55

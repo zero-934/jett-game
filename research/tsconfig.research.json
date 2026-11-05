@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.test.json",
+  "compilerOptions": { "lib": ["ES2020", "DOM"], "types": ["jest", "node"] },
+  "include": ["../research/**/*.ts", "../src/games/**/*.ts", "../src/shared/**/*.ts"]
+}

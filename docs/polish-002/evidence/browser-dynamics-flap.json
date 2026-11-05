@@ -1,0 +1,31 @@
+{
+  "flapInput": {
+    "quickTap": {
+      "waitingPhase": {
+        "waitingToStart": false,
+        "velocityAfterFirstTick": 0.45
+      },
+      "velocityBeforePlayTap": 1.8,
+      "velocityAfterQuickTapInPlay": 2.25,
+      "velocityAfterHeldTap": -7.05,
+      "flapVelocityExpected": -7.05,
+      "note": "flap applied => velocity == flapStrength + gravity = -7.05"
+    },
+    "spaceWhileWaiting": {
+      "waitingToStart": true,
+      "distanceTravelled": 0
+    },
+    "heldSpaceWithRepeat": {
+      "repeatEvents": 19,
+      "framesObserved": 20,
+      "framesWithFreshFlap": 20
+    }
+  },
+  "meta": {
+    "probe": "browser-dynamics",
+    "which": "flap",
+    "durationSec": 3.179,
+    "chromium": "153.0.8010.12",
+    "date": "2026-11-05T16:11:59.419Z"
+  }
+}

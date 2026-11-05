@@ -1,0 +1,137 @@
+{
+  "restarts": {
+    "JettScene": {
+      "before": {
+        "displayList": 21,
+        "pointerdown": 1,
+        "pointermove": 1,
+        "keydownSpace": 0,
+        "timers": 0,
+        "tweens": 0,
+        "stars": 130,
+        "audioCreated": 2,
+        "audioClosed": 0,
+        "heapMB": 18.1
+      },
+      "after50": {
+        "displayList": 21,
+        "pointerdown": 1,
+        "pointermove": 1,
+        "keydownSpace": 0,
+        "timers": 0,
+        "tweens": 0,
+        "stars": 130,
+        "audioCreated": 52,
+        "audioClosed": 0,
+        "heapMB": 27.2
+      },
+      "sameInstanceTwice": {
+        "displayList": 21,
+        "pointerdown": 3,
+        "pointermove": 3,
+        "keydownSpace": 0,
+        "timers": 0,
+        "tweens": 0,
+        "stars": 390,
+        "audioCreated": 52,
+        "audioClosed": 0,
+        "heapMB": 29
+      },
+      "heapAfterForcedGC": {
+        "atStartMB": 17,
+        "afterRestartsMB": 18
+      }
+    },
+    "FlapFortuneScene": {
+      "before": {
+        "displayList": 12,
+        "pointerdown": 1,
+        "pointermove": 0,
+        "keydownSpace": 1,
+        "timers": 1,
+        "tweens": 0,
+        "stars": 80,
+        "audioCreated": 1,
+        "audioClosed": 0,
+        "heapMB": 17.4
+      },
+      "after50": {
+        "displayList": 12,
+        "pointerdown": 1,
+        "pointermove": 0,
+        "keydownSpace": 1,
+        "timers": 1,
+        "tweens": 0,
+        "stars": 80,
+        "audioCreated": 1,
+        "audioClosed": 0,
+        "heapMB": 27.8
+      },
+      "sameInstanceTwice": {
+        "displayList": 12,
+        "pointerdown": 3,
+        "pointermove": 0,
+        "keydownSpace": 3,
+        "timers": 1,
+        "tweens": 0,
+        "stars": 240,
+        "audioCreated": 1,
+        "audioClosed": 0,
+        "heapMB": 26.1
+      },
+      "heapAfterForcedGC": {
+        "atStartMB": 17,
+        "afterRestartsMB": 17.9
+      }
+    },
+    "ShatterStepScene": {
+      "before": {
+        "displayList": 110,
+        "pointerdown": 0,
+        "pointermove": 0,
+        "keydownSpace": 0,
+        "timers": 1,
+        "tweens": 0,
+        "stars": null,
+        "audioCreated": 1,
+        "audioClosed": 0,
+        "heapMB": 18.1
+      },
+      "after50": {
+        "displayList": 110,
+        "pointerdown": 0,
+        "pointermove": 0,
+        "keydownSpace": 0,
+        "timers": 1,
+        "tweens": 0,
+        "stars": null,
+        "audioCreated": 1,
+        "audioClosed": 0,
+        "heapMB": 49.9
+      },
+      "sameInstanceTwice": {
+        "displayList": 110,
+        "pointerdown": 0,
+        "pointermove": 0,
+        "keydownSpace": 0,
+        "timers": 1,
+        "tweens": 0,
+        "stars": null,
+        "audioCreated": 1,
+        "audioClosed": 0,
+        "heapMB": 59.7
+      },
+      "heapAfterForcedGC": {
+        "atStartMB": 17.3,
+        "afterRestartsMB": 18.1
+      }
+    }
+  },
+  "meta": {
+    "probe": "browser-dynamics",
+    "which": "restarts",
+    "durationSec": 44.256,
+    "chromium": "153.0.8010.12",
+    "date": "2026-11-05T16:13:50.781Z"
+  }
+}
