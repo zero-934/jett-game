@@ -1,0 +1,37 @@
+{
+  "crownListenersAfter1Show": {
+    "flip": 1,
+    "walk": 1
+  },
+  "crownListenersAfter3Shows": {
+    "flip": 3,
+    "walk": 3
+  },
+  "crownDoubleSettlement": {
+    "atRiskAfterTwoWins": 40,
+    "walkListenersBeforePress": 3,
+    "balanceIncreaseAfterOneWalkPress": 120
+  },
+  "freeSpinDebit": {
+    "bet": 10,
+    "balanceBefore": 1120,
+    "balanceAfterStartingFreeSpin": 1110
+  },
+  "freeSpinBlockedByBalance": {
+    "balance": 0,
+    "freeSpinsRemaining": 3,
+    "spinStarted": false
+  },
+  "heatTweens": {
+    "before": 0,
+    "after10UpdatesAtLevel3": 30
+  },
+  "audioContexts": {
+    "audioContextsCreated": 3,
+    "audioContextsClosed": 0,
+    "afterRestarts": 10
+  },
+  "errors": [
+    "TypeError: Cannot read properties of null (reading 'glTexture')"
+  ]
+}

@@ -1,0 +1,300 @@
+{
+  "tripleTap": {
+    "roundIdAfterTaps": 1,
+    "debits": 1,
+    "credits": 1,
+    "uiPhaseDuring": "spinning",
+    "stakeDuringRound": 10
+  },
+  "heldSpace": {
+    "roundsStartedByHold": 1,
+    "debitsAfter": 2
+  },
+  "raceErrors": [],
+  "freeSpins": {
+    "afterPaid": {
+      "roundId": 1,
+      "freeSpins": 5,
+      "debits": 1
+    },
+    "final": {
+      "rounds": 6,
+      "debits": 1,
+      "credits": 6,
+      "lastCycle": {
+        "id": 1,
+        "stake": 10,
+        "paidStakeMilli": 10000,
+        "returnedMilli": 14000,
+        "spins": 6,
+        "freeSpins": 5
+      },
+      "balanceMilli": 10500
+    }
+  },
+  "freeErrors": [],
+  "crown": {
+    "atDecision": {
+      "balanceMilli": 990000,
+      "debits": 1,
+      "credits": 0
+    },
+    "afterFlips": {
+      "phase": "decision",
+      "credits": 0,
+      "balanceMilli": 990000
+    },
+    "final": {
+      "phase": "ready",
+      "credits": 1,
+      "debits": 1,
+      "balanceMilli": 1000000,
+      "ledger": [
+        {
+          "roundId": 1,
+          "cycleId": 1,
+          "kind": "debit",
+          "amountMilli": 10000
+        },
+        {
+          "roundId": 1,
+          "cycleId": 1,
+          "kind": "credit",
+          "amountMilli": 10000
+        }
+      ]
+    },
+    "note": "direct scene calls bypass the UI lock on purpose to test the Logic guards",
+    "roundId": 1
+  },
+  "crownUiDoubleTap": {
+    "creditsBefore": 1,
+    "creditsAfter": 2,
+    "phase": "ready",
+    "credited": 5000
+  },
+  "crownErrors": [],
+  "exitDuringPhase": [
+    {
+      "phase": "spinning",
+      "uiPhaseAtExit": "spinning",
+      "sessionPhaseAtExit": "presenting",
+      "after": {
+        "phase": "ready",
+        "roundId": 0,
+        "tweens": 0,
+        "timers": 0,
+        "timeEvents": 0,
+        "keyboardListeners": 1,
+        "sounds": 1
+      }
+    },
+    {
+      "phase": "cascade (removing/falling)",
+      "uiPhaseAtExit": "falling",
+      "sessionPhaseAtExit": "presenting",
+      "after": {
+        "phase": "ready",
+        "roundId": 0,
+        "tweens": 0,
+        "timers": 0,
+        "timeEvents": 0,
+        "keyboardListeners": 1,
+        "sounds": 1
+      }
+    },
+    {
+      "phase": "crown decision",
+      "uiPhaseAtExit": "idle",
+      "sessionPhaseAtExit": "decision",
+      "after": {
+        "phase": "ready",
+        "roundId": 0,
+        "tweens": 0,
+        "timers": 0,
+        "timeEvents": 0,
+        "keyboardListeners": 1,
+        "sounds": 1
+      }
+    },
+    {
+      "phase": "free-spin cycle",
+      "uiPhaseAtExit": "spinning",
+      "sessionPhaseAtExit": "presenting",
+      "after": {
+        "phase": "ready",
+        "roundId": 0,
+        "tweens": 0,
+        "timers": 0,
+        "timeEvents": 0,
+        "keyboardListeners": 1,
+        "sounds": 1
+      }
+    },
+    {
+      "phase": "result",
+      "uiPhaseAtExit": "idle",
+      "sessionPhaseAtExit": "ready",
+      "after": {
+        "phase": "ready",
+        "roundId": 0,
+        "tweens": 0,
+        "timers": 0,
+        "timeEvents": 0,
+        "keyboardListeners": 1,
+        "sounds": 1
+      }
+    }
+  ],
+  "restartCycles": {
+    "base": {
+      "ctx": {
+        "audioContextsCreated": 1,
+        "audioContextsClosed": 0
+      }
+    },
+    "samples": [
+      {
+        "cycle": 10,
+        "displayList": 84,
+        "tweens": 1,
+        "timers": 0,
+        "timeEvents": 1,
+        "particles": 0,
+        "keyboardListeners": 1,
+        "sounds": 3,
+        "voices": 2,
+        "textures": 46,
+        "audioContexts": {
+          "audioContextsCreated": 1,
+          "audioContextsClosed": 0
+        },
+        "heap": 82
+      },
+      {
+        "cycle": 20,
+        "displayList": 84,
+        "tweens": 1,
+        "timers": 0,
+        "timeEvents": 1,
+        "particles": 0,
+        "keyboardListeners": 1,
+        "sounds": 3,
+        "voices": 2,
+        "textures": 46,
+        "audioContexts": {
+          "audioContextsCreated": 1,
+          "audioContextsClosed": 0
+        },
+        "heap": 82
+      },
+      {
+        "cycle": 30,
+        "displayList": 84,
+        "tweens": 1,
+        "timers": 0,
+        "timeEvents": 1,
+        "particles": 0,
+        "keyboardListeners": 1,
+        "sounds": 3,
+        "voices": 2,
+        "textures": 46,
+        "audioContexts": {
+          "audioContextsCreated": 1,
+          "audioContextsClosed": 0
+        },
+        "heap": 82
+      },
+      {
+        "cycle": 40,
+        "displayList": 84,
+        "tweens": 1,
+        "timers": 0,
+        "timeEvents": 1,
+        "particles": 0,
+        "keyboardListeners": 1,
+        "sounds": 3,
+        "voices": 2,
+        "textures": 46,
+        "audioContexts": {
+          "audioContextsCreated": 1,
+          "audioContextsClosed": 0
+        },
+        "heap": 82
+      },
+      {
+        "cycle": 50,
+        "displayList": 84,
+        "tweens": 1,
+        "timers": 0,
+        "timeEvents": 1,
+        "particles": 0,
+        "keyboardListeners": 1,
+        "sounds": 3,
+        "voices": 2,
+        "textures": 46,
+        "audioContexts": {
+          "audioContextsCreated": 1,
+          "audioContextsClosed": 0
+        },
+        "heap": 82
+      }
+    ]
+  },
+  "lifecycleErrors": [],
+  "audio": {
+    "beforeGesture": {
+      "locked": true,
+      "ctx": "suspended",
+      "contexts": {
+        "audioContextsCreated": 1,
+        "audioContextsClosed": 0
+      },
+      "musicPlaying": false
+    },
+    "afterGesture": {
+      "locked": false,
+      "ctx": "running",
+      "musicPlaying": true,
+      "voices": 2
+    },
+    "muted": {
+      "musicPlaying": false,
+      "stored": "{\"music\":0,\"sfx\":0,\"reducedMotion\":false,\"quickSpin\":false}"
+    },
+    "unmuted": {
+      "musicPlaying": true
+    },
+    "hidden": {
+      "ctx": "suspended",
+      "events": {
+        "hidden": 1,
+        "visible": 0,
+        "blur": 1,
+        "focus": 0
+      }
+    },
+    "visible": {
+      "ctx": "running",
+      "events": {
+        "hidden": 1,
+        "visible": 1,
+        "blur": 1,
+        "focus": 1
+      },
+      "pauseDurationMs": 433
+    },
+    "spinAfterResume": {
+      "phase": "decision",
+      "roundId": 2
+    },
+    "persistedAfterReload": {
+      "music": 2,
+      "sfx": 2,
+      "reducedMotion": false,
+      "quickSpin": false
+    },
+    "note": "Headless Chromium: proves state transitions only, not audible output."
+  },
+  "audioErrors": []
+}

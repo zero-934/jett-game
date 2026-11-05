@@ -1,0 +1,45 @@
+{
+  "phaserVersion": "4.0.0",
+  "tweens": {
+    "completeFiredOnce": true,
+    "stopFiresOnStop": true,
+    "stopFiresOnComplete": 0,
+    "killTweensOfFiresOnComplete": 0,
+    "remaining": 0
+  },
+  "timeScale": {
+    "tween400msAtX4": 101,
+    "delayedCall400msAtX4": 116,
+    "removedDelayedCallFired": 0
+  },
+  "particles": {
+    "aliveAfterExploding40WithCap24": 24,
+    "destroyedActive": false
+  },
+  "canvasTexture": {
+    "frames": 9,
+    "frameNames": [
+      "EMBER",
+      "FLAME",
+      "COAL",
+      "ASH",
+      "SMOKE",
+      "WILD",
+      "SCATTER",
+      "coin",
+      "spark"
+    ],
+    "source": "1568x192"
+  },
+  "audio": {
+    "manager": "WebAudioSoundManager",
+    "contextState": "running",
+    "locked": false
+  },
+  "audioContextsAfter5Restarts": {
+    "audioContextsCreated": 1,
+    "audioContextsClosed": 0
+  },
+  "sameContextObject": true,
+  "errors": []
+}

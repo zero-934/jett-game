@@ -1,0 +1,9 @@
+// RESEARCH ONLY (baseline worktree, not committed there): boots the ORIGINAL InfernoScene with counters.
+import * as Phaser from 'phaser';
+import { InfernoScene } from '../../src/scenes/InfernoScene';
+const counters = { audioContextsCreated: 0, audioContextsClosed: 0 };
+const NativeAC = window.AudioContext;
+class CountingAC extends NativeAC { constructor(o?: AudioContextOptions) { super(o); counters.audioContextsCreated++; } close() { counters.audioContextsClosed++; return super.close(); } }
+(window as any).AudioContext = CountingAC;
+const game = new Phaser.Game({ type: Phaser.AUTO, width: 390, height: 844, parent: 'app', scene: [InfernoScene], scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH } });
+(window as any).__b = { game, counters, scene: () => game.scene.getScene('InfernoScene') };

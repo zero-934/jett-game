@@ -1,0 +1,154 @@
+{
+  "spins": 12,
+  "summary": [
+    {
+      "name": "raf-default",
+      "wallMs": 23686,
+      "finalBalanceMilli": 939500,
+      "identicalToRaf": true,
+      "errors": 0
+    },
+    {
+      "name": "fps30",
+      "wallMs": 24209,
+      "finalBalanceMilli": 939500,
+      "identicalToRaf": true,
+      "errors": 0
+    },
+    {
+      "name": "fps60",
+      "wallMs": 23602,
+      "finalBalanceMilli": 939500,
+      "identicalToRaf": true,
+      "errors": 0
+    },
+    {
+      "name": "fps120",
+      "wallMs": 24876,
+      "finalBalanceMilli": 939500,
+      "identicalToRaf": true,
+      "errors": 0
+    },
+    {
+      "name": "fps144",
+      "wallMs": 24819,
+      "finalBalanceMilli": 939500,
+      "identicalToRaf": true,
+      "errors": 0
+    },
+    {
+      "name": "reduced-motion",
+      "wallMs": 14991,
+      "finalBalanceMilli": 939500,
+      "identicalToRaf": true,
+      "errors": 0
+    },
+    {
+      "name": "quick-spin",
+      "wallMs": 14585,
+      "finalBalanceMilli": 939500,
+      "identicalToRaf": true,
+      "errors": 0
+    },
+    {
+      "name": "skip-every-spin",
+      "wallMs": 6361,
+      "finalBalanceMilli": 939500,
+      "identicalToRaf": true,
+      "errors": 0
+    },
+    {
+      "name": "audio-muted",
+      "wallMs": 24040,
+      "finalBalanceMilli": 939500,
+      "identicalToRaf": true,
+      "errors": 0
+    }
+  ],
+  "referenceRows": [
+    {
+      "r": 1,
+      "bal": 999250,
+      "heat": 3,
+      "fs": 0,
+      "grid": "EM,AS,FL|EM,SC,SC|CO,FL,CO"
+    },
+    {
+      "r": 2,
+      "bal": 996750,
+      "heat": 4,
+      "fs": 0,
+      "grid": "SM,AS,CO|SM,CO,SM|AS,AS,SC"
+    },
+    {
+      "r": 3,
+      "bal": 988250,
+      "heat": 5,
+      "fs": 0,
+      "grid": "AS,SM,CO|SM,FL,SM|AS,AS,SM"
+    },
+    {
+      "r": 4,
+      "bal": 978250,
+      "heat": 0,
+      "fs": 0,
+      "grid": "WI,WI,WI|WI,WI,WI|WI,WI,WI"
+    },
+    {
+      "r": 5,
+      "bal": 977500,
+      "heat": 3,
+      "fs": 0,
+      "grid": "EM,AS,FL|EM,SC,SC|CO,FL,CO"
+    },
+    {
+      "r": 6,
+      "bal": 975000,
+      "heat": 4,
+      "fs": 0,
+      "grid": "SM,AS,CO|SM,CO,SM|AS,AS,SC"
+    },
+    {
+      "r": 7,
+      "bal": 966500,
+      "heat": 5,
+      "fs": 0,
+      "grid": "AS,SM,CO|SM,FL,SM|AS,AS,SM"
+    },
+    {
+      "r": 8,
+      "bal": 956500,
+      "heat": 0,
+      "fs": 0,
+      "grid": "WI,WI,WI|WI,WI,WI|WI,WI,WI"
+    },
+    {
+      "r": 9,
+      "bal": 955750,
+      "heat": 3,
+      "fs": 0,
+      "grid": "EM,AS,FL|EM,SC,SC|CO,FL,CO"
+    },
+    {
+      "r": 10,
+      "bal": 959500,
+      "heat": 5,
+      "fs": 0,
+      "grid": "SM,CO,SC|FL,AS,SM|SC,FL,SM"
+    },
+    {
+      "r": 11,
+      "bal": 949500,
+      "heat": 0,
+      "fs": 0,
+      "grid": "WI,WI,WI|WI,WI,WI|WI,WI,WI"
+    },
+    {
+      "r": 12,
+      "bal": 939500,
+      "heat": 0,
+      "fs": 0,
+      "grid": "SM,CO,SM|FL,SM,AS|FL,EM,AS"
+    }
+  ]
+}
