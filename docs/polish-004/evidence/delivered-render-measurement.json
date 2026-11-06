@@ -1,0 +1,18 @@
+{
+  "backingPixelsPerCssPixel": 1,
+  "canvasBacking": {
+    "height": 844,
+    "width": 390
+  },
+  "cssCanvas": {
+    "height": 844,
+    "width": 390
+  },
+  "devicePixelRatio": 1.0000000298023224,
+  "fontFaces": [],
+  "imageRendering": "auto",
+  "viewport": {
+    "height": 844,
+    "width": 390
+  }
+}

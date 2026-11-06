@@ -1,0 +1,54 @@
+[
+  {
+    "path": "public/assets/polish-003/flap-wizard.png",
+    "width": 178,
+    "height": 164,
+    "mode": "RGBA",
+    "bytes": 21824,
+    "alphaBounds": [
+      19,
+      30,
+      155,
+      145
+    ]
+  },
+  {
+    "path": "public/assets/polish-003/jett-pilot.png",
+    "width": 154,
+    "height": 196,
+    "mode": "RGBA",
+    "bytes": 26521,
+    "alphaBounds": [
+      15,
+      21,
+      123,
+      183
+    ]
+  },
+  {
+    "path": "docs/polish-003/assets/flap-wizard-study.png",
+    "width": 1317,
+    "height": 1194,
+    "mode": "RGBA",
+    "bytes": 614644,
+    "alphaBounds": [
+      41,
+      37,
+      1231,
+      1130
+    ]
+  },
+  {
+    "path": "docs/polish-003/assets/jett-pilot-study.png",
+    "width": 1079,
+    "height": 1458,
+    "mode": "RGBA",
+    "bytes": 770914,
+    "alphaBounds": [
+      33,
+      23,
+      1057,
+      1334
+    ]
+  }
+]
