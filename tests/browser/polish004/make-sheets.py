@@ -39,12 +39,7 @@ for g, scene, box in [('jett', 'JettScene', (165, 445, 225, 510)), ('flap', 'Fla
         row.append((f'after @{dpr}x', crop('after', scene, 'ready', '390x844', dpr, box)))
     out = f'{C}/{g}-character-actual-size-dpr123.png'
     made.append((out, stack(out, row, horizontal=True)))
-# 3. Active/result states (native @3x) for each game.
-for g, scene in SC.items():
-    for state in ['active', 'result']:
-        out = f'{C}/{g}-{state}-before-after@3x-full.png'
-        a = Image.open(f'{R}/before/{scene}-{state}-390x844@3x.png'); b = Image.open(f'{R}/after/{scene}-{state}-390x844@3x.png')
-        made.append((out, stack(out, [('before (native 1170x2532 screenshot of a 390x844 backing)', a), ('after (native 1170x2532)', b)], horizontal=True)))
+# 3. (Active/result full screens live in release/{before,after}; no duplicate side-by-sides.)
 # 4. Overviews (DOWNSCALED — layout only, not a sharpness proof).
 for vp, dpr in [('320x568', 2), ('844x390', 3), ('667x375', 2), ('430x932', 3)]:
     items = []

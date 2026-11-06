@@ -1,19 +1,425 @@
 {
  "meta": {
-  "date": "2026-11-06T16:49:37.306Z",
+  "date": "2026-11-06T16:51:28.692Z",
   "chromium": "153.0.8010.12",
   "dev": "http://localhost:5199/jett-game",
   "release": "http://localhost:4173/jett-game",
   "sections": [
-   "targets",
+   "density",
+   "pointer",
    "inputs",
-   "overlays"
+   "overlays",
+   "restarts",
+   "release",
+   "host",
+   "theming",
+   "replay",
+   "governor",
+   "targets"
   ],
   "note": "Headless Chromium on SwiftShader with emulated DPR. Not physical-device evidence.",
-  "total": 53,
+  "total": 113,
   "failures": 0
  },
  "results": {
+  "density": [
+   {
+    "name": "jett 390×844@1: backing 390×844 for CSS 390×844 (1.00/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 1,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "jett 390×844@2: backing 780×1688 for CSS 390×844 (1.00/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 2,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "jett 390×844@3: backing 1170×2532 for CSS 390×844 (1.00/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 3,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "jett 430×932@3: backing 1170×2532 for CSS 430×931 (0.91/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 3,
+     "limitedBy": "cap",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "jett 320×568@2: backing 536×1161 for CSS 262×568 (1.02/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 1.375,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "jett 844×390@3: backing 585×1266 for CSS 180×390 (1.08/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 1.5,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "flap 390×844@1: backing 390×844 for CSS 390×844 (1.00/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 1,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "flap 390×844@2: backing 780×1688 for CSS 390×844 (1.00/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 2,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "flap 390×844@3: backing 1170×2532 for CSS 390×844 (1.00/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 3,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "flap 430×932@3: backing 1170×2532 for CSS 430×931 (0.91/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 3,
+     "limitedBy": "cap",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "flap 320×568@2: backing 536×1161 for CSS 262×568 (1.02/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 1.375,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "flap 844×390@3: backing 585×1266 for CSS 180×390 (1.08/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 1.5,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "shatter 390×844@1: backing 390×844 for CSS 390×844 (1.00/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 1,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "shatter 390×844@2: backing 780×1688 for CSS 390×844 (1.00/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 2,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "shatter 390×844@3: backing 1170×2532 for CSS 390×844 (1.00/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 3,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "shatter 430×932@3: backing 1170×2532 for CSS 430×931 (0.91/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 3,
+     "limitedBy": "cap",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "shatter 320×568@2: backing 536×1161 for CSS 262×568 (1.02/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 1.375,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   },
+   {
+    "name": "shatter 844×390@3: backing 585×1266 for CSS 180×390 (1.08/physical px), Inter 4 weights loaded",
+    "ok": true,
+    "detail": {
+     "rs": 1.5,
+     "limitedBy": "none",
+     "faces": [
+      400,
+      600,
+      700,
+      800
+     ]
+    }
+   }
+  ],
+  "pointer": [
+   {
+    "name": "initial 390×844@2: tap at world x=300 steers to 299 (±2, = 1 CSS px) at render scale 2",
+    "ok": true,
+    "detail": {
+     "target": 299,
+     "rs": {
+      "scale": 2,
+      "target": 2,
+      "width": 780,
+      "height": 1688,
+      "limitedBy": "none",
+      "backingPerPhysicalPx": 1,
+      "adaptive": false,
+      "downgrades": [],
+      "dpr": 2,
+      "quality": "high",
+      "cssWidth": 390,
+      "cssHeight": 844,
+      "zoomX": 2,
+      "zoomY": 2,
+      "scene": "JettScene"
+     },
+     "backing": [
+      780,
+      1688
+     ],
+     "worldPerCssPx": 1.2710843373493976
+    }
+   },
+   {
+    "name": "after resize to 360×700: tap at world x=80 steers to 79 (±2, = 1 CSS px) at render scale 1.75",
+    "ok": true,
+    "detail": {
+     "target": 79,
+     "rs": {
+      "scale": 1.75,
+      "target": 1.6588,
+      "width": 683,
+      "height": 1477,
+      "limitedBy": "none",
+      "backingPerPhysicalPx": 1.056,
+      "adaptive": false,
+      "downgrades": [],
+      "dpr": 2,
+      "quality": "high",
+      "cssWidth": 323.7,
+      "cssHeight": 700,
+      "zoomX": 1.7512820512820513,
+      "zoomY": 1.75,
+      "scene": "JettScene"
+     },
+     "backing": [
+      683,
+      1477
+     ],
+     "worldPerCssPx": 1.5314860523383356
+    }
+   },
+   {
+    "name": "live DPR change 2→3 re-sizes the backing store (matchMedia resolution listener)",
+    "ok": true,
+    "detail": {
+     "scale": 1.75,
+     "target": 1.6588,
+     "width": 683,
+     "height": 1477,
+     "limitedBy": "none",
+     "backingPerPhysicalPx": 1.056,
+     "adaptive": false,
+     "downgrades": [],
+     "dpr": 3,
+     "quality": "high",
+     "cssWidth": 323.7,
+     "cssHeight": 700,
+     "zoomX": 1.7512820512820513,
+     "zoomY": 1.75,
+     "scene": "JettScene"
+    }
+   },
+   {
+    "name": "after DPR 3: tap at world x=195 steers to 194 (±2, = 1 CSS px) at render scale 1.75",
+    "ok": true,
+    "detail": {
+     "target": 194,
+     "rs": {
+      "scale": 1.75,
+      "target": 1.6588,
+      "width": 683,
+      "height": 1477,
+      "limitedBy": "none",
+      "backingPerPhysicalPx": 1.056,
+      "adaptive": false,
+      "downgrades": [],
+      "dpr": 3,
+      "quality": "high",
+      "cssWidth": 323.7,
+      "cssHeight": 700,
+      "zoomX": 1.7512820512820513,
+      "zoomY": 1.75,
+      "scene": "JettScene"
+     },
+     "backing": [
+      683,
+      1477
+     ],
+     "worldPerCssPx": 1.5314860523383356
+    }
+   },
+   {
+    "name": "after rotation to 844×390@3 (rail): tap at world x=40 steers to 38 (±3, = 1 CSS px) at render scale 1",
+    "ok": true,
+    "detail": {
+     "target": 38,
+     "rs": {
+      "scale": 1,
+      "target": 0.9248,
+      "width": 390,
+      "height": 844,
+      "limitedBy": "none",
+      "backingPerPhysicalPx": 1.081,
+      "adaptive": false,
+      "downgrades": [],
+      "dpr": 2,
+      "quality": "high",
+      "cssWidth": 180.21,
+      "cssHeight": 390,
+      "zoomX": 1,
+      "zoomY": 1,
+      "scene": "JettScene"
+     },
+     "backing": [
+      390,
+      844
+     ],
+     "worldPerCssPx": 2.750911736776291
+    }
+   },
+   {
+    "name": "no page errors",
+    "ok": true,
+    "detail": []
+   }
+  ],
   "inputs": [
    {
     "name": "jett: one touch tap on the CTA = one start (one debit, one roundStarted)",
@@ -187,6 +593,641 @@
     "name": "flap: no page errors",
     "ok": true,
     "detail": []
+   }
+  ],
+  "restarts": [
+   {
+    "name": "jett: 30 restarts keep DOM, display list, scene/scale/window listeners and textures flat",
+    "ok": true,
+    "detail": {
+     "before": {
+      "roots": 1,
+      "buttons": 3,
+      "display": 16,
+      "updates": 5,
+      "resize": 7,
+      "live": {
+       "beforeunload": 1,
+       "error": 1,
+       "unhandledrejection": 1,
+       "keydown": 2,
+       "keyup": 2,
+       "mousedown": 2,
+       "mouseup": 2,
+       "pointerlockchange": 1,
+       "mozpointerlockchange": 1,
+       "webkitpointerlockchange": 1,
+       "resize": 2,
+       "webkitfullscreenchange": 1,
+       "webkitfullscreenerror": 1,
+       "mozfullscreenchange": 1,
+       "mozfullscreenerror": 1,
+       "fullscreenchange": 1,
+       "fullscreenerror": 1,
+       "MSFullscreenChange": 1,
+       "MSFullscreenError": 1,
+       "__playwright_global_listeners_check__": 1,
+       "mousemove": 1,
+       "pointerdown": 1,
+       "pointerup": 1,
+       "touchstart": 1,
+       "touchend": 1,
+       "touchcancel": 1,
+       "click": 1,
+       "auxclick": 1,
+       "dblclick": 1,
+       "contextmenu": 1,
+       "visibilitychange": 2,
+       "blur": 1
+      },
+      "backing": [
+       1170,
+       2532
+      ],
+      "textures": 8
+     },
+     "after": {
+      "roots": 1,
+      "buttons": 3,
+      "display": 16,
+      "updates": 5,
+      "resize": 7,
+      "live": {
+       "beforeunload": 1,
+       "error": 1,
+       "unhandledrejection": 1,
+       "keydown": 2,
+       "keyup": 2,
+       "mousedown": 2,
+       "mouseup": 2,
+       "pointerlockchange": 1,
+       "mozpointerlockchange": 1,
+       "webkitpointerlockchange": 1,
+       "resize": 2,
+       "webkitfullscreenchange": 1,
+       "webkitfullscreenerror": 1,
+       "mozfullscreenchange": 1,
+       "mozfullscreenerror": 1,
+       "fullscreenchange": 1,
+       "fullscreenerror": 1,
+       "MSFullscreenChange": 1,
+       "MSFullscreenError": 1,
+       "__playwright_global_listeners_check__": 1,
+       "mousemove": 1,
+       "pointerdown": 1,
+       "pointerup": 1,
+       "touchstart": 1,
+       "touchend": 1,
+       "touchcancel": 1,
+       "click": 1,
+       "auxclick": 1,
+       "dblclick": 1,
+       "contextmenu": 1,
+       "visibilitychange": 2,
+       "blur": 1
+      },
+      "backing": [
+       1170,
+       2532
+      ],
+      "textures": 8
+     }
+    }
+   },
+   {
+    "name": "jett: backing store still high-density after restarts",
+    "ok": true,
+    "detail": [
+     1170,
+     2532
+    ]
+   },
+   {
+    "name": "jett: no page errors",
+    "ok": true,
+    "detail": []
+   },
+   {
+    "name": "flap: 30 restarts keep DOM, display list, scene/scale/window listeners and textures flat",
+    "ok": true,
+    "detail": {
+     "before": {
+      "roots": 1,
+      "buttons": 4,
+      "display": 12,
+      "updates": 5,
+      "resize": 7,
+      "live": {
+       "beforeunload": 1,
+       "error": 1,
+       "unhandledrejection": 1,
+       "keydown": 2,
+       "keyup": 2,
+       "mousedown": 2,
+       "mouseup": 2,
+       "pointerlockchange": 1,
+       "mozpointerlockchange": 1,
+       "webkitpointerlockchange": 1,
+       "resize": 2,
+       "webkitfullscreenchange": 1,
+       "webkitfullscreenerror": 1,
+       "mozfullscreenchange": 1,
+       "mozfullscreenerror": 1,
+       "fullscreenchange": 1,
+       "fullscreenerror": 1,
+       "MSFullscreenChange": 1,
+       "MSFullscreenError": 1,
+       "__playwright_global_listeners_check__": 1,
+       "mousemove": 1,
+       "pointerdown": 1,
+       "pointerup": 1,
+       "touchstart": 1,
+       "touchend": 1,
+       "touchcancel": 1,
+       "click": 1,
+       "auxclick": 1,
+       "dblclick": 1,
+       "contextmenu": 1,
+       "visibilitychange": 2,
+       "blur": 1
+      },
+      "backing": [
+       1170,
+       2532
+      ],
+      "textures": 5
+     },
+     "after": {
+      "roots": 1,
+      "buttons": 4,
+      "display": 12,
+      "updates": 5,
+      "resize": 7,
+      "live": {
+       "beforeunload": 1,
+       "error": 1,
+       "unhandledrejection": 1,
+       "keydown": 2,
+       "keyup": 2,
+       "mousedown": 2,
+       "mouseup": 2,
+       "pointerlockchange": 1,
+       "mozpointerlockchange": 1,
+       "webkitpointerlockchange": 1,
+       "resize": 2,
+       "webkitfullscreenchange": 1,
+       "webkitfullscreenerror": 1,
+       "mozfullscreenchange": 1,
+       "mozfullscreenerror": 1,
+       "fullscreenchange": 1,
+       "fullscreenerror": 1,
+       "MSFullscreenChange": 1,
+       "MSFullscreenError": 1,
+       "__playwright_global_listeners_check__": 1,
+       "mousemove": 1,
+       "pointerdown": 1,
+       "pointerup": 1,
+       "touchstart": 1,
+       "touchend": 1,
+       "touchcancel": 1,
+       "click": 1,
+       "auxclick": 1,
+       "dblclick": 1,
+       "contextmenu": 1,
+       "visibilitychange": 2,
+       "blur": 1
+      },
+      "backing": [
+       1170,
+       2532
+      ],
+      "textures": 5
+     }
+    }
+   },
+   {
+    "name": "flap: backing store still high-density after restarts",
+    "ok": true,
+    "detail": [
+     1170,
+     2532
+    ]
+   },
+   {
+    "name": "flap: no page errors",
+    "ok": true,
+    "detail": []
+   },
+   {
+    "name": "shatter: 30 restarts keep DOM, display list, scene/scale/window listeners and textures flat",
+    "ok": true,
+    "detail": {
+     "before": {
+      "roots": 1,
+      "buttons": 5,
+      "display": 115,
+      "updates": 4,
+      "resize": 8,
+      "live": {
+       "beforeunload": 1,
+       "error": 1,
+       "unhandledrejection": 1,
+       "keydown": 2,
+       "keyup": 2,
+       "mousedown": 2,
+       "mouseup": 2,
+       "pointerlockchange": 1,
+       "mozpointerlockchange": 1,
+       "webkitpointerlockchange": 1,
+       "resize": 2,
+       "webkitfullscreenchange": 1,
+       "webkitfullscreenerror": 1,
+       "mozfullscreenchange": 1,
+       "mozfullscreenerror": 1,
+       "fullscreenchange": 1,
+       "fullscreenerror": 1,
+       "MSFullscreenChange": 1,
+       "MSFullscreenError": 1,
+       "__playwright_global_listeners_check__": 1,
+       "mousemove": 1,
+       "pointerdown": 1,
+       "pointerup": 1,
+       "touchstart": 1,
+       "touchend": 1,
+       "touchcancel": 1,
+       "click": 1,
+       "auxclick": 1,
+       "dblclick": 1,
+       "contextmenu": 1,
+       "blur": 1,
+       "visibilitychange": 2
+      },
+      "backing": [
+       1170,
+       2532
+      ],
+      "textures": 20
+     },
+     "after": {
+      "roots": 1,
+      "buttons": 5,
+      "display": 115,
+      "updates": 4,
+      "resize": 8,
+      "live": {
+       "beforeunload": 1,
+       "error": 1,
+       "unhandledrejection": 1,
+       "keydown": 2,
+       "keyup": 2,
+       "mousedown": 2,
+       "mouseup": 2,
+       "pointerlockchange": 1,
+       "mozpointerlockchange": 1,
+       "webkitpointerlockchange": 1,
+       "resize": 2,
+       "webkitfullscreenchange": 1,
+       "webkitfullscreenerror": 1,
+       "mozfullscreenchange": 1,
+       "mozfullscreenerror": 1,
+       "fullscreenchange": 1,
+       "fullscreenerror": 1,
+       "MSFullscreenChange": 1,
+       "MSFullscreenError": 1,
+       "__playwright_global_listeners_check__": 1,
+       "mousemove": 1,
+       "pointerdown": 1,
+       "pointerup": 1,
+       "touchstart": 1,
+       "touchend": 1,
+       "touchcancel": 1,
+       "click": 1,
+       "auxclick": 1,
+       "dblclick": 1,
+       "contextmenu": 1,
+       "blur": 1,
+       "visibilitychange": 2
+      },
+      "backing": [
+       1170,
+       2532
+      ],
+      "textures": 20
+     }
+    }
+   },
+   {
+    "name": "shatter: backing store still high-density after restarts",
+    "ok": true,
+    "detail": [
+     1170,
+     2532
+    ]
+   },
+   {
+    "name": "shatter: no page errors",
+    "ok": true,
+    "detail": []
+   }
+  ],
+  "release": [
+   {
+    "name": "JettScene: minified build launches exactly the requested scene at 1170×2532",
+    "ok": true,
+    "detail": {
+     "active": [
+      "JettScene"
+     ],
+     "backing": [
+      1170,
+      2532
+     ],
+     "errors": []
+    }
+   },
+   {
+    "name": "leaving Jett for another game restores the 390×844 game size",
+    "ok": true,
+    "detail": [
+     390,
+     844,
+     "DiceScene"
+    ]
+   },
+   {
+    "name": "release build loaded self-hosted Inter before boot",
+    "ok": true,
+    "detail": {
+     "family": "Inter",
+     "requested": [
+      400,
+      600,
+      700,
+      800
+     ],
+     "loaded": [
+      400,
+      600,
+      700,
+      800
+     ],
+     "timedOut": false,
+     "ms": 42
+    }
+   },
+   {
+    "name": "FlapFortuneScene: minified build launches exactly the requested scene at 1170×2532",
+    "ok": true,
+    "detail": {
+     "active": [
+      "FlapFortuneScene"
+     ],
+     "backing": [
+      1170,
+      2532
+     ],
+     "errors": []
+    }
+   },
+   {
+    "name": "ShatterStepScene: minified build launches exactly the requested scene at 1170×2532",
+    "ok": true,
+    "detail": {
+     "active": [
+      "ShatterStepScene"
+     ],
+     "backing": [
+      1170,
+      2532
+     ],
+     "errors": []
+    }
+   },
+   {
+    "name": "DiceScene: minified build launches exactly the requested scene at its unchanged 390×844",
+    "ok": true,
+    "detail": {
+     "active": [
+      "DiceScene"
+     ],
+     "backing": [
+      390,
+      844
+     ],
+     "errors": []
+    }
+   },
+   {
+    "name": "MinesScene: minified build launches exactly the requested scene at its unchanged 390×844",
+    "ok": true,
+    "detail": {
+     "active": [
+      "MinesScene"
+     ],
+     "backing": [
+      390,
+      844
+     ],
+     "errors": []
+    }
+   },
+   {
+    "name": "BallDropScene: minified build launches exactly the requested scene at its unchanged 390×844",
+    "ok": true,
+    "detail": {
+     "active": [
+      "BallDropScene"
+     ],
+     "backing": [
+      390,
+      844
+     ],
+     "errors": []
+    }
+   },
+   {
+    "name": "MasqueradeScene: minified build launches exactly the requested scene at its unchanged 390×844",
+    "ok": true,
+    "detail": {
+     "active": [
+      "MasqueradeScene"
+     ],
+     "backing": [
+      390,
+      844
+     ],
+     "errors": []
+    }
+   },
+   {
+    "name": "AlchemistScene: minified build launches exactly the requested scene at its unchanged 390×844",
+    "ok": true,
+    "detail": {
+     "active": [
+      "AlchemistScene"
+     ],
+     "backing": [
+      390,
+      844
+     ],
+     "errors": []
+    }
+   },
+   {
+    "name": "InfernoScene: minified build launches exactly the requested scene at its unchanged 390×844",
+    "ok": true,
+    "detail": {
+     "active": [
+      "InfernoScene"
+     ],
+     "backing": [
+      390,
+      844
+     ],
+     "errors": []
+    }
+   },
+   {
+    "name": "SurgeScene: minified build launches exactly the requested scene at its unchanged 390×844",
+    "ok": true,
+    "detail": {
+     "active": [
+      "SurgeScene"
+     ],
+     "backing": [
+      390,
+      844
+     ],
+     "errors": []
+    }
+   },
+   {
+    "name": "DiceDuelScene: minified build launches exactly the requested scene at its unchanged 390×844",
+    "ok": true,
+    "detail": {
+     "active": [
+      "DiceDuelScene"
+     ],
+     "backing": [
+      390,
+      844
+     ],
+     "errors": []
+    }
+   }
+  ],
+  "host": [
+   {
+    "name": "valid host command (openSettings) from the exact parent origin is applied",
+    "ok": true
+   },
+   {
+    "name": "duplicate (seq) and malformed/oversized/unknown messages rejected",
+    "ok": true,
+    "detail": {
+     "seq": 1,
+     "schema": 3
+    }
+   },
+   {
+    "name": "roundStarted + exactly one roundSettled reach the host for one round",
+    "ok": true,
+    "detail": [
+     "settingsOpened",
+     "settingsClosed",
+     "paused",
+     "roundStarted",
+     "roundSettled"
+    ]
+   },
+   {
+    "name": "every outbound message uses the exact host origin (never \"*\")",
+    "ok": true,
+    "detail": [
+     "http://localhost:5199"
+    ]
+   },
+   {
+    "name": "no outbound payload contains a seed, board, RNG state or session ref",
+    "ok": true,
+    "detail": "{\"channel\":\"jett.host\",\"v\":1,\"seq\":6,\"msg\":{\"type\":\"roundSettled\",\"payload\":{\"roundId\":\"jett-1-1793984106893\",\"gameId\":\"jett\",\"stakeMinor\":1000,\"returnMinor\":1019,\"netMinor\":19,\"reason\":\"cashout\",\"res"
+   },
+   {
+    "name": "no page errors",
+    "ok": true,
+    "detail": []
+   }
+  ],
+  "theming": [
+   {
+    "name": "brand switches + settings open/close mid-round: identical simulation state at the same tick",
+    "ok": true,
+    "detail": {
+     "tick": [
+      220,
+      220
+     ],
+     "accent": [
+      "#d6b76f",
+      "#5fd0d8"
+     ]
+    }
+   },
+   {
+    "name": "the live brand actually changed the presentation",
+    "ok": true,
+    "detail": [
+     "#d6b76f",
+     "#5fd0d8"
+    ]
+   },
+   {
+    "name": "no page errors",
+    "ok": true,
+    "detail": []
+   }
+  ],
+  "replay": [
+   {
+    "name": "jett: identical actions → identical state/settlement at render scale 1 / 3 / 1.5",
+    "ok": true,
+    "detail": "{\"tick\":205,\"settlement\":{\"reason\":\"crash\",\"tick\":205,\"multiplier\":1.262,\"payout\":0,\"returnHundredths\":0,\"altitude\":276.09923549875145,\"coins\":0},\"log\":22,\"state\":1.262}"
+   },
+   {
+    "name": "flap: identical actions → identical state/settlement at render scale 1 / 3 / 1.5",
+    "ok": true,
+    "detail": "{\"tick\":133,\"settlement\":{\"reason\":\"crash\",\"tick\":133,\"multiplier\":1,\"payout\":0,\"returnHundredths\":0},\"log\":7,\"state\":1}"
+   },
+   {
+    "name": "shatter: identical actions → identical state/settlement at render scale 1 / 3 / 1.5",
+    "ok": true,
+    "detail": "{\"picks\":[{\"row\":0,\"side\":\"left\",\"safe\":true},{\"row\":1,\"side\":\"right\",\"safe\":true},{\"row\":2,\"side\":\"left\",\"safe\":true},{\"row\":3,\"side\":\"left\",\"safe\":false}],\"settlement\":{\"reason\":\"shatter\",\"rowsClear"
+   }
+  ],
+  "governor": [
+   {
+    "name": "slow frames step quality down one-way (high → balanced → low): backing 1170×2532 → 585×1266",
+    "ok": true,
+    "detail": [
+     {
+      "from": "high",
+      "to": "balanced",
+      "medianMs": 83.3
+     },
+     {
+      "from": "balanced",
+      "to": "low",
+      "medianMs": 33.3
+     }
+    ]
+   },
+   {
+    "name": "downgrade happens without touching the round (still ready, no errors)",
+    "ok": true,
+    "detail": {
+     "phase": "ready",
+     "errors": []
+    }
    }
   ],
   "targets": [

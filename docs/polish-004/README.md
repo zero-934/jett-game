@@ -11,3 +11,13 @@ Our proposed direction is a visible browser-rendered shell for crisp dynamic con
 The second workstream is integration readiness: one small demo host contract, a fake host and honest documentation of operator/provider/RGS responsibilities. It is not a real-money integration, complete universal SDK, certification claim or server-authoritative wagering backend.
 
 Base: `opus/polish-003-controls@97c5797`. This research handoff only adds docs/evidence; it does not change game code, replace assets, extend the temporary preview or modify production.
+
+## Delivered (branch `opus/polish-004-sharpness`)
+
+Read in this order:
+1. [SHARPNESS_DIAGNOSIS.md](SHARPNESS_DIAGNOSIS.md) — measured cause (390×844 framebuffer at every DPR, Inter never loaded), prototypes A/B, chosen hybrid, density policy.
+2. [UI_AND_ASSET_SPEC.md](UI_AND_ASSET_SPEC.md) — who draws what, typography, components, overlay answer, character export pipeline, remaining art needs.
+3. [CASINO_INTEGRATION_READINESS.md](CASINO_INTEGRATION_READINESS.md) — presentation vs RGS vs operator layers, demo host contract and security behaviour, what a real integration still needs.
+4. [IMPLEMENTATION_AND_TEST_REPORT.md](IMPLEMENTATION_AND_TEST_REPORT.md) — commits, exact test results, performance table and limits, risks, next milestone.
+
+Evidence: `evidence/` (release before/after captures, native crops, measurement/perf/test JSON). All evidence is headless Chromium with emulated DPR — no physical-phone measurement yet.

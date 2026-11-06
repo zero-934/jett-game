@@ -14,11 +14,12 @@ Last updated: 2026-11-06. Everything below is pushed to `zero-934/jett-game`. **
 | `opus/polish-003-review` | `5e8098c` | Browser test suite, captures, `docs/polish-003/implementation/REVIEW_REPORT.md` |
 | `opus/polish-003-flap-scale` | `6722b83` | Larger Flap playfield (immersive layout), wizard sized to hitbox |
 | `opus/polish-003-jett-scale` | `286e154` | Jett immersive layout, wizard +7 %, touch-target sizing, landscape rail |
-| **`opus/polish-003-controls`** | latest | Header 44×44 targets, rail settings + Shatter panes, hazard-aware HUD, rotation tests |
+| `opus/polish-003-controls` | `148a094` | Header 44×44 targets, rail settings + Shatter panes, hazard-aware HUD, rotation tests |
+| **`opus/polish-004-sharpness`** | latest | High-density canvas + DOM shell text/controls, self-hosted Inter, cleaner character exports, adaptive quality governor, demo host contract + fictional brands (see docs/polish-004/) |
 
 Older: `research/jett-polish-002` (`151a500`), the polish-002 audit (already included in the handoff branch).
 
-**Start new work from `opus/polish-003-controls`.**
+**Start new work from `opus/polish-004-sharpness`.** Browser suites: `tests/browser/polish003.browser.cjs` and `tests/browser/polish004.browser.cjs` (needs `vite preview --port 4173` too).
 
 ## Verify in a fresh session
 ```bash
