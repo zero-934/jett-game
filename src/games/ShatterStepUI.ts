@@ -62,6 +62,8 @@ const T_DONE_MS = 650;
 const REDUCED_CROSSFADE_MS = 100;
 const RUNNER_STEP_MS = 160;
 const RUNNER_FOOT_OFFSET = 12;
+/** Selected-pane glow duration (presentation only). */
+const PICK_GLOW_MS = 220;
 /** Generated textures are TEXTURE_DENSITY× their logical size; images are drawn at 1/TD. */
 const TD = TEXTURE_DENSITY;
 const DEPTH = { shaft: 1, rails: 2, panes: 4, marks: 5, runner: 6, cracks: 7, shards: 8, flash: 9, labels: 9, hits: 39 } as const;
@@ -107,6 +109,8 @@ export class ShatterStepUI {
   private activeRow: Phaser.GameObjects.Graphics | null = null;
   private cracks: Phaser.GameObjects.Graphics | null = null;
   private flash: Phaser.GameObjects.Arc | null = null;
+  private pickGlow: Phaser.GameObjects.Graphics | null = null;
+  private pickGlowTween: Phaser.Tweens.Tween | null = null;
   private runner: Phaser.GameObjects.Image | null = null;
   private title: Phaser.GameObjects.Text | null = null;
   private labels: Phaser.GameObjects.Text[] = [];
@@ -156,10 +160,12 @@ export class ShatterStepUI {
   /** Destroys all managed objects and cancels pending callbacks. Idempotent. */
   public cleanup(): void {
     this.scene.scale.off(Phaser.Scale.Events.RESIZE, this.onResizeBound);
+    this.pickGlowTween?.stop(); this.pickGlowTween = null;
     this.token++;
     for (const t of this.shardTweens) t.stop();
     this.shardTweens = [];
-    for (const o of [this.shaft, this.activeRow, this.cracks, this.flash, this.runner, this.title]) o?.destroy();
+    for (const o of [this.shaft, this.activeRow, this.cracks, this.flash, this.runner, this.title, this.pickGlow]) o?.destroy();
+    this.pickGlow = null;
     for (const l of this.labels) l.destroy();
     for (const row of this.panes) for (const v of Object.values(row)) { v.image.destroy(); v.frame.destroy(); v.mark.destroy(); }
     for (const h of this.hits) h.destroy();
@@ -183,6 +189,7 @@ export class ShatterStepUI {
       g.fillStyle(0xffffff, 0.09).fillTriangle(w * 0.28, PANE_H - 2, w * 0.4, PANE_H - 2, w * 0.58, 2); // one diagonal reflection
       g.fillTriangle(w * 0.58, 2, w * 0.46, 2, w * 0.28, PANE_H - 2);
       g.lineStyle(1, GLASS_EDGE, 0.55).strokeRoundedRect(0.5, 0.5, w - 1, PANE_H - 1, 6); // thin pale-cyan edge
+      g.lineStyle(0.75, 0xffffff, 0.38).lineBetween(7, 1.6, w - 7, 1.6);                 // polish-004: specular top edge
     });
     FRAME_KEYS.forEach((key, v) => makeDenseTexture(scene, key, w, h, (g) => {
       g.lineStyle(1, GLASS_EDGE, 0.35).strokeRoundedRect(0.5, 0.5, w - 1, PANE_H - 1, 6);
@@ -199,6 +206,7 @@ export class ShatterStepUI {
       for (let i = 0; i < pts.length; i += 2) vecs.push(new Phaser.Math.Vector2(pts[i], pts[i + 1]));
       g.fillStyle(GLASS_TINT, 0.55).fillPoints(vecs, true);
       g.lineStyle(1, GLASS_EDGE, 0.8).strokePoints(vecs, true);
+      g.lineStyle(0.8, 0xffffff, 0.9).lineBetween(vecs[0].x, vecs[0].y, vecs[1].x, vecs[1].y); // polish-004: one lit edge
     }));
     // The existing simple runner, now softly shaded (head + body), same identity.
     makeDenseTexture(scene, RUNNER_KEY, 18, 31, (g) => {
@@ -261,6 +269,7 @@ export class ShatterStepUI {
     }
     this.activeRow = scene.add.graphics().setDepth(DEPTH.marks);
     this.cracks = scene.add.graphics().setDepth(DEPTH.cracks);
+    this.pickGlow = scene.add.graphics().setDepth(DEPTH.marks).setVisible(false);
     this.flash = scene.add.arc(0, 0, 10, 0, 360, false, 0xffffff, 0.9).setDepth(DEPTH.flash).setVisible(false);
     this.runner = scene.add.image(this.worldWidth / 2, PLATFORM_Y, RUNNER_KEY).setOrigin(0.5, 1).setScale(1 / TD).setDepth(DEPTH.runner);
     for (let i = 0; i < SHARD_COUNT; i++) this.shards.push(scene.add.image(0, 0, SHARD_KEYS[i % SHARD_KEYS.length]).setDepth(DEPTH.shards).setVisible(false));
@@ -272,6 +281,7 @@ export class ShatterStepUI {
     this.token++;
     for (const t of this.shardTweens) t.stop();
     this.shardTweens = [];
+    this.pickGlowTween?.stop(); this.pickGlowTween = null; this.pickGlow?.setVisible(false);
     this.seed = reviewSeed() ?? createSeedString();
     this.roundId = nextRoundId('shatter');
     this.round = createShatterRound(this.seed, this.betHundredths / 100, this.config);
@@ -323,6 +333,7 @@ export class ShatterStepUI {
     if (!pick) return;
     this.lockHits();
     if (pick.safe) {
+      this.glowPick(row, side);
       this.markSafe(row, side);
       this.moveRunner(row, side);
       AudioService.cue('tap');
@@ -350,6 +361,17 @@ export class ShatterStepUI {
   }
 
   // ─── Visuals ──────────────────────────────────────────────────────────────
+
+  /** Selected-pane feedback on a safe step: a brief bright edge (static under reduced motion). */
+  private glowPick(row: number, side: TileSide): void {
+    const g = this.pickGlow; if (!g) return;
+    this.pickGlowTween?.stop();
+    g.clear().lineStyle(2, 0xe9f8ff, 0.95).strokeRoundedRect(paneX(side) - 1.5, rowY(row) - PANE_H / 2 - 1.5, PANE_W + 3, PANE_H + 3, 7.5);
+    g.fillStyle(0xe9f8ff, 0.10).fillRoundedRect(paneX(side), rowY(row) - PANE_H / 2, PANE_W, PANE_H, 6);
+    g.setAlpha(1).setVisible(true);
+    if (this.shell?.settings.reducedMotion) { const token = this.token; this.scene.time.delayedCall(PICK_GLOW_MS, () => { if (token === this.token) g.setVisible(false); }); return; }
+    this.pickGlowTween = this.scene.tweens.add({ targets: g, alpha: 0, duration: PICK_GLOW_MS, ease: 'Quad.easeOut', onComplete: () => g.setVisible(false) });
+  }
 
   private markSafe(row: number, side: TileSide): void {
     const v = this.panes[row][side];

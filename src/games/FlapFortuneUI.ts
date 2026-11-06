@@ -22,6 +22,7 @@ import type { ShellKey } from '../shared/ui/SoftDepthShell';
 import { hexToInt, fitWorld, LAYOUT_IMMERSIVE } from '../shared/ui/SoftDepthTheme';
 import { AudioService } from '../shared/audio/AudioService';
 import { makeDenseTexture, TEXTURE_DENSITY } from '../shared/render/RenderScale';
+import { preloadCharacter, characterPlacement, characterAnchor, variantOf } from '../shared/render/CharacterSprites';
 
 // ─── World fit (docs/polish-003/ART_AND_LAYOUT.md "Preserving Flap and Jett worlds") ──
 // polish-003 scale fix: Flap uses the immersive shell layout (stage 374×664 at y 56), so the
@@ -51,8 +52,14 @@ const PIPE_BAND = 0xc9a24f;
 const PIPE_BAND_DARK = 0x8f7234;
 const GUTTER_DIM_ALPHA = 0.28;
 const PIPE_BAND_WORLD_H = 16;
-const WIZARD_DISPLAY_WORLD_H = 60; // +7% vs 56: largest size whose robed body still sits inside the 28×28 hitbox (63 overhangs it) // hat-to-broom; at this size the robed body ≈ the 28×28 collision box (verified with ?debug=1)
-const WIZARD_TEXTURE = 'flap-wizard';
+// polish-003 WIZARD_DISPLAY_WORLD_H = 60 (kept via characterManifest displayBody); // +7% vs 56: largest size whose robed body still sits inside the 28×28 hitbox (63 overhangs it) // hat-to-broom; at this size the robed body ≈ the 28×28 collision box (verified with ?debug=1)
+/** Set by preload: render-scale variant of the polish-004 wizard export. On-screen body size and
+ *  centre come from characterManifest.ts and equal the polish-003 placement (60 world px). */
+let wizardTexture = 'flap-wizard-r3';
+/** Flap response (presentation only): brief squash-stretch after an accepted flap. */
+const FLAP_PULSE_MS = 150;
+const FLAP_PULSE_STRETCH = 0.07;
+const FLAP_PULSE_SQUASH = 0.04;
 const SKYLINE_FAR_KEY = 'flap-skyline-far';
 const SKYLINE_NEAR_KEY = 'flap-skyline-near';
 const SKYLINE_FAR_PARALLAX = 0.05;
@@ -96,6 +103,8 @@ export class FlapFortuneUI {
   private betHundredths = 1000;
   private phase: UIPhase = 'ready';
   private flapsThisRound = 0;
+  private flapPulseAt = -1e9;
+  private wizardScale = 1;
 
   // Interpolation snapshots (state at the start of the latest tick)
   private prevPlayerY = WORLD_H / 2;
@@ -137,7 +146,7 @@ export class FlapFortuneUI {
    * FlapFortuneUI.preload(this);
    */
   static preload(scene: Phaser.Scene): void {
-    if (!scene.textures.exists(WIZARD_TEXTURE)) scene.load.image(WIZARD_TEXTURE, `${import.meta.env.BASE_URL}assets/polish-003/flap-wizard.png`);
+    wizardTexture = preloadCharacter(scene, 'flap-wizard');
   }
 
   /**
@@ -235,6 +244,7 @@ export class FlapFortuneUI {
     if (this.phase !== 'playing') return;
     if (this.runner?.queue('flap')) {
       this.flapsThisRound++;
+      this.flapPulseAt = this.scene.time.now;
       this.spawnSpecks();
       AudioService.cue('tap');
     }
@@ -333,8 +343,9 @@ export class FlapFortuneUI {
     this.exitBand.lineStyle(1, hexToInt(tokens?.accent ?? '#d6b76f'), 0.8).lineBetween(ORIGIN_X, wy(WORLD_H) - 8, wx(WORLD_W), wy(WORLD_H) - 8);
     this.exitBand.setVisible(false);
 
-    const scale = (WIZARD_DISPLAY_WORLD_H * K) / (scene.textures.exists(WIZARD_TEXTURE) ? scene.textures.get(WIZARD_TEXTURE).getSourceImage().height : 164);
-    this.wizard = scene.add.image(wx(FLAP_PLAYER_X), wy(WORLD_H / 2), WIZARD_TEXTURE).setScale(scale).setDepth(DEPTH.wizard);
+    const place = characterPlacement('flap-wizard', variantOf(wizardTexture));
+    this.wizardScale = place.scale;
+    this.wizard = scene.add.image(wx(FLAP_PLAYER_X), wy(WORLD_H / 2), wizardTexture).setScale(place.scale).setOrigin(place.originX, place.originY).setDepth(DEPTH.wizard);
     const hintStyle = { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '14px', color: '#e8edf4', fontStyle: 'bold' };
     this.hint = scene.add.text(S.x + S.width / 2, S.y + S.height - 30, 'TAP THE SKY TO FLAP', hintStyle).setOrigin(0.5).setDepth(DEPTH.hint).setLetterSpacing(1.6);
     this.exitHint = scene.add.text(S.x + S.width / 2, S.y + S.height - 50, 'DIVE TO CASH OUT · AFTER FIRST GATE', { ...hintStyle, fontSize: '12px', color: '#c8d3e2' }).setOrigin(0.5).setDepth(DEPTH.hint).setLetterSpacing(1.2);
@@ -395,6 +406,9 @@ export class FlapFortuneUI {
     const y = lerp(this.prevPlayerY, st.playerY);
     const v = lerp(this.prevVelocity, st.playerVelocityY);
     this.wizard.setPosition(wx(FLAP_PLAYER_X), wy(y)).setAngle(Phaser.Math.Clamp(v * TILT_PER_VELOCITY, TILT_MIN, TILT_MAX));
+    const age = this.scene.time.now - this.flapPulseAt;
+    const pulse = !this.shell?.settings.reducedMotion && age >= 0 && age < FLAP_PULSE_MS ? Math.sin((Math.PI * age) / FLAP_PULSE_MS) : 0;
+    this.wizard.setScale(this.wizardScale * (1 - FLAP_PULSE_SQUASH * pulse), this.wizardScale * (1 + FLAP_PULSE_STRETCH * pulse));
     this.wizard.setTint(this.phase === 'settled' && round.settlement && round.settlement.returnHundredths === 0 ? 0xb8a6a0 : 0xffffff);
 
     if (this.debug) {
@@ -432,7 +446,9 @@ export class FlapFortuneUI {
 
   private spawnSpecks(): void {
     if (this.shell?.settings.reducedMotion || !this.wizard) return;
-    const ox = this.wizard.x - 10; const oy = this.wizard.y + 6;
+    // Puff from the broom bristles (manifest anchor), following the wizard's tilt.
+    const b = characterAnchor('flap-wizard', variantOf(wizardTexture), 'bristles', this.wizard.angle);
+    const ox = this.wizard.x + b.x; const oy = this.wizard.y + b.y;
     for (let i = 0; i < SPECKS_PER_FLAP; i++) {
       const s = this.specks.find((p) => !p.visible) ?? this.scene.add.arc(0, 0, 1.6, 0, 360, false, 0xf1d48c, 1).setDepth(DEPTH.fx);
       if (!this.specks.includes(s)) this.specks.push(s);

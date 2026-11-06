@@ -22,6 +22,7 @@ import type { ShellKey, StagePointer } from '../shared/ui/SoftDepthShell';
 import { hexToInt, fitWorld, LAYOUT_IMMERSIVE } from '../shared/ui/SoftDepthTheme';
 import { AudioService } from '../shared/audio/AudioService';
 import { makeDenseTexture } from '../shared/render/RenderScale';
+import { preloadCharacter, characterPlacement, characterAnchor, variantOf } from '../shared/render/CharacterSprites';
 
 // ─── World fit ───────────────────────────────────────────────────────────────
 // Immersive shell layout (as Flap): unchanged 390×844 world fitted at k ≈ 0.787 (was 0.645).
@@ -52,13 +53,24 @@ const COIN_RIM = 0xc58b1f;
 const COIN_SHINE = 0xfff1b8;
 const FLAME_OUTER = 0xff9a3c;
 const FLAME_INNER = 0xffe08a;
-const PILOT_TEXTURE = 'jett-pilot';
+/** Set by preload: render-scale variant of the polish-004 pilot export. */
+let pilotTexture = 'jett-pilot-r3';
 const ROCK_KEYS = ['jett-rock-0', 'jett-rock-1', 'jett-rock-2', 'jett-rock-3'];
 const COIN_KEY = 'jett-coin';
 const STAR_COUNT = 46;
 const ROCK_TEX = 96;
 const COIN_TEX = 32;
-const PILOT_DISPLAY_WORLD_H = 62;   // ≈40 screen px tall at k=0.645 (spec: 34–46)
+// polish-004: the pilot's on-screen body size/centre come from characterManifest.ts (identical to
+// polish-003's PILOT_DISPLAY_WORLD_H = 62 placement); only texture quality changed.
+/** Lean: degrees per world px of lateral motion this frame, clamp, and easing per 60 Hz frame. */
+const LEAN_PER_PX = 3;
+const LEAN_MAX_DEG = 12;
+const LEAN_MAX_REDUCED_DEG = 5;
+const LEAN_EASE = 0.25;
+/** Thruster flame (logical px, at the nozzle anchor). */
+const FLAME_W = 4.6;
+const FLAME_LEN = [6.5, 8.5, 7.4] as const;
+const FLAME_FRAME_MS = 70;
 const ASTEROID_VISUAL_SCALE = 0.92; // drawn silhouette mean ≈ 0.85 r hitbox
 const STAR_PARALLAX = 0.02;
 const HORIZON_FAR_PARALLAX = 0.04;
@@ -133,6 +145,8 @@ export class JettUI {
   private readonly debugEnabled: boolean;
   private readonly onFrameBound = (_t: number, delta: number) => this.onFrame(delta);
   private started = false;
+  /** Eased presentation-only lean (degrees). */
+  private lean = 0;
 
   /**
    * @param scene - Owning scene.
@@ -152,7 +166,7 @@ export class JettUI {
    * JettUI.preload(this);
    */
   static preload(scene: Phaser.Scene): void {
-    if (!scene.textures.exists(PILOT_TEXTURE)) scene.load.image(PILOT_TEXTURE, `${import.meta.env.BASE_URL}assets/polish-003/jett-pilot.png`);
+    pilotTexture = preloadCharacter(scene, 'jett-pilot');
   }
 
   /**
@@ -218,6 +232,7 @@ export class JettUI {
     this.prevPlayerX = round.state.playerX;
     this.prevRockX.clear();
     this.lastCoins = 0;
+    this.lean = 0;
     for (const img of this.rockById.values()) { img.setVisible(false); this.rockPool.push(img); }
     for (const img of this.coinById.values()) { img.setVisible(false); this.coinPool.push(img); }
     this.rockById.clear(); this.coinById.clear();
@@ -405,8 +420,8 @@ export class JettUI {
     this.gutters = g;
 
     this.flame = scene.add.graphics().setDepth(DEPTH.flame);
-    const tex = scene.textures.exists(PILOT_TEXTURE) ? scene.textures.get(PILOT_TEXTURE).getSourceImage() : { height: 196 };
-    this.pilot = scene.add.image(0, 0, PILOT_TEXTURE).setScale((PILOT_DISPLAY_WORLD_H * K) / tex.height).setDepth(DEPTH.pilot);
+    const place = characterPlacement('jett-pilot', variantOf(pilotTexture));
+    this.pilot = scene.add.image(0, 0, pilotTexture).setScale(place.scale).setOrigin(place.originX, place.originY).setDepth(DEPTH.pilot);
     this.hint = scene.add.text(S.x + S.width / 2, S.y + S.height - 26, 'DRAG TO STEER', { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '12px', color: '#e8edf4', fontStyle: 'bold' })
       .setOrigin(0.5).setDepth(DEPTH.hint).setLetterSpacing(1.6);
     this.bonusText = scene.add.text(0, 0, '+0.03×', { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '13px', color: '#f2c14e', fontStyle: 'bold' })
@@ -475,15 +490,19 @@ export class JettUI {
     for (const [id, img] of this.coinById) if (!liveCoins.has(id)) { img.setVisible(false); this.coinPool.push(img); this.coinById.delete(id); }
 
     const px = wx(playerX); const py = ORIGIN_Y + PLAYER_SCREEN_WORLD_Y * K;
-    const tilt = Phaser.Math.Clamp((st.playerX - playerX) * 3, -12, 12);
-    this.pilot.setPosition(px, py - 4).setAngle(tilt);
+    // Restrained lean toward the direction of travel, eased so it never snaps.
+    const reduced = !!this.shell?.settings.reducedMotion;
+    const maxLean = reduced ? LEAN_MAX_REDUCED_DEG : LEAN_MAX_DEG;
+    const targetLean = this.phase === 'playing' ? Phaser.Math.Clamp((st.playerX - playerX) * LEAN_PER_PX, -maxLean, maxLean) : 0;
+    this.lean += (targetLean - this.lean) * LEAN_EASE;
+    this.pilot.setPosition(px, py - 4).setAngle(this.lean);
     if (this.flame) {
       this.flame.clear();
       if (st.isAlive && this.phase !== 'settled') {
-        const frame = Math.floor(this.scene.time.now / 70) % 3; // 3 short flame frames
-        const h = [9, 12, 10][frame]; const fx = px + 5; const fy = py + 14;
-        this.flame.fillStyle(FLAME_OUTER, 0.95).fillTriangle(fx - 4, fy, fx + 4, fy, fx, fy + h);
-        this.flame.fillStyle(FLAME_INNER, 1).fillTriangle(fx - 2, fy, fx + 2, fy, fx, fy + h * 0.55);
+        const n = characterAnchor('jett-pilot', variantOf(pilotTexture), 'nozzle', this.lean);
+        const frame = reduced ? 0 : Math.floor(this.scene.time.now / FLAME_FRAME_MS) % FLAME_LEN.length;
+        const len = FLAME_LEN[frame] * (this.phase === 'ready' ? 0.75 : 1);
+        this.drawFlame(this.flame, px + n.x, py - 4 + n.y, len, this.lean);
       }
     }
     if (this.debug) {
@@ -493,6 +512,28 @@ export class JettUI {
       this.debug.lineStyle(1, 0x75d6b1, 1);
       for (const c of st.coins) if (!c.collected) this.debug.strokeCircle(wx(c.x), sy(c.worldY, alt), (c.radius + st.playerRadius) * K);
     }
+  }
+
+  /** Tapered teardrop flame pointing away from the nozzle (vector: crisp at any render scale). */
+  private drawFlame(g: Phaser.GameObjects.Graphics, x: number, y: number, len: number, angleDeg: number): void {
+    const r = Phaser.Math.DegToRad(angleDeg);
+    const dx = -Math.sin(r); const dy = Math.cos(r); // "down" in the pilot's frame
+    const nx = Math.cos(r); const ny = Math.sin(r);
+    const shape = (w: number, l: number) => {
+      const pts: Phaser.Math.Vector2[] = [];
+      for (let i = 0; i <= 10; i++) {
+        const t = i / 10; const half = (w / 2) * Math.sin(Math.PI * (0.5 + 0.5 * t)) * (1 - t * 0.15);
+        pts.push(new Phaser.Math.Vector2(x + nx * half + dx * l * t, y + ny * half + dy * l * t));
+      }
+      for (let i = 10; i >= 0; i--) {
+        const t = i / 10; const half = (w / 2) * Math.sin(Math.PI * (0.5 + 0.5 * t)) * (1 - t * 0.15);
+        pts.push(new Phaser.Math.Vector2(x - nx * half + dx * l * t, y - ny * half + dy * l * t));
+      }
+      return pts;
+    };
+    g.fillStyle(FLAME_OUTER, 0.9).fillPoints(shape(FLAME_W, len), true);
+    g.fillStyle(FLAME_INNER, 1).fillPoints(shape(FLAME_W * 0.55, len * 0.6), true);
+    g.fillStyle(0xffffff, 0.85).fillPoints(shape(FLAME_W * 0.25, len * 0.28), true);
   }
 
   private coinFx(): void {
