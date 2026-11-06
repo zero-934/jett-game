@@ -30,6 +30,10 @@ const LEFT_X = 38.8;
 const RIGHT_X = 203;
 const ROW1_CENTER_Y = 628;
 const HIT_H = 44;
+/** Touch band cap (logical px): the CURRENT row's band may grow to keep ≥ 44 CSS px on narrow
+ *  phones; only that row is interactive, so it never competes with another live target. */
+const MAX_HIT_H = ROW_PITCH * 1.5;
+const MIN_TARGET_CSS = 44;
 const BEVEL = 4;
 const LABEL_X = 374;
 const PLATFORM_Y = 664;
@@ -143,10 +147,15 @@ export class ShatterStepUI {
     this.makeTextures();
     this.buildBoard();
     this.newRound();
+    // Re-size the current row's touch band when the canvas CSS scale changes (rotation/resize).
+    this.scene.scale.on(Phaser.Scale.Events.RESIZE, this.onResizeBound);
   }
+
+  private readonly onResizeBound = (): void => { if (this.shell && this.round) this.refresh(); };
 
   /** Destroys all managed objects and cancels pending callbacks. Idempotent. */
   public cleanup(): void {
+    this.scene.scale.off(Phaser.Scale.Events.RESIZE, this.onResizeBound);
     this.token++;
     for (const t of this.shardTweens) t.stop();
     this.shardTweens = [];
@@ -240,7 +249,8 @@ export class ShatterStepUI {
           ev?.stopPropagation?.();
           AudioService.unlock();
           void p;
-          this.choose(row, side, { x: x + lx, y: y - HIT_H / 2 + ly });
+          // Contact point for the crack origin, clamped onto the pane art.
+          this.choose(row, side, { x: x + lx, y: Phaser.Math.Clamp(y - hit.height / 2 + ly, y - PANE_H / 2 + 2, y + PANE_H / 2 - 2) });
         });
         hit.disableInteractive();
         this.hits.push(hit);
@@ -443,6 +453,12 @@ export class ShatterStepUI {
 
   private lockHits(): void { for (const h of this.hits) h.disableInteractive(); }
 
+  /** Logical height of the current row's touch band: ≥ 44 CSS px at the current canvas scale. */
+  private currentBandHeight(): number {
+    const k = this.shell?.cssScale ?? 1;
+    return Phaser.Math.Clamp(Math.ceil(MIN_TARGET_CSS / Math.max(k, 0.01)), HIT_H, MAX_HIT_H);
+  }
+
   // ─── HUD / footer / current row ───────────────────────────────────────────
 
   private refresh(): void {
@@ -452,9 +468,12 @@ export class ShatterStepUI {
     // Only the current row is interactive and highlighted.
     this.lockHits();
     this.activeRow?.clear();
+    const bandH = this.currentBandHeight();
     if (live && row < TOTAL_ROWS) {
-      this.hits[row * 2].setInteractive({ useHandCursor: true });
-      this.hits[row * 2 + 1].setInteractive({ useHandCursor: true });
+      for (const h of [this.hits[row * 2], this.hits[row * 2 + 1]]) {
+        if (h.height !== bandH) { h.removeInteractive(); h.setSize(PANE_W, bandH); }
+        h.setInteractive({ useHandCursor: true });
+      }
       const accent = hexToInt(shell.tokens.accent);
       const y = rowY(row);
       this.activeRow?.lineStyle(1.5, accent, 1);
@@ -481,7 +500,7 @@ export class ShatterStepUI {
     const actions: StageAction[] = live && row < TOTAL_ROWS
       ? (['left', 'right'] as const).map((side) => ({
         id: `pane-${side}`, label: `Row ${row + 1}, ${side} pane`, enabled: true, rail: true,
-        rect: { x: paneX(side), y: rowY(row) - HIT_H / 2, width: PANE_W, height: HIT_H },
+        rect: { x: paneX(side), y: rowY(row) - bandH / 2, width: PANE_W, height: bandH },
         onActivate: () => this.choose(row, side, { x: paneX(side) + PANE_W / 2, y: rowY(row) }),
       }))
       : [];

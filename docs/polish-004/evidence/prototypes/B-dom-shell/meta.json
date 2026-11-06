@@ -1,0 +1,357 @@
+{
+ "label": "B-dom-shell",
+ "browser": "chromium 153.0.8010.12 headless (emulated DPR, not hardware)",
+ "meta": [
+  {
+   "file": "JettScene-390x844@3x.png",
+   "scene": "JettScene",
+   "viewport": "390x844",
+   "dpr": 3,
+   "renderScale": {
+    "scale": 3,
+    "target": 3,
+    "width": 1170,
+    "height": 2532,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 3,
+    "zoomY": 3,
+    "scene": "JettScene"
+   },
+   "fonts": {
+    "family": "Inter",
+    "requested": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "loaded": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "timedOut": false,
+    "ms": 14
+   },
+   "errors": []
+  },
+  {
+   "file": "JettScene-320x568@2x.png",
+   "scene": "JettScene",
+   "viewport": "320x568",
+   "dpr": 2,
+   "renderScale": {
+    "scale": 1.375,
+    "target": 1.346,
+    "width": 536,
+    "height": 1161,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.021,
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 262.23,
+    "cssHeight": 568,
+    "zoomX": 1.3743589743589744,
+    "zoomY": 1.3755924170616114,
+    "scene": "JettScene"
+   },
+   "fonts": {
+    "family": "Inter",
+    "requested": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "loaded": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "timedOut": false,
+    "ms": 16
+   },
+   "errors": []
+  },
+  {
+   "file": "JettScene-844x390@3x.png",
+   "scene": "JettScene",
+   "viewport": "844x390",
+   "dpr": 3,
+   "renderScale": {
+    "scale": 1.5,
+    "target": 1.3863,
+    "width": 585,
+    "height": 1266,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.082,
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1.5,
+    "zoomY": 1.5,
+    "scene": "JettScene"
+   },
+   "fonts": {
+    "family": "Inter",
+    "requested": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "loaded": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "timedOut": false,
+    "ms": 14
+   },
+   "errors": []
+  },
+  {
+   "file": "FlapFortuneScene-390x844@3x.png",
+   "scene": "FlapFortuneScene",
+   "viewport": "390x844",
+   "dpr": 3,
+   "renderScale": {
+    "scale": 3,
+    "target": 3,
+    "width": 1170,
+    "height": 2532,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 3,
+    "zoomY": 3,
+    "scene": "FlapFortuneScene"
+   },
+   "fonts": {
+    "family": "Inter",
+    "requested": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "loaded": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "timedOut": false,
+    "ms": 15
+   },
+   "errors": []
+  },
+  {
+   "file": "FlapFortuneScene-320x568@2x.png",
+   "scene": "FlapFortuneScene",
+   "viewport": "320x568",
+   "dpr": 2,
+   "renderScale": {
+    "scale": 1.375,
+    "target": 1.346,
+    "width": 536,
+    "height": 1161,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.021,
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 262.23,
+    "cssHeight": 568,
+    "zoomX": 1.3743589743589744,
+    "zoomY": 1.3755924170616114,
+    "scene": "FlapFortuneScene"
+   },
+   "fonts": {
+    "family": "Inter",
+    "requested": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "loaded": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "timedOut": false,
+    "ms": 14
+   },
+   "errors": []
+  },
+  {
+   "file": "FlapFortuneScene-844x390@3x.png",
+   "scene": "FlapFortuneScene",
+   "viewport": "844x390",
+   "dpr": 3,
+   "renderScale": {
+    "scale": 1.5,
+    "target": 1.3863,
+    "width": 585,
+    "height": 1266,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.082,
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1.5,
+    "zoomY": 1.5,
+    "scene": "FlapFortuneScene"
+   },
+   "fonts": {
+    "family": "Inter",
+    "requested": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "loaded": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "timedOut": false,
+    "ms": 13
+   },
+   "errors": []
+  },
+  {
+   "file": "ShatterStepScene-390x844@3x.png",
+   "scene": "ShatterStepScene",
+   "viewport": "390x844",
+   "dpr": 3,
+   "renderScale": {
+    "scale": 3,
+    "target": 3,
+    "width": 1170,
+    "height": 2532,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 3,
+    "zoomY": 3,
+    "scene": "ShatterStepScene"
+   },
+   "fonts": {
+    "family": "Inter",
+    "requested": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "loaded": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "timedOut": false,
+    "ms": 12
+   },
+   "errors": []
+  },
+  {
+   "file": "ShatterStepScene-320x568@2x.png",
+   "scene": "ShatterStepScene",
+   "viewport": "320x568",
+   "dpr": 2,
+   "renderScale": {
+    "scale": 1.375,
+    "target": 1.3448,
+    "width": 536,
+    "height": 1161,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.022,
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 262.23,
+    "cssHeight": 568,
+    "zoomX": 1.3743589743589744,
+    "zoomY": 1.3755924170616114,
+    "scene": "ShatterStepScene"
+   },
+   "fonts": {
+    "family": "Inter",
+    "requested": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "loaded": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "timedOut": false,
+    "ms": 17
+   },
+   "errors": []
+  },
+  {
+   "file": "ShatterStepScene-844x390@3x.png",
+   "scene": "ShatterStepScene",
+   "viewport": "844x390",
+   "dpr": 3,
+   "renderScale": {
+    "scale": 1.5,
+    "target": 1.3863,
+    "width": 585,
+    "height": 1266,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.082,
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1.5,
+    "zoomY": 1.5,
+    "scene": "ShatterStepScene"
+   },
+   "fonts": {
+    "family": "Inter",
+    "requested": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "loaded": [
+     400,
+     600,
+     700,
+     800
+    ],
+    "timedOut": false,
+    "ms": 17
+   },
+   "errors": []
+  }
+ ]
+}

@@ -430,9 +430,10 @@ async function targets(browser) {
         const c = window.__game.canvas.getBoundingClientRect(); const k = c.width / 390;
         const rail = sh.domRoot.classList.contains('sd-rail');
         const dom = (id) => { const b = sh.domRoot.querySelector(`button[data-id="${id}"]`); const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; };
-        const zones = sh.hitZones.map((z) => [Math.round(z.width * k), Math.round(z.height * k)]);
+        // polish-004: controls are real DOM buttons in every layout (no canvas hit zones).
+        const zones = ['back', 'settings', 'cta'].map(dom);
         const stage = sh.stage;
-        const hudBoxes = sh.layout.hudOverlay ? ['phase', 'multiplier', 'progress'].map((n) => sh.texts[n].getBounds()) : [];
+        const hudBoxes = sh.layout.hudOverlay && !rail ? sh.hudTextBoxes() : [];
         const hudArea = hudBoxes.reduce((a, b) => a + b.width * b.height, 0);
         const hudBottom = hudBoxes.length ? Math.max(...hudBoxes.map((b) => b.y + b.height)) : 0;
         return { scale: +k.toFixed(3), rail, back: rail ? dom('back') : zones[0], settings: rail ? dom('settings') : zones[1], cta: rail ? dom('cta') : zones[2],
@@ -502,7 +503,7 @@ async function responsive(browser) {
     const { ctx, page, errors } = await openGame(browser, game, { viewport: { width: 390, height: 844 }, dpr: 2, seed: 'rotate' });
     const keepAlive = () => page.evaluate((game) => { const ui = window.__ui(); ui.round.config.combustionFloorPerTick = 0; ui.round.config.combustionChancePerTick = 0; if (window.__keep) clearInterval(window.__keep); window.__keep = setInterval(() => { const r = ui.round; if (!r) return; if (game === 'flap') { r.state.playerY = 422; r.state.playerVelocityY = 0; r.state.pipes.forEach((q) => { q.topHeight = 300; q.bottomHeight = 386; }); } if (game === 'jett') r.state.asteroids.forEach((q) => { if (Math.abs(q.worldY - r.state.altitude) < 80) q.x = q.x < 195 ? 25 : 365; }); }, 4); }, game);
     await keepAlive();
-    const state = () => page.evaluate(() => { const ui = window.__ui(); const s = ui.debugSnapshot(); const cta = document.querySelector('.sd-a11y button[data-id="cta"]').getBoundingClientRect(); return { phase: s.phase, settled: !!s.settlement, settlement: s.settlement, balance: s.balance, actions: ui.runner && ui.runner.actionLog ? ui.runner.actionLog.filter((a) => a.type === 'cashOut' || a.type === 'flap').length : (s.picks || []).length, rail: ui.shell.domRoot.classList.contains('sd-rail'), ctaVisible: cta.width >= 44 && cta.height >= 44 && cta.bottom <= innerHeight + 1 && cta.right <= innerWidth + 1, resultShown: ui.shell.resultObjects.length > 0, settingsOpen: ui.shell.settingsOpen }; });
+    const state = () => page.evaluate(() => { const ui = window.__ui(); const s = ui.debugSnapshot(); const cta = document.querySelector('.sd-a11y button[data-id="cta"]').getBoundingClientRect(); return { phase: s.phase, settled: !!s.settlement, settlement: s.settlement, balance: s.balance, actions: ui.runner && ui.runner.actionLog ? ui.runner.actionLog.filter((a) => a.type === 'cashOut' || a.type === 'flap').length : (s.picks || []).length, rail: ui.shell.domRoot.classList.contains('sd-rail'), ctaVisible: cta.width >= 44 && cta.height >= 44 && cta.bottom <= innerHeight + 1 && cta.right <= innerWidth + 1, resultShown: ui.shell.resultShown, settingsOpen: ui.shell.settingsOpen }; });
     const rotate = async () => { const out = []; for (const [w, h] of [[844, 390], [390, 844], [568, 320], [390, 844]]) { await page.setViewportSize({ width: w, height: h }); await page.waitForTimeout(220); out.push({ vp: `${w}x${h}`, ...(await state()) }); } return out; };
     // during play
     if (game !== 'shatter') {
@@ -542,7 +543,7 @@ async function responsive(browser) {
       for (let i = 0; i < 3; i++) window.__step(16);
       const k = 0.786729857819905; const oy = 66; const ox = 41.592417061611375;
       // Place a hazard in the HUD band directly under the multiplier (worst case).
-      const hudBoxes = ['phase', 'multiplier', 'progress'].map((n) => sh.texts[n].getBounds());
+      const hudBoxes = sh.hudTextBoxes(); // polish-004: DOM HUD glyph boxes in logical px
       const band = { y0: sh.stage.y, y1: Math.max(...hudBoxes.map((b) => b.y + b.height)) };
       let hz;
       if (game === 'jett') {
@@ -555,9 +556,9 @@ async function responsive(browser) {
         hz = { x: 195 - 15 * k, y: band.y0, w: 30 * k, h: band.y1 - band.y0 };
       }
       const snap = () => new Promise((res) => { g.renderer.snapshotArea(Math.floor(hz.x), Math.floor(hz.y), Math.ceil(hz.w), Math.ceil(hz.h), (img) => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d'); x.drawImage(img, 0, 0); res(x.getImageData(0, 0, c.width, c.height).data); }); window.__step(0.01); });
-      const show = (v) => ['phase', 'multiplier', 'progress'].forEach((n) => sh.texts[n].setVisible(v));
+      const show = (v) => { sh.domRoot.querySelector('.sd-hud').style.visibility = v ? '' : 'hidden'; };
       if (game === 'jett') ui.runner.pause('manual'); else ui.runner.pause('manual');
-      const withHud = await snap(); const dimmed = sh.texts.multiplier.alpha < 1; show(false); const noHud = await snap(); show(true);
+      const withHud = await snap(); const dimmed = sh.hudIsDimmed && parseFloat(sh.domRoot.querySelector('.sd-hud').style.opacity) < 0.5; show(false); const noHud = await snap(); show(true);
       // remove hazard to get the background-only reference
       if (game === 'jett') ui.round.state.asteroids = ui.round.state.asteroids.filter((a) => a.id !== 7777); else ui.round.state.pipes = [];
       show(false); const noHazard = await snap(); show(true);
@@ -579,6 +580,7 @@ async function responsive(browser) {
       }
       return { hudDimmedByHazard: dimmed, hazardPx, glyphObscuredPct: +(100 * glyphCovered / Math.max(1, hazardPx)).toFixed(1), clearanceBelowHudPx: Math.round((game === 'jett' ? 66 + 523.28 * 0.786729857819905 : 66 + 844 * 0.786729857819905) - band.y1), coveredByTextBoxesPct: +(100 * covered / Math.max(1, hazardPx)).toFixed(1), alteredOutsideTextPct: +(100 * changedOutsideText / Math.max(1, outside)).toFixed(2), band };
     }, game);
+    // polish-004: the HUD is DOM text over the canvas, so the canvas hazard pixels are never altered by it.
     check('responsive', `${game}: hazard in the HUD band renders above the scrim (≤1% of its pixels altered outside text boxes)`, r.hazardPx > 100 && r.alteredOutsideTextPct <= 1, r);
     check('responsive', `${game}: worst case (hazard centred under the multiplier) — HUD dims and its glyphs dominate < 10% of the hazard's pixels`, r.hudDimmedByHazard && r.glyphObscuredPct < 10, r);
     await ctx.close();
@@ -592,7 +594,9 @@ async function responsive(browser) {
       const r = await page.evaluate(() => {
         const ui = window.__ui(); const sh = ui.shell; const s = sh.stage;
         const stage = { x: s.x, y: s.y, w: s.width, h: s.height };
-        const zones = sh.hitZones.map((z) => ({ x: z.x - z.width / 2, y: z.y - z.height / 2, w: z.width, h: z.height }));
+        const cr = window.__game.canvas.getBoundingClientRect(); const kk = cr.width / 390;
+        const zones = ['back', 'settings', 'cta'].map((id) => sh.domRoot.querySelector(`button[data-id="${id}"]`)).filter((b) => !b.classList.contains('sd-railbtn'))
+          .map((b) => { const q = b.getBoundingClientRect(); return { x: (q.left - cr.left) / kk, y: (q.top - cr.top) / kk, w: q.width / kk, h: q.height / kk }; });
         const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
         const stageOverlaps = zones.filter((z) => hit(z, stage)).length;
         const zonePairs = zones.flatMap((a, i) => zones.slice(i + 1).filter((b) => hit(a, b))).length;
