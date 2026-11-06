@@ -89,3 +89,23 @@ export function backingToLogical(gx: number, gy: number, width: number, height: 
 export function parseRenderQuality(value: string | null | undefined): RenderQuality {
   return value === 'low' || value === 'balanced' || value === 'high' ? value : 'high';
 }
+
+/** Adaptive governor: frames per evaluation window, slow threshold and windows needed. */
+export const GOVERNOR_WINDOW_FRAMES = 90;
+export const GOVERNOR_SLOW_MEDIAN_MS = 25;
+export const GOVERNOR_SLOW_WINDOWS = 2;
+
+/**
+ * One-way quality governor: after GOVERNOR_SLOW_WINDOWS consecutive windows whose median frame
+ * interval exceeds GOVERNOR_SLOW_MEDIAN_MS, step down one tier. Never steps up (no oscillation).
+ * @param tier - Current tier.
+ * @param windowMedians - Median frame interval of each completed window, oldest first.
+ * @returns Next tier (same tier if no change).
+ * @example
+ * nextQualityTier('high', [30, 31]); // 'balanced'
+ */
+export function nextQualityTier(tier: RenderQuality, windowMedians: readonly number[]): RenderQuality {
+  const recent = windowMedians.slice(-GOVERNOR_SLOW_WINDOWS);
+  if (recent.length < GOVERNOR_SLOW_WINDOWS || !recent.every((m) => m > GOVERNOR_SLOW_MEDIAN_MS)) return tier;
+  return tier === 'high' ? 'balanced' : 'low';
+}

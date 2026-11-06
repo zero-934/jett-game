@@ -38,7 +38,7 @@ async function openGame(browser, game, opts = {}) {
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.addInitScript(() => { try { localStorage.clear(); } catch { /* ignore */ } });
-  await page.goto(`${HARNESS}?scene=${key}&seed=${opts.seed || 'browser'}${opts.query || ''}`);
+  await page.goto(`${HARNESS}?scene=${key}&seed=${opts.seed || 'browser'}&adaptive=0${opts.query || ''}`); // polish-004: fixed density for deterministic QA
   await page.waitForFunction(([k, p]) => window.__game && window.__game.scene.getScene(k) && window.__game.scene.getScene(k)[p], [key, prop], { timeout: 20000 });
   await page.waitForTimeout(300);
   await page.evaluate(([k, p]) => {

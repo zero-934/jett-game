@@ -14,7 +14,7 @@ const OUT = path.resolve('docs/polish-004/evidence/prototypes', LABEL); fs.mkdir
     const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, hasTouch: true });
     const p = await ctx.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
     await p.addInitScript(() => { try { localStorage.clear(); } catch { /* */ } });
-    await p.goto(`http://localhost:5199/jett-game/research/harness/index.html?scene=${scene}&seed=proto${extra}`);
+    await p.goto(`http://localhost:5199/jett-game/research/harness/index.html?scene=${scene}&seed=proto&adaptive=0${extra}`);
     await p.waitForFunction((k) => window.__game?.scene.isActive(k), scene, { timeout: 20000 }); await p.waitForTimeout(700);
     const file = `${scene}-${w}x${h}@${dpr}x.png`; await p.screenshot({ path: path.join(OUT, file) });
     meta.push({ file, scene, viewport: `${w}x${h}`, dpr, renderScale: await p.evaluate(() => window.__renderScale && window.__renderScale()), fonts: await p.evaluate(() => window.__fontStatus), errors: errs });

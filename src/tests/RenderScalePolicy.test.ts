@@ -5,7 +5,7 @@
  * @date 2026-11-06
  * @license Proprietary – available for licensing
  */
-import { decideRenderScale, backingToLogical, parseRenderQuality, LOGICAL_W, LOGICAL_H, RENDER_PIXEL_BUDGET } from '../shared/render/RenderScalePolicy';
+import { decideRenderScale, backingToLogical, parseRenderQuality, nextQualityTier, LOGICAL_W, LOGICAL_H, RENDER_PIXEL_BUDGET } from '../shared/render/RenderScalePolicy';
 
 describe('decideRenderScale', () => {
   it('matches one backing px per physical px on a 390-wide DPR 3 phone', () => {
@@ -57,5 +57,16 @@ describe('parseRenderQuality', () => {
     expect(parseRenderQuality('low')).toBe('low');
     expect(parseRenderQuality('ultra')).toBe('high');
     expect(parseRenderQuality(null)).toBe('high');
+  });
+});
+
+describe('nextQualityTier (adaptive governor)', () => {
+  it('needs two consecutive slow windows and only ever steps down', () => {
+    expect(nextQualityTier('high', [30])).toBe('high');
+    expect(nextQualityTier('high', [30, 18])).toBe('high');
+    expect(nextQualityTier('high', [18, 30, 31])).toBe('balanced');
+    expect(nextQualityTier('balanced', [40, 40])).toBe('low');
+    expect(nextQualityTier('low', [99, 99])).toBe('low');
+    expect(nextQualityTier('balanced', [10, 10])).toBe('balanced');
   });
 });

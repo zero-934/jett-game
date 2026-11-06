@@ -156,7 +156,8 @@ export class ShatterStepUI {
     this.scene.scale.on(Phaser.Scale.Events.RESIZE, this.onResizeBound);
   }
 
-  private readonly onResizeBound = (): void => { if (this.shell && this.round) this.refresh(); };
+  // Ignore resizes while the scene shuts down (Phaser may already have destroyed the hit objects).
+  private readonly onResizeBound = (): void => { if (this.shell && this.round && this.scene.sys.isActive()) this.refresh(); };
 
   /** Destroys all managed objects and cancels pending callbacks. Idempotent. */
   public cleanup(): void {

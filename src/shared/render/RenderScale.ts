@@ -12,11 +12,13 @@
  * @license Proprietary – available for licensing
  */
 import * as Phaser from 'phaser';
-import { decideRenderScale, parseRenderQuality, LOGICAL_W, LOGICAL_H } from './RenderScalePolicy';
+import { decideRenderScale, parseRenderQuality, nextQualityTier, LOGICAL_W, LOGICAL_H, GOVERNOR_WINDOW_FRAMES } from './RenderScalePolicy';
 import type { RenderQuality, RenderScaleDecision } from './RenderScalePolicy';
 
 /** Diagnostic snapshot (window.__renderScale()). */
 export interface RenderScaleInfo extends RenderScaleDecision {
+  adaptive: boolean;
+  downgrades: Array<{ from: RenderQuality; to: RenderQuality; medianMs: number }>;
   dpr: number;
   quality: RenderQuality;
   cssWidth: number;
@@ -35,7 +37,13 @@ let active: RenderScaleController | null = null;
  */
 export class RenderScaleController {
   readonly scene: Phaser.Scene;
-  readonly quality: RenderQuality;
+  quality: RenderQuality;
+  /** Tier changes made by the adaptive governor (diagnostics). */
+  readonly downgrades: Array<{ from: RenderQuality; to: RenderQuality; medianMs: number }> = [];
+  private readonly adaptive: boolean;
+  private frameSamples: number[] = [];
+  private windowMedians: number[] = [];
+  private readonly onPostRender = (): void => this.sampleFrame();
   /** QA only (`?rs=1`): forced cap for before/after and performance comparisons. */
   private readonly capOverride: number | undefined;
   private decision: RenderScaleDecision;
@@ -51,6 +59,9 @@ export class RenderScaleController {
     this.quality = quality;
     const rs = typeof window !== 'undefined' ? Number(new URLSearchParams(window.location.search).get('rs')) : NaN;
     this.capOverride = Number.isFinite(rs) && rs >= 1 ? rs : undefined;
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    // The governor runs only for the default tier; an explicit ?quality= / ?rs= or ?adaptive=0 fixes it.
+    this.adaptive = !!params && params.get('adaptive') !== '0' && !params.get('quality') && this.capOverride === undefined;
     this.decision = decideRenderScale(LOGICAL_W, 1, quality);
   }
 
@@ -71,6 +82,7 @@ export class RenderScaleController {
     scene.scale.on(Phaser.Scale.Events.RESIZE, c.onResize);
     scene.events.on(Phaser.Scenes.Events.ADDED_TO_SCENE, c.onAdded);
     c.watchDpr();
+    if (c.adaptive) scene.game.events.on(Phaser.Core.Events.POST_RENDER, c.onPostRender);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => c.detach());
     scene.events.once(Phaser.Scenes.Events.DESTROY, () => c.detach());
     if (typeof window !== 'undefined') (window as unknown as Record<string, unknown>).__renderScale = () => active?.info() ?? null;
@@ -84,7 +96,7 @@ export class RenderScaleController {
   info(): RenderScaleInfo {
     const cam = this.scene.cameras?.main;
     const css = this.cssSize();
-    return { ...this.decision, dpr: this.dpr(), quality: this.quality, cssWidth: +css.w.toFixed(2), cssHeight: +css.h.toFixed(2), zoomX: cam?.zoomX ?? 1, zoomY: cam?.zoomY ?? 1, scene: this.scene.sys.settings.key };
+    return { ...this.decision, adaptive: this.adaptive, downgrades: [...this.downgrades], dpr: this.dpr(), quality: this.quality, cssWidth: +css.w.toFixed(2), cssHeight: +css.h.toFixed(2), zoomX: cam?.zoomX ?? 1, zoomY: cam?.zoomY ?? 1, scene: this.scene.sys.settings.key };
   }
 
   /** Re-evaluates after a resize/DPR change. */
@@ -101,12 +113,31 @@ export class RenderScaleController {
     this.scene.events.off(Phaser.Scenes.Events.ADDED_TO_SCENE, this.onAdded);
     this.mql?.removeEventListener?.('change', this.onDprChange);
     this.mql = null;
+    this.scene.game.events.off(Phaser.Core.Events.POST_RENDER, this.onPostRender);
     if (this.scene.scale.width !== LOGICAL_W || this.scene.scale.height !== LOGICAL_H) {
       this.applying = true;
-      this.scene.scale.setGameSize(LOGICAL_W, LOGICAL_H);
-      this.applying = false;
+      try { this.scene.scale.setGameSize(LOGICAL_W, LOGICAL_H); } finally { this.applying = false; }
     }
     if (active === this) active = null;
+  }
+
+  /** Collects real frame intervals; steps quality down once frames are sustainably slow. */
+  private sampleFrame(): void {
+    if (this.detached || this.quality === 'low' || !this.scene.game.loop.running) return; // manual stepping (QA) is not measured
+    const d = this.scene.game.loop.rawDelta;
+    if (!(d > 0) || d > 1000) return; // ignore hitches/background tabs
+    this.frameSamples.push(d);
+    if (this.frameSamples.length < GOVERNOR_WINDOW_FRAMES) return;
+    const sorted = [...this.frameSamples].sort((a, b) => a - b);
+    this.windowMedians.push(sorted[Math.floor(sorted.length / 2)]);
+    this.frameSamples = [];
+    const next = nextQualityTier(this.quality, this.windowMedians);
+    if (next !== this.quality) {
+      this.downgrades.push({ from: this.quality, to: next, medianMs: +this.windowMedians[this.windowMedians.length - 1].toFixed(1) });
+      this.quality = next;
+      this.windowMedians = [];
+      this.apply(false);
+    }
   }
 
   private dpr(): number { return typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1; }
@@ -132,8 +163,7 @@ export class RenderScaleController {
     this.decision = next;
     if (changed && (sm.width !== next.width || sm.height !== next.height)) {
       this.applying = true;
-      sm.setGameSize(next.width, next.height);
-      this.applying = false;
+      try { sm.setGameSize(next.width, next.height); } finally { this.applying = false; }
     }
     const cam = this.scene.cameras.main;
     cam.setSize(sm.width, sm.height);

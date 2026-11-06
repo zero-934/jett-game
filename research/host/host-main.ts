@@ -29,7 +29,7 @@ function launch(): void {
   const brand = $<HTMLSelectElement>('brand').value;
   const entry = $<HTMLSelectElement>('entry').value;
   const base = entry === 'release' ? '../../index.html' : '../harness/index.html';
-  const q = new URLSearchParams({ scene, brand, hostOrigin: ORIGIN, session: `demo-${Math.random().toString(36).slice(2, 10)}`, locale: 'en', seed: 'host-demo' });
+  const q = new URLSearchParams({ scene, brand, hostOrigin: ORIGIN, session: `demo-${Math.random().toString(36).slice(2, 10)}`, locale: 'en', seed: 'host-demo', adaptive: '0' });
   if (entry === 'release') sessionStorage.setItem('jg_auth', 'ok'); // demo gate only (not security)
   seq = 0; received.length = 0;
   frame.src = `${base}?${q.toString()}`;

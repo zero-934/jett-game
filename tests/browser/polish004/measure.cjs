@@ -41,7 +41,7 @@ try { sha = execSync('git rev-parse HEAD').toString().trim(); } catch { /* not a
         const fontRequests = [];
         page.on('requestfinished', (r) => { if (/\.(woff2?|ttf|otf)(\?|$)/.test(r.url()) || /fonts\.g/.test(r.url())) fontRequests.push(r.url().replace(BASE, '')); });
         await page.addInitScript(() => { try { sessionStorage.setItem('jg_auth', 'ok'); localStorage.clear(); } catch { /* ignore */ } });
-        const url = entry === 'release' ? `${BASE}/?scene=${scene}&seed=measure` : `${BASE}/research/harness/index.html?scene=${scene}&seed=measure`;
+        const url = entry === 'release' ? `${BASE}/?scene=${scene}&seed=measure&adaptive=0` : `${BASE}/research/harness/index.html?scene=${scene}&seed=measure&adaptive=0`;
         await page.goto(url);
         try {
           await page.waitForFunction((k) => {
