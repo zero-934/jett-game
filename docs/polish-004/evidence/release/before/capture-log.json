@@ -1,0 +1,440 @@
+{
+ "label": "before",
+ "base": "http://localhost:4174/jett-game",
+ "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+ "browser": "chromium 153.0.8010.12 headless",
+ "emulatedDpr": true,
+ "physicalHardware": false,
+ "note": "Minified release build. Active/result states reached with real taps on wall-clock timing.",
+ "entries": [
+  {
+   "file": "JettScene-ready-390x844@1x.png",
+   "scene": "JettScene",
+   "state": "ready",
+   "viewport": "390x844",
+   "dpr": 1,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 1,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "JettScene-ready-390x844@2x.png",
+   "scene": "JettScene",
+   "state": "ready",
+   "viewport": "390x844",
+   "dpr": 2,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.5,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "JettScene-ready-390x844@3x.png",
+   "scene": "JettScene",
+   "state": "ready",
+   "viewport": "390x844",
+   "dpr": 3,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.333,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "JettScene-ready-430x932@3x.png",
+   "scene": "JettScene",
+   "state": "ready",
+   "viewport": "430x932",
+   "dpr": 3,
+   "css": [
+    430,
+    930.56
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.302,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "JettScene-ready-320x568@2x.png",
+   "scene": "JettScene",
+   "state": "ready",
+   "viewport": "320x568",
+   "dpr": 2,
+   "css": [
+    262.45,
+    568
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.743,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "JettScene-ready-844x390@3x.png",
+   "scene": "JettScene",
+   "state": "ready",
+   "viewport": "844x390",
+   "dpr": 3,
+   "css": [
+    180.2,
+    390
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.721,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "JettScene-ready-667x375@2x.png",
+   "scene": "JettScene",
+   "state": "ready",
+   "viewport": "667x375",
+   "dpr": 2,
+   "css": [
+    173.28,
+    375
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 1.125,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "scene": "JettScene",
+   "state": "active+result",
+   "viewport": "390x844",
+   "dpr": 3,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.333,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "FlapFortuneScene-ready-390x844@1x.png",
+   "scene": "FlapFortuneScene",
+   "state": "ready",
+   "viewport": "390x844",
+   "dpr": 1,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 1,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "FlapFortuneScene-ready-390x844@2x.png",
+   "scene": "FlapFortuneScene",
+   "state": "ready",
+   "viewport": "390x844",
+   "dpr": 2,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.5,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "FlapFortuneScene-ready-390x844@3x.png",
+   "scene": "FlapFortuneScene",
+   "state": "ready",
+   "viewport": "390x844",
+   "dpr": 3,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.333,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "FlapFortuneScene-ready-430x932@3x.png",
+   "scene": "FlapFortuneScene",
+   "state": "ready",
+   "viewport": "430x932",
+   "dpr": 3,
+   "css": [
+    430,
+    930.56
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.302,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "FlapFortuneScene-ready-320x568@2x.png",
+   "scene": "FlapFortuneScene",
+   "state": "ready",
+   "viewport": "320x568",
+   "dpr": 2,
+   "css": [
+    262.45,
+    568
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.743,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "FlapFortuneScene-ready-844x390@3x.png",
+   "scene": "FlapFortuneScene",
+   "state": "ready",
+   "viewport": "844x390",
+   "dpr": 3,
+   "css": [
+    180.2,
+    390
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.721,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "FlapFortuneScene-ready-667x375@2x.png",
+   "scene": "FlapFortuneScene",
+   "state": "ready",
+   "viewport": "667x375",
+   "dpr": 2,
+   "css": [
+    173.28,
+    375
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 1.125,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "scene": "FlapFortuneScene",
+   "state": "active+result",
+   "viewport": "390x844",
+   "dpr": 3,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.333,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "ShatterStepScene-ready-390x844@1x.png",
+   "scene": "ShatterStepScene",
+   "state": "ready",
+   "viewport": "390x844",
+   "dpr": 1,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 1,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "ShatterStepScene-ready-390x844@2x.png",
+   "scene": "ShatterStepScene",
+   "state": "ready",
+   "viewport": "390x844",
+   "dpr": 2,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.5,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "ShatterStepScene-ready-390x844@3x.png",
+   "scene": "ShatterStepScene",
+   "state": "ready",
+   "viewport": "390x844",
+   "dpr": 3,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.333,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "ShatterStepScene-ready-430x932@3x.png",
+   "scene": "ShatterStepScene",
+   "state": "ready",
+   "viewport": "430x932",
+   "dpr": 3,
+   "css": [
+    430,
+    930.56
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.302,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "ShatterStepScene-ready-320x568@2x.png",
+   "scene": "ShatterStepScene",
+   "state": "ready",
+   "viewport": "320x568",
+   "dpr": 2,
+   "css": [
+    262.45,
+    568
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.743,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "ShatterStepScene-ready-844x390@3x.png",
+   "scene": "ShatterStepScene",
+   "state": "ready",
+   "viewport": "844x390",
+   "dpr": 3,
+   "css": [
+    180.2,
+    390
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.721,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "file": "ShatterStepScene-ready-667x375@2x.png",
+   "scene": "ShatterStepScene",
+   "state": "ready",
+   "viewport": "667x375",
+   "dpr": 2,
+   "css": [
+    173.28,
+    375
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 1.125,
+   "loadedFaces": [],
+   "errors": []
+  },
+  {
+   "scene": "ShatterStepScene",
+   "state": "active+result",
+   "viewport": "390x844",
+   "dpr": 3,
+   "css": [
+    390,
+    844
+   ],
+   "backing": [
+    390,
+    844
+   ],
+   "backingPerPhysicalPx": 0.333,
+   "loadedFaces": [],
+   "errors": []
+  }
+ ]
+}

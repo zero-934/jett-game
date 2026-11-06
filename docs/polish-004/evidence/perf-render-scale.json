@@ -1,0 +1,289 @@
+{
+ "date": "2026-11-06T16:32:11.386Z",
+ "browser": "chromium 153.0.8010.12 headless, SwiftShader software WebGL",
+ "viewport": "390x844",
+ "emulatedDpr": 3,
+ "physicalHardware": false,
+ "caveat": "Software rasterisation on a shared cloud CPU. Use for relative scaling only; not phone frame rates.",
+ "rows": [
+  {
+   "game": "jett",
+   "renderScale": 1,
+   "backing": "390x844",
+   "framebufferEstimateMB": 2.5,
+   "heapMB": 21.5,
+   "idleFrameIntervalMs": {
+    "n": 150,
+    "p50": 16.7,
+    "p95": 16.8,
+    "p99": 17
+   },
+   "idleStepMs": {
+    "n": 150,
+    "p50": 1,
+    "p95": 1.5,
+    "p99": 1.8
+   },
+   "activeFrameIntervalMs": {
+    "n": 206,
+    "p50": 16.7,
+    "p95": 16.9,
+    "p99": 18.4
+   },
+   "activeStepMs": {
+    "n": 206,
+    "p50": 1.3,
+    "p95": 1.8,
+    "p99": 6.3
+   }
+  },
+  {
+   "game": "jett",
+   "renderScale": 2,
+   "backing": "780x1688",
+   "framebufferEstimateMB": 10,
+   "heapMB": 23.1,
+   "idleFrameIntervalMs": {
+    "n": 69,
+    "p50": 36.3,
+    "p95": 40.4,
+    "p99": 41.6
+   },
+   "idleStepMs": {
+    "n": 69,
+    "p50": 1.4,
+    "p95": 1.9,
+    "p99": 3
+   },
+   "activeFrameIntervalMs": {
+    "n": 93,
+    "p50": 36.4,
+    "p95": 44,
+    "p99": 74.4
+   },
+   "activeStepMs": {
+    "n": 93,
+    "p50": 1.6,
+    "p95": 3.2,
+    "p99": 6.1
+   }
+  },
+  {
+   "game": "jett",
+   "renderScale": 3,
+   "backing": "1170x2532",
+   "framebufferEstimateMB": 22.6,
+   "heapMB": 21.2,
+   "idleFrameIntervalMs": {
+    "n": 33,
+    "p50": 77.3,
+    "p95": 98.1,
+    "p99": 126.5
+   },
+   "idleStepMs": {
+    "n": 33,
+    "p50": 1.7,
+    "p95": 2.5,
+    "p99": 2.5
+   },
+   "activeFrameIntervalMs": {
+    "n": 43,
+    "p50": 80.9,
+    "p95": 94.2,
+    "p99": 120.5
+   },
+   "activeStepMs": {
+    "n": 43,
+    "p50": 2.3,
+    "p95": 2.9,
+    "p99": 7.7
+   }
+  },
+  {
+   "game": "flap",
+   "renderScale": 1,
+   "backing": "390x844",
+   "framebufferEstimateMB": 2.5,
+   "heapMB": 23.9,
+   "idleFrameIntervalMs": {
+    "n": 150,
+    "p50": 16.7,
+    "p95": 16.9,
+    "p99": 16.9
+   },
+   "idleStepMs": {
+    "n": 150,
+    "p50": 0.7,
+    "p95": 1,
+    "p99": 1.3
+   },
+   "activeFrameIntervalMs": {
+    "n": 208,
+    "p50": 16.7,
+    "p95": 16.9,
+    "p99": 17.3
+   },
+   "activeStepMs": {
+    "n": 208,
+    "p50": 0.7,
+    "p95": 1,
+    "p99": 1.7
+   }
+  },
+  {
+   "game": "flap",
+   "renderScale": 2,
+   "backing": "780x1688",
+   "framebufferEstimateMB": 10,
+   "heapMB": 26,
+   "idleFrameIntervalMs": {
+    "n": 65,
+    "p50": 39,
+    "p95": 44.2,
+    "p99": 48.4
+   },
+   "idleStepMs": {
+    "n": 65,
+    "p50": 0.9,
+    "p95": 1.3,
+    "p99": 1.5
+   },
+   "activeFrameIntervalMs": {
+    "n": 84,
+    "p50": 40.6,
+    "p95": 49.6,
+    "p99": 103.8
+   },
+   "activeStepMs": {
+    "n": 84,
+    "p50": 1,
+    "p95": 2.3,
+    "p99": 12.5
+   }
+  },
+  {
+   "game": "flap",
+   "renderScale": 3,
+   "backing": "1170x2532",
+   "framebufferEstimateMB": 22.6,
+   "heapMB": 22.5,
+   "idleFrameIntervalMs": {
+    "n": 28,
+    "p50": 89.3,
+    "p95": 107.3,
+    "p99": 108.6
+   },
+   "idleStepMs": {
+    "n": 28,
+    "p50": 1.3,
+    "p95": 1.6,
+    "p99": 1.6
+   },
+   "activeFrameIntervalMs": {
+    "n": 39,
+    "p50": 91.9,
+    "p95": 108.3,
+    "p99": 141.7
+   },
+   "activeStepMs": {
+    "n": 39,
+    "p50": 1.4,
+    "p95": 4.9,
+    "p99": 13
+   }
+  },
+  {
+   "game": "shatter",
+   "renderScale": 1,
+   "backing": "390x844",
+   "framebufferEstimateMB": 2.5,
+   "heapMB": 22.9,
+   "idleFrameIntervalMs": {
+    "n": 150,
+    "p50": 16.7,
+    "p95": 16.9,
+    "p99": 17.5
+   },
+   "idleStepMs": {
+    "n": 150,
+    "p50": 0.4,
+    "p95": 0.6,
+    "p99": 0.7
+   },
+   "activeFrameIntervalMs": {
+    "n": 210,
+    "p50": 16.7,
+    "p95": 16.9,
+    "p99": 17.2
+   },
+   "activeStepMs": {
+    "n": 210,
+    "p50": 0.4,
+    "p95": 0.5,
+    "p99": 0.6
+   }
+  },
+  {
+   "game": "shatter",
+   "renderScale": 2,
+   "backing": "780x1688",
+   "framebufferEstimateMB": 10,
+   "heapMB": 23.5,
+   "idleFrameIntervalMs": {
+    "n": 61,
+    "p50": 40.1,
+    "p95": 49.5,
+    "p99": 52.6
+   },
+   "idleStepMs": {
+    "n": 61,
+    "p50": 0.6,
+    "p95": 0.8,
+    "p99": 2.4
+   },
+   "activeFrameIntervalMs": {
+    "n": 84,
+    "p50": 41.3,
+    "p95": 49.3,
+    "p99": 60.7
+   },
+   "activeStepMs": {
+    "n": 84,
+    "p50": 0.5,
+    "p95": 1,
+    "p99": 2.6
+   }
+  },
+  {
+   "game": "shatter",
+   "renderScale": 3,
+   "backing": "1170x2532",
+   "framebufferEstimateMB": 22.6,
+   "heapMB": 21.2,
+   "idleFrameIntervalMs": {
+    "n": 27,
+    "p50": 94.5,
+    "p95": 110.1,
+    "p99": 123
+   },
+   "idleStepMs": {
+    "n": 27,
+    "p50": 0.8,
+    "p95": 1.4,
+    "p99": 1.5
+   },
+   "activeFrameIntervalMs": {
+    "n": 38,
+    "p50": 90.9,
+    "p95": 112.4,
+    "p99": 116.1
+   },
+   "activeStepMs": {
+    "n": 38,
+    "p50": 0.7,
+    "p95": 1.4,
+    "p99": 1.9
+   }
+  }
+ ]
+}

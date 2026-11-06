@@ -70,6 +70,8 @@ export interface ShellKey {
 export interface FooterState {
   stakeHundredths: number;
   rightLabel: string;
+  /** Short form of rightLabel for the compact (narrow immersive) footer. */
+  rightLabelShort?: string;
   rightValue: string;
   ctaLabel: string;
   ctaEnabled: boolean;
@@ -161,6 +163,13 @@ const STYLE = `
 .sd-shell .sd-col-r{align-items:flex-end;text-align:right}
 .sd-shell .sd-col .sd-t{display:block;overflow:hidden;text-overflow:ellipsis}
 .sd-shell.sd-compact .sd-cap{letter-spacing:.05em}
+.sd-shell.sd-footc .sd-foot .sd-col{flex-direction:row;align-items:baseline;justify-content:flex-start;gap:6px;white-space:nowrap}
+.sd-shell.sd-footc .sd-foot .sd-col-r{justify-content:flex-end;flex:1 1 auto}
+.sd-shell.sd-footc .sd-foot .sd-col .sd-t:not(.sd-cap){overflow:visible;flex:none}
+.sd-shell.sd-footc .sd-foot .sd-col .sd-cap{min-width:0;flex:0 1 auto}
+.sd-shell.sd-footc .sd-foot .sd-col:first-child{flex:none}
+.sd-shell.sd-footc .sd-foot .sd-stake,.sd-shell.sd-footc .sd-foot .sd-rval{font-size:14px}
+.sd-shell.sd-footc .sd-demo{line-height:12px}
 .sd-shell.sd-compact .sd-title{letter-spacing:.03em}
 .sd-shell .sd-progress span{white-space:normal;text-align:center;max-width:100%}
 .sd-shell .sd-infopanel{position:absolute;pointer-events:none;display:flex;flex-direction:column;gap:14px;padding:14px;background:var(--sd-surface);border:1px solid var(--sd-line);border-radius:14px}
@@ -266,6 +275,7 @@ export class SoftDepthShell {
   private hudDimmed = false;
   private hudBoxes: Rect[] | null = null;
   private k = 1;
+  private compactFooter = false;
   private lastPointerActivation: { id: string; t: number } | null = null;
   private offBrand: (() => void) | null = null;
   private hostTarget: HostGameTarget | null = null;
@@ -358,8 +368,10 @@ export class SoftDepthShell {
   setFooter(f: FooterState): void {
     this.footer = f;
     this.setText('stake', formatCredits(f.stakeHundredths));
-    this.setText('rightLabel', f.rightLabel.toUpperCase());
-    this.setText('rightValue', f.rightValue);
+    this.setText('rightLabel', (this.compactFooter && f.rightLabelShort ? f.rightLabelShort : f.rightLabel).toUpperCase());
+    // Compact footer: the unit word is implied by the header's DEMO CREDITS; values never truncate.
+    this.setText('rightValue', this.compactFooter ? f.rightValue.replace(/ credits$/, '') : f.rightValue);
+    this.setText('stakeLabel', this.compactFooter ? 'STAKE' : 'DEMO STAKE');
     const b = this.domButtons.cta;
     if (b) {
       if (b.textContent !== f.ctaLabel) b.textContent = f.ctaLabel;
@@ -808,6 +820,11 @@ export class SoftDepthShell {
     const rail = k < RAIL_SCALE_THRESHOLD && spaceRight >= RAIL_WIDTH_PX + 16 && r.left >= RAIL_WIDTH_PX + 16;
     this.dom.classList.toggle('sd-rail', rail);
     this.dom.classList.toggle('sd-compact', k < 0.8);
+    // Narrow immersive layout: the footer band is too short for label rows + a 44 px CTA, so
+    // labels go inline with their values (and use short labels) — sizes never drop below minimums.
+    const compactFooter = k < 0.8 && this.layout.hudOverlay && !rail;
+    if (compactFooter !== this.compactFooter) { this.compactFooter = compactFooter; if (this.footer) this.setFooter(this.footer); }
+    this.dom.classList.toggle('sd-footc', compactFooter);
     const panel = this.el.infopanel;
     if (panel) {
       const infos = Array.from(this.dom.querySelectorAll<HTMLElement>('.sd-info'));
@@ -848,6 +865,14 @@ export class SoftDepthShell {
       let top = rect.y * k; let height = rect.height * k;
       if (el.classList.contains('sd-cta') && height < MIN_TARGET_CSS_PX) { top -= (MIN_TARGET_CSS_PX - height) / 2; height = MIN_TARGET_CSS_PX; }
       Object.assign(el.style, { left: `${rect.x * k}px`, top: `${top}px`, width: `${rect.width * k}px`, height: `${height}px` });
+    }
+    if (this.compactFooter) {
+      const foot = this.dom.querySelector<HTMLElement>('.sd-foot'); const cta = this.domButtons.cta; const demo = this.el.demo;
+      const demoH = 12; const ctaH = MIN_TARGET_CSS_PX; const rowH = 18;
+      const demoTop = r.height - demoH - 1; const ctaTop = demoTop - 1 - ctaH; const rowTop = ctaTop - 2 - rowH;
+      if (demo) Object.assign(demo.style, { top: `${demoTop}px`, height: `${demoH}px` });
+      if (cta) Object.assign(cta.style, { top: `${ctaTop}px`, height: `${ctaH}px` });
+      if (foot) Object.assign(foot.style, { top: `${rowTop}px`, height: `${rowH}px` });
     }
     if (this.dialog) {
       if (rail) Object.assign(this.dialog.style, { left: `${r.width + 16}px`, top: '8px', width: `${RAIL_WIDTH_PX}px`, maxHeight: `${Math.max(120, window.innerHeight - 16 - r.top)}px` });

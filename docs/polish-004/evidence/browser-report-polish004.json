@@ -1,0 +1,530 @@
+{
+ "meta": {
+  "date": "2026-11-06T16:49:37.306Z",
+  "chromium": "153.0.8010.12",
+  "dev": "http://localhost:5199/jett-game",
+  "release": "http://localhost:4173/jett-game",
+  "sections": [
+   "targets",
+   "inputs",
+   "overlays"
+  ],
+  "note": "Headless Chromium on SwiftShader with emulated DPR. Not physical-device evidence.",
+  "total": 53,
+  "failures": 0
+ },
+ "results": {
+  "inputs": [
+   {
+    "name": "jett: one touch tap on the CTA = one start (one debit, one roundStarted)",
+    "ok": true,
+    "detail": {
+     "bal0": 100000,
+     "phase": "playing",
+     "balance": 99000,
+     "trace": 1
+    }
+   },
+   {
+    "name": "jett: double-tap CASH OUT → one settlement; adds no steer and target unchanged",
+    "ok": true,
+    "detail": {
+     "added": [
+      "cashOut",
+      "cashOut"
+     ],
+     "settles": 1,
+     "target": [
+      195,
+      195
+     ]
+    }
+   },
+   {
+    "name": "jett: no page errors",
+    "ok": true,
+    "detail": []
+   },
+   {
+    "name": "flap: one touch tap on the CTA = one start (one debit, one roundStarted)",
+    "ok": true,
+    "detail": {
+     "bal0": 100000,
+     "phase": "armed",
+     "balance": 99000,
+     "trace": 1
+    }
+   },
+   {
+    "name": "flap: double-tap CASH OUT → one settlement; adds no flap and no extra impulse",
+    "ok": true,
+    "detail": {
+     "added": [
+      "cashOut",
+      "cashOut"
+     ],
+     "settles": 1,
+     "target": [
+      null,
+      null
+     ]
+    }
+   },
+   {
+    "name": "flap: no page errors",
+    "ok": true,
+    "detail": []
+   },
+   {
+    "name": "shatter: one touch tap on the CTA = one start (one debit, one roundStarted)",
+    "ok": true,
+    "detail": {
+     "bal0": 100000,
+     "phase": "armed",
+     "balance": 99000,
+     "trace": 1
+    }
+   },
+   {
+    "name": "shatter: one tap on a pane = exactly one pick",
+    "ok": true,
+    "detail": {
+     "picks": 1
+    }
+   },
+   {
+    "name": "shatter: Enter on a focused pane button = exactly one pick",
+    "ok": true,
+    "detail": {
+     "picks2": 2
+    }
+   },
+   {
+    "name": "shatter: no page errors",
+    "ok": true,
+    "detail": []
+   }
+  ],
+  "overlays": [
+   {
+    "name": "jett: with settings open, taps on the backdrop (stage and CTA areas) add no actions and do not settle",
+    "ok": true,
+    "detail": {
+     "n0": 0,
+     "n": 0,
+     "phase": "paused",
+     "open": true,
+     "settled": false,
+     "backdrop": true
+    }
+   },
+   {
+    "name": "jett: every settings control ≥ 44 CSS px",
+    "ok": true,
+    "detail": [
+     44,
+     44,
+     44,
+     44,
+     44,
+     44,
+     44,
+     44,
+     48
+    ]
+   },
+   {
+    "name": "jett: Escape closes; round stays paused until the player resumes",
+    "ok": true,
+    "detail": {
+     "open": false,
+     "phase": "paused",
+     "backdrop": false
+    }
+   },
+   {
+    "name": "jett: no page errors",
+    "ok": true,
+    "detail": []
+   },
+   {
+    "name": "flap: with settings open, taps on the backdrop (stage and CTA areas) add no actions and do not settle",
+    "ok": true,
+    "detail": {
+     "n0": 1,
+     "n": 1,
+     "phase": "paused",
+     "open": true,
+     "settled": false,
+     "backdrop": true
+    }
+   },
+   {
+    "name": "flap: every settings control ≥ 44 CSS px",
+    "ok": true,
+    "detail": [
+     44,
+     44,
+     44,
+     44,
+     44,
+     44,
+     44,
+     44,
+     48
+    ]
+   },
+   {
+    "name": "flap: Escape closes; round stays paused until the player resumes",
+    "ok": true,
+    "detail": {
+     "open": false,
+     "phase": "paused",
+     "backdrop": false
+    }
+   },
+   {
+    "name": "flap: no page errors",
+    "ok": true,
+    "detail": []
+   }
+  ],
+  "targets": [
+   {
+    "name": "jett 320×568: every visible control ≥ 44×44 CSS px and on screen",
+    "ok": true,
+    "detail": {
+     "k": 0.672,
+     "small": [],
+     "smallHits": [],
+     "hits": []
+    }
+   },
+   {
+    "name": "jett 320×568: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "jett 390×844: every visible control ≥ 44×44 CSS px and on screen",
+    "ok": true,
+    "detail": {
+     "k": 1,
+     "small": [],
+     "smallHits": [],
+     "hits": []
+    }
+   },
+   {
+    "name": "jett 390×844: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "jett 430×932: every visible control ≥ 44×44 CSS px and on screen",
+    "ok": true,
+    "detail": {
+     "k": 1.103,
+     "small": [],
+     "smallHits": [],
+     "hits": []
+    }
+   },
+   {
+    "name": "jett 430×932: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 12.1282
+    }
+   },
+   {
+    "name": "jett 667×375: every visible control ≥ 44×44 CSS px and on screen (rail)",
+    "ok": true,
+    "detail": {
+     "k": 0.444,
+     "small": [],
+     "smallHits": [],
+     "hits": []
+    }
+   },
+   {
+    "name": "jett 667×375: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "jett 844×390: every visible control ≥ 44×44 CSS px and on screen (rail)",
+    "ok": true,
+    "detail": {
+     "k": 0.462,
+     "small": [],
+     "smallHits": [],
+     "hits": []
+    }
+   },
+   {
+    "name": "jett 844×390: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "flap 320×568: every visible control ≥ 44×44 CSS px and on screen",
+    "ok": true,
+    "detail": {
+     "k": 0.672,
+     "small": [],
+     "smallHits": [],
+     "hits": []
+    }
+   },
+   {
+    "name": "flap 320×568: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "flap 390×844: every visible control ≥ 44×44 CSS px and on screen",
+    "ok": true,
+    "detail": {
+     "k": 1,
+     "small": [],
+     "smallHits": [],
+     "hits": []
+    }
+   },
+   {
+    "name": "flap 390×844: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "flap 430×932: every visible control ≥ 44×44 CSS px and on screen",
+    "ok": true,
+    "detail": {
+     "k": 1.103,
+     "small": [],
+     "smallHits": [],
+     "hits": []
+    }
+   },
+   {
+    "name": "flap 430×932: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 12.1282
+    }
+   },
+   {
+    "name": "flap 667×375: every visible control ≥ 44×44 CSS px and on screen (rail)",
+    "ok": true,
+    "detail": {
+     "k": 0.444,
+     "small": [],
+     "smallHits": [],
+     "hits": []
+    }
+   },
+   {
+    "name": "flap 667×375: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "flap 844×390: every visible control ≥ 44×44 CSS px and on screen (rail)",
+    "ok": true,
+    "detail": {
+     "k": 0.462,
+     "small": [],
+     "smallHits": [],
+     "hits": []
+    }
+   },
+   {
+    "name": "flap 844×390: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "shatter 320×568: every visible control ≥ 44×44 CSS px and on screen; live pane bands ≥ 44 px",
+    "ok": true,
+    "detail": {
+     "k": 0.672,
+     "small": [],
+     "smallHits": [],
+     "hits": [
+      {
+       "w": 100,
+       "h": 44
+      },
+      {
+       "w": 100,
+       "h": 44
+      }
+     ]
+    }
+   },
+   {
+    "name": "shatter 320×568: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "shatter 320×568: runner centred in the logical world (render-scale independent)",
+    "ok": true,
+    "detail": {
+     "runnerX": 195
+    }
+   },
+   {
+    "name": "shatter 390×844: every visible control ≥ 44×44 CSS px and on screen; live pane bands ≥ 44 px",
+    "ok": true,
+    "detail": {
+     "k": 1,
+     "small": [],
+     "smallHits": [],
+     "hits": [
+      {
+       "w": 148,
+       "h": 44
+      },
+      {
+       "w": 148,
+       "h": 44
+      }
+     ]
+    }
+   },
+   {
+    "name": "shatter 390×844: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "shatter 390×844: runner centred in the logical world (render-scale independent)",
+    "ok": true,
+    "detail": {
+     "runnerX": 195
+    }
+   },
+   {
+    "name": "shatter 430×932: every visible control ≥ 44×44 CSS px and on screen; live pane bands ≥ 44 px",
+    "ok": true,
+    "detail": {
+     "k": 1.103,
+     "small": [],
+     "smallHits": [],
+     "hits": [
+      {
+       "w": 163,
+       "h": 49
+      },
+      {
+       "w": 163,
+       "h": 49
+      }
+     ]
+    }
+   },
+   {
+    "name": "shatter 430×932: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 12.1282
+    }
+   },
+   {
+    "name": "shatter 430×932: runner centred in the logical world (render-scale independent)",
+    "ok": true,
+    "detail": {
+     "runnerX": 195
+    }
+   },
+   {
+    "name": "shatter 667×375: every visible control ≥ 44×44 CSS px and on screen (rail); live pane bands ≥ 44 px",
+    "ok": true,
+    "detail": {
+     "k": 0.444,
+     "small": [],
+     "smallHits": [],
+     "hits": [
+      {
+       "w": 66,
+       "h": 32
+      },
+      {
+       "w": 66,
+       "h": 32
+      }
+     ]
+    }
+   },
+   {
+    "name": "shatter 667×375: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "shatter 667×375: runner centred in the logical world (render-scale independent)",
+    "ok": true,
+    "detail": {
+     "runnerX": 195
+    }
+   },
+   {
+    "name": "shatter 844×390: every visible control ≥ 44×44 CSS px and on screen (rail); live pane bands ≥ 44 px",
+    "ok": true,
+    "detail": {
+     "k": 0.462,
+     "small": [],
+     "smallHits": [],
+     "hits": [
+      {
+       "w": 68,
+       "h": 33
+      },
+      {
+       "w": 68,
+       "h": 33
+      }
+     ]
+    }
+   },
+   {
+    "name": "shatter 844×390: interface text ≥ 11 CSS px",
+    "ok": true,
+    "detail": {
+     "minFont": 11
+    }
+   },
+   {
+    "name": "shatter 844×390: runner centred in the logical world (render-scale independent)",
+    "ok": true,
+    "detail": {
+     "runnerX": 195
+    }
+   }
+  ]
+ }
+}

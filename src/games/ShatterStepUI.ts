@@ -511,15 +511,15 @@ export class ShatterStepUI {
       const s = round.settlement; const ret = s?.returnHundredths ?? 0;
       shell.setHud({ phaseLabel: ret > 0 ? 'Round complete' : 'Round ended', multiplier: `${(s?.multiplier ?? st.multiplier).toFixed(2)}×`, progress: rowsText, tone: ret > this.betHundredths ? 'success' : ret === 0 ? 'loss' : 'muted' });
       const ready = this.phase === 'settled';
-      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Demo mode', rightValue: ret > 0 ? 'Settled once' : 'No return', ctaLabel: `PLAY AGAIN · ${formatCredits(this.betHundredths)}`, ctaEnabled: ready });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Demo mode', rightLabelShort: 'Demo', rightValue: ret > 0 ? 'Settled once' : 'No return', ctaLabel: `PLAY AGAIN · ${formatCredits(this.betHundredths)}`, ctaEnabled: ready });
     } else if (this.phase === 'ready') {
       shell.setHud({ phaseLabel: 'Ready', multiplier: '1.00×', progress: 'Pick a pane on row 1 to start', tone: 'muted' });
-      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Next safe row pays', rightValue: `${computeShatterMultiplier(1).toFixed(2)}×`, ctaLabel: `START · ${formatCredits(this.betHundredths)}`, ctaEnabled: true, ctaAria: `Start round, stake ${formatCredits(this.betHundredths)} demo credits` });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Next safe row pays', rightLabelShort: 'Next row', rightValue: `${computeShatterMultiplier(1).toFixed(2)}×`, ctaLabel: `START · ${formatCredits(this.betHundredths)}`, ctaEnabled: true, ctaAria: `Start round, stake ${formatCredits(this.betHundredths)} demo credits` });
     } else {
       const can = canCashOutShatter(round);
       const ret = toHundredths(parseFloat((st.bet * st.multiplier).toFixed(2)));
       shell.setHud({ phaseLabel: 'Current multiplier', multiplier: `${st.multiplier.toFixed(2)}×`, progress: rowsText, tone: row > 0 ? 'accent' : 'muted' });
-      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightValue: can ? `${formatCredits(ret)} credits` : 'after first row', ctaLabel: 'CASH OUT', ctaEnabled: can, ctaAria: can ? `Cash out ${formatCredits(ret)} demo credits` : 'Cash out, available after the first row' });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightLabelShort: 'Return', rightValue: can ? `${formatCredits(ret)} credits` : 'after first row', ctaLabel: 'CASH OUT', ctaEnabled: can, ctaAria: can ? `Cash out ${formatCredits(ret)} demo credits` : 'Cash out, available after the first row' });
     }
     const actions: StageAction[] = live && row < TOTAL_ROWS
       ? (['left', 'right'] as const).map((side) => ({

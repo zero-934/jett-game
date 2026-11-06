@@ -469,14 +469,14 @@ export class FlapFortuneUI {
     if (this.phase === 'settled' && round.settlement) {
       const ret = round.settlement.returnHundredths;
       shell.setHud({ phaseLabel: ret > 0 ? 'Round complete' : 'Round ended', multiplier: `${mult.toFixed(2)}×`, progress: `${gates} ${gates === 1 ? 'gate' : 'gates'} cleared`, tone: ret > this.betHundredths ? 'success' : ret === 0 ? 'loss' : 'muted' });
-      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Demo mode', rightValue: ret > 0 ? 'Settled once' : 'No return', ctaLabel: `PLAY AGAIN · ${formatCredits(this.betHundredths)}`, ctaEnabled: true });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Demo mode', rightLabelShort: 'Demo', rightValue: ret > 0 ? 'Settled once' : 'No return', ctaLabel: `PLAY AGAIN · ${formatCredits(this.betHundredths)}`, ctaEnabled: true });
     } else if (this.phase === 'ready' || this.phase === 'armed') {
       shell.setHud({ phaseLabel: this.phase === 'ready' ? 'Ready' : 'Stake placed', multiplier: '1.00×', progress: 'Tap the sky or press Space to fly', tone: 'muted' });
-      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightValue: 'after first gate', ctaLabel: this.phase === 'ready' ? `START · ${formatCredits(this.betHundredths)}` : 'TAP THE SKY TO FLY', ctaEnabled: this.phase === 'ready', ctaAria: this.phase === 'ready' ? `Start round, stake ${formatCredits(this.betHundredths)} demo credits` : 'Waiting for the first flap' });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightLabelShort: 'Return', rightValue: 'after first gate', ctaLabel: this.phase === 'ready' ? `START · ${formatCredits(this.betHundredths)}` : 'TAP THE SKY TO FLY', ctaEnabled: this.phase === 'ready', ctaAria: this.phase === 'ready' ? `Start round, stake ${formatCredits(this.betHundredths)} demo credits` : 'Waiting for the first flap' });
     } else {
       const can = canCashOutFlap(round);
       shell.setHud({ phaseLabel: 'Current multiplier', multiplier: `${mult.toFixed(2)}×`, progress: `${gates} ${gates === 1 ? 'gate' : 'gates'} cleared`, tone: 'accent' });
-      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightValue: can ? `${formatCredits(returnNow)} credits` : 'after first gate', ctaLabel: 'CASH OUT', ctaEnabled: can && this.phase === 'playing', ctaAria: can ? `Cash out ${formatCredits(returnNow)} demo credits` : 'Cash out, available after the first gate' });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightLabelShort: 'Return', rightValue: can ? `${formatCredits(returnNow)} credits` : 'after first gate', ctaLabel: 'CASH OUT', ctaEnabled: can && this.phase === 'playing', ctaAria: can ? `Cash out ${formatCredits(returnNow)} demo credits` : 'Cash out, available after the first gate' });
     }
     const showHint = this.phase === 'ready' || this.phase === 'armed' || this.flapsThisRound < HINT_FLAPS_BEFORE_FADE;
     this.hint?.setVisible(showHint && this.phase !== 'settled');

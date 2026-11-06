@@ -572,14 +572,14 @@ export class JettUI {
     if (this.phase === 'settled' && round.settlement) {
       const s = round.settlement; const ret = s.returnHundredths;
       shell.setHud({ phaseLabel: ret > 0 ? 'Round complete' : 'Round ended', multiplier: `${s.multiplier.toFixed(2)}×`, progress, tone: ret > this.betHundredths ? 'success' : ret === 0 ? 'loss' : 'muted' });
-      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Demo mode', rightValue: ret > 0 ? 'Settled once' : 'No return', ctaLabel: `PLAY AGAIN · ${formatCredits(this.betHundredths)}`, ctaEnabled: true });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Demo mode', rightLabelShort: 'Demo', rightValue: ret > 0 ? 'Settled once' : 'No return', ctaLabel: `PLAY AGAIN · ${formatCredits(this.betHundredths)}`, ctaEnabled: true });
     } else if (this.phase === 'ready') {
       shell.setHud({ phaseLabel: 'Ready', multiplier: '1.00×', progress: 'Launch, then drag or use ← → to steer', tone: 'muted' });
-      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightValue: '—', ctaLabel: `LAUNCH · ${formatCredits(this.betHundredths)}`, ctaEnabled: true, ctaAria: `Launch, stake ${formatCredits(this.betHundredths)} demo credits` });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightLabelShort: 'Return', rightValue: '—', ctaLabel: `LAUNCH · ${formatCredits(this.betHundredths)}`, ctaEnabled: true, ctaAria: `Launch, stake ${formatCredits(this.betHundredths)} demo credits` });
     } else {
       const ret = toHundredths(parseFloat((st.bet * st.multiplier).toFixed(2)));
       shell.setHud({ phaseLabel: 'Current multiplier', multiplier: `${st.multiplier.toFixed(2)}×`, progress, tone: 'accent' });
-      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightValue: `${formatCredits(ret)} credits`, ctaLabel: 'CASH OUT', ctaEnabled: this.phase === 'playing' && canCashOutJett(round), ctaAria: `Cash out ${formatCredits(ret)} demo credits` });
+      shell.setFooter({ stakeHundredths: this.betHundredths, rightLabel: 'Return if cashed out', rightLabelShort: 'Return', rightValue: `${formatCredits(ret)} credits`, ctaLabel: 'CASH OUT', ctaEnabled: this.phase === 'playing' && canCashOutJett(round), ctaAria: `Cash out ${formatCredits(ret)} demo credits` });
     }
     this.hint?.setVisible(this.phase !== 'settled' && (this.phase === 'ready' || st.altitude < 120));
     shell.setStageActions([]);

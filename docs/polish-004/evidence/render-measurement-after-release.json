@@ -1,0 +1,6037 @@
+{
+ "date": "2026-11-06T16:47:36.449Z",
+ "base": "http://localhost:4173/jett-game",
+ "note": "Headless Chromium, emulated DPR via deviceScaleFactor; software WebGL (SwiftShader). Not physical hardware.",
+ "rows": [
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "320x568",
+   "dpr": 1,
+   "css": {
+    "w": 262.45,
+    "h": 568
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 1.486,
+   "backingPerPhysicalPx": 1.486,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.673,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.486,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 262.46,
+    "cssHeight": 568,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "320x568",
+   "dpr": 2,
+   "css": {
+    "w": 262.22,
+    "h": 568
+   },
+   "backing": {
+    "w": 536,
+    "h": 1161
+   },
+   "drawingBuffer": {
+    "w": 536,
+    "h": 1161
+   },
+   "backingPerCssPx": 2.044,
+   "backingPerPhysicalPx": 1.022,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.375,
+    "target": 1.346,
+    "width": 536,
+    "height": 1161,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.021,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 262.23,
+    "cssHeight": 568,
+    "zoomX": 1.3743589743589744,
+    "zoomY": 1.3755924170616114,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "320x568",
+   "dpr": 3,
+   "css": {
+    "w": 262.47,
+    "h": 568
+   },
+   "backing": {
+    "w": 829,
+    "h": 1794
+   },
+   "drawingBuffer": {
+    "w": 829,
+    "h": 1794
+   },
+   "backingPerCssPx": 3.158,
+   "backingPerPhysicalPx": 1.053,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 2.125,
+    "target": 2.019,
+    "width": 829,
+    "height": 1794,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.053,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 262.47,
+    "cssHeight": 568,
+    "zoomX": 2.1256410256410256,
+    "zoomY": 2.125592417061611,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "390x844",
+   "dpr": 1,
+   "css": {
+    "w": 390,
+    "h": 844
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 1,
+   "backingPerPhysicalPx": 1,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 1,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "390x844",
+   "dpr": 2,
+   "css": {
+    "w": 390,
+    "h": 844
+   },
+   "backing": {
+    "w": 780,
+    "h": 1688
+   },
+   "drawingBuffer": {
+    "w": 780,
+    "h": 1688
+   },
+   "backingPerCssPx": 2,
+   "backingPerPhysicalPx": 1,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 2,
+    "target": 2,
+    "width": 780,
+    "height": 1688,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 2,
+    "zoomY": 2,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "390x844",
+   "dpr": 3,
+   "css": {
+    "w": 390,
+    "h": 844
+   },
+   "backing": {
+    "w": 1170,
+    "h": 2532
+   },
+   "drawingBuffer": {
+    "w": 1170,
+    "h": 2532
+   },
+   "backingPerCssPx": 3,
+   "backingPerPhysicalPx": 1,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 3,
+    "target": 3,
+    "width": 1170,
+    "height": 2532,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 3,
+    "zoomY": 3,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "430x932",
+   "dpr": 1,
+   "css": {
+    "w": 430,
+    "h": 930.52
+   },
+   "backing": {
+    "w": 439,
+    "h": 950
+   },
+   "drawingBuffer": {
+    "w": 439,
+    "h": 950
+   },
+   "backingPerCssPx": 1.021,
+   "backingPerPhysicalPx": 1.021,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.125,
+    "target": 1.1026,
+    "width": 439,
+    "height": 950,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.021,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 430,
+    "cssHeight": 930.52,
+    "zoomX": 1.1256410256410256,
+    "zoomY": 1.1255924170616114,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "430x932",
+   "dpr": 2,
+   "css": {
+    "w": 430,
+    "h": 930.03
+   },
+   "backing": {
+    "w": 878,
+    "h": 1899
+   },
+   "drawingBuffer": {
+    "w": 878,
+    "h": 1899
+   },
+   "backingPerCssPx": 2.042,
+   "backingPerPhysicalPx": 1.021,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 2.25,
+    "target": 2.2051,
+    "width": 878,
+    "height": 1899,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.021,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 430,
+    "cssHeight": 930.03,
+    "zoomX": 2.2512820512820513,
+    "zoomY": 2.25,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "430x932",
+   "dpr": 3,
+   "css": {
+    "w": 430,
+    "h": 930.56
+   },
+   "backing": {
+    "w": 1170,
+    "h": 2532
+   },
+   "drawingBuffer": {
+    "w": 1170,
+    "h": 2532
+   },
+   "backingPerCssPx": 2.721,
+   "backingPerPhysicalPx": 0.907,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 3,
+    "target": 3.3077,
+    "width": 1170,
+    "height": 2532,
+    "limitedBy": "cap",
+    "backingPerPhysicalPx": 0.907,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 430,
+    "cssHeight": 930.56,
+    "zoomX": 3,
+    "zoomY": 3,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "844x390",
+   "dpr": 1,
+   "css": {
+    "w": 180.2,
+    "h": 390
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.164,
+   "backingPerPhysicalPx": 2.164,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.4621,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 2.164,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "844x390",
+   "dpr": 2,
+   "css": {
+    "w": 180.2,
+    "h": 390
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.164,
+   "backingPerPhysicalPx": 1.082,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.9242,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.082,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "844x390",
+   "dpr": 3,
+   "css": {
+    "w": 180.2,
+    "h": 390
+   },
+   "backing": {
+    "w": 585,
+    "h": 1266
+   },
+   "drawingBuffer": {
+    "w": 585,
+    "h": 1266
+   },
+   "backingPerCssPx": 3.246,
+   "backingPerPhysicalPx": 1.082,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.5,
+    "target": 1.3863,
+    "width": 585,
+    "height": 1266,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.082,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1.5,
+    "zoomY": 1.5,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "667x375",
+   "dpr": 1,
+   "css": {
+    "w": 173.28,
+    "h": 375
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.251,
+   "backingPerPhysicalPx": 2.251,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.4443,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 2.251,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 173.28,
+    "cssHeight": 375,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "667x375",
+   "dpr": 2,
+   "css": {
+    "w": 173.28,
+    "h": 375
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.251,
+   "backingPerPhysicalPx": 1.125,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.8886,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.125,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 173.28,
+    "cssHeight": 375,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "JettScene",
+   "viewport": "667x375",
+   "dpr": 3,
+   "css": {
+    "w": 173.13,
+    "h": 375
+   },
+   "backing": {
+    "w": 536,
+    "h": 1161
+   },
+   "drawingBuffer": {
+    "w": 536,
+    "h": 1161
+   },
+   "backingPerCssPx": 3.096,
+   "backingPerPhysicalPx": 1.032,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.375,
+    "target": 1.3329,
+    "width": 536,
+    "height": 1161,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.031,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 173.13,
+    "cssHeight": 375,
+    "zoomX": 1.3743589743589744,
+    "zoomY": 1.3755924170616114,
+    "scene": "JettScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "320x568",
+   "dpr": 1,
+   "css": {
+    "w": 262.45,
+    "h": 568
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 1.486,
+   "backingPerPhysicalPx": 1.486,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.673,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.486,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 262.46,
+    "cssHeight": 568,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "320x568",
+   "dpr": 2,
+   "css": {
+    "w": 262.22,
+    "h": 568
+   },
+   "backing": {
+    "w": 536,
+    "h": 1161
+   },
+   "drawingBuffer": {
+    "w": 536,
+    "h": 1161
+   },
+   "backingPerCssPx": 2.044,
+   "backingPerPhysicalPx": 1.022,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.375,
+    "target": 1.346,
+    "width": 536,
+    "height": 1161,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.021,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 262.23,
+    "cssHeight": 568,
+    "zoomX": 1.3743589743589744,
+    "zoomY": 1.3755924170616114,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "320x568",
+   "dpr": 3,
+   "css": {
+    "w": 262.47,
+    "h": 568
+   },
+   "backing": {
+    "w": 829,
+    "h": 1794
+   },
+   "drawingBuffer": {
+    "w": 829,
+    "h": 1794
+   },
+   "backingPerCssPx": 3.158,
+   "backingPerPhysicalPx": 1.053,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 2.125,
+    "target": 2.019,
+    "width": 829,
+    "height": 1794,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.053,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 262.47,
+    "cssHeight": 568,
+    "zoomX": 2.1256410256410256,
+    "zoomY": 2.125592417061611,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "390x844",
+   "dpr": 1,
+   "css": {
+    "w": 390,
+    "h": 844
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 1,
+   "backingPerPhysicalPx": 1,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 1,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "390x844",
+   "dpr": 2,
+   "css": {
+    "w": 390,
+    "h": 844
+   },
+   "backing": {
+    "w": 780,
+    "h": 1688
+   },
+   "drawingBuffer": {
+    "w": 780,
+    "h": 1688
+   },
+   "backingPerCssPx": 2,
+   "backingPerPhysicalPx": 1,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 2,
+    "target": 2,
+    "width": 780,
+    "height": 1688,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 2,
+    "zoomY": 2,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "390x844",
+   "dpr": 3,
+   "css": {
+    "w": 390,
+    "h": 844
+   },
+   "backing": {
+    "w": 1170,
+    "h": 2532
+   },
+   "drawingBuffer": {
+    "w": 1170,
+    "h": 2532
+   },
+   "backingPerCssPx": 3,
+   "backingPerPhysicalPx": 1,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 3,
+    "target": 3,
+    "width": 1170,
+    "height": 2532,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 3,
+    "zoomY": 3,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "430x932",
+   "dpr": 1,
+   "css": {
+    "w": 430,
+    "h": 930.52
+   },
+   "backing": {
+    "w": 439,
+    "h": 950
+   },
+   "drawingBuffer": {
+    "w": 439,
+    "h": 950
+   },
+   "backingPerCssPx": 1.021,
+   "backingPerPhysicalPx": 1.021,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.125,
+    "target": 1.1026,
+    "width": 439,
+    "height": 950,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.021,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 430,
+    "cssHeight": 930.52,
+    "zoomX": 1.1256410256410256,
+    "zoomY": 1.1255924170616114,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "430x932",
+   "dpr": 2,
+   "css": {
+    "w": 430,
+    "h": 930.03
+   },
+   "backing": {
+    "w": 878,
+    "h": 1899
+   },
+   "drawingBuffer": {
+    "w": 878,
+    "h": 1899
+   },
+   "backingPerCssPx": 2.042,
+   "backingPerPhysicalPx": 1.021,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 2.25,
+    "target": 2.2051,
+    "width": 878,
+    "height": 1899,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.021,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 430,
+    "cssHeight": 930.03,
+    "zoomX": 2.2512820512820513,
+    "zoomY": 2.25,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "430x932",
+   "dpr": 3,
+   "css": {
+    "w": 430,
+    "h": 930.56
+   },
+   "backing": {
+    "w": 1170,
+    "h": 2532
+   },
+   "drawingBuffer": {
+    "w": 1170,
+    "h": 2532
+   },
+   "backingPerCssPx": 2.721,
+   "backingPerPhysicalPx": 0.907,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 3,
+    "target": 3.3077,
+    "width": 1170,
+    "height": 2532,
+    "limitedBy": "cap",
+    "backingPerPhysicalPx": 0.907,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 430,
+    "cssHeight": 930.56,
+    "zoomX": 3,
+    "zoomY": 3,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "844x390",
+   "dpr": 1,
+   "css": {
+    "w": 180.2,
+    "h": 390
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.164,
+   "backingPerPhysicalPx": 2.164,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.4621,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 2.164,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "844x390",
+   "dpr": 2,
+   "css": {
+    "w": 180.2,
+    "h": 390
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.164,
+   "backingPerPhysicalPx": 1.082,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.9242,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.082,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "844x390",
+   "dpr": 3,
+   "css": {
+    "w": 180.2,
+    "h": 390
+   },
+   "backing": {
+    "w": 585,
+    "h": 1266
+   },
+   "drawingBuffer": {
+    "w": 585,
+    "h": 1266
+   },
+   "backingPerCssPx": 3.246,
+   "backingPerPhysicalPx": 1.082,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.5,
+    "target": 1.3863,
+    "width": 585,
+    "height": 1266,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.082,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1.5,
+    "zoomY": 1.5,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "667x375",
+   "dpr": 1,
+   "css": {
+    "w": 173.28,
+    "h": 375
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.251,
+   "backingPerPhysicalPx": 2.251,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.4443,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 2.251,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 173.28,
+    "cssHeight": 375,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "667x375",
+   "dpr": 2,
+   "css": {
+    "w": 173.28,
+    "h": 375
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.251,
+   "backingPerPhysicalPx": 1.125,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.8886,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.125,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 173.28,
+    "cssHeight": 375,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "FlapFortuneScene",
+   "viewport": "667x375",
+   "dpr": 3,
+   "css": {
+    "w": 173.13,
+    "h": 375
+   },
+   "backing": {
+    "w": 536,
+    "h": 1161
+   },
+   "drawingBuffer": {
+    "w": 536,
+    "h": 1161
+   },
+   "backingPerCssPx": 3.096,
+   "backingPerPhysicalPx": 1.032,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.375,
+    "target": 1.3329,
+    "width": 536,
+    "height": 1161,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.031,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 173.13,
+    "cssHeight": 375,
+    "zoomX": 1.3743589743589744,
+    "zoomY": 1.3755924170616114,
+    "scene": "FlapFortuneScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "320x568",
+   "dpr": 1,
+   "css": {
+    "w": 262.45,
+    "h": 568
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 1.486,
+   "backingPerPhysicalPx": 1.486,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.673,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.486,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 262.46,
+    "cssHeight": 568,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "320x568",
+   "dpr": 2,
+   "css": {
+    "w": 262.22,
+    "h": 568
+   },
+   "backing": {
+    "w": 536,
+    "h": 1161
+   },
+   "drawingBuffer": {
+    "w": 536,
+    "h": 1161
+   },
+   "backingPerCssPx": 2.044,
+   "backingPerPhysicalPx": 1.022,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.375,
+    "target": 1.346,
+    "width": 536,
+    "height": 1161,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.021,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 262.23,
+    "cssHeight": 568,
+    "zoomX": 1.3743589743589744,
+    "zoomY": 1.3755924170616114,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "320x568",
+   "dpr": 3,
+   "css": {
+    "w": 262.47,
+    "h": 568
+   },
+   "backing": {
+    "w": 829,
+    "h": 1794
+   },
+   "drawingBuffer": {
+    "w": 829,
+    "h": 1794
+   },
+   "backingPerCssPx": 3.158,
+   "backingPerPhysicalPx": 1.053,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 2.125,
+    "target": 2.019,
+    "width": 829,
+    "height": 1794,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.053,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 262.47,
+    "cssHeight": 568,
+    "zoomX": 2.1256410256410256,
+    "zoomY": 2.125592417061611,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "390x844",
+   "dpr": 1,
+   "css": {
+    "w": 390,
+    "h": 844
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 1,
+   "backingPerPhysicalPx": 1,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 1,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "390x844",
+   "dpr": 2,
+   "css": {
+    "w": 390,
+    "h": 844
+   },
+   "backing": {
+    "w": 780,
+    "h": 1688
+   },
+   "drawingBuffer": {
+    "w": 780,
+    "h": 1688
+   },
+   "backingPerCssPx": 2,
+   "backingPerPhysicalPx": 1,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 2,
+    "target": 2,
+    "width": 780,
+    "height": 1688,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 2,
+    "zoomY": 2,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "390x844",
+   "dpr": 3,
+   "css": {
+    "w": 390,
+    "h": 844
+   },
+   "backing": {
+    "w": 1170,
+    "h": 2532
+   },
+   "drawingBuffer": {
+    "w": 1170,
+    "h": 2532
+   },
+   "backingPerCssPx": 3,
+   "backingPerPhysicalPx": 1,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 3,
+    "target": 3,
+    "width": 1170,
+    "height": 2532,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "zoomX": 3,
+    "zoomY": 3,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "430x932",
+   "dpr": 1,
+   "css": {
+    "w": 430,
+    "h": 930.52
+   },
+   "backing": {
+    "w": 439,
+    "h": 950
+   },
+   "drawingBuffer": {
+    "w": 439,
+    "h": 950
+   },
+   "backingPerCssPx": 1.021,
+   "backingPerPhysicalPx": 1.021,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.125,
+    "target": 1.1026,
+    "width": 439,
+    "height": 950,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.021,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 430,
+    "cssHeight": 930.52,
+    "zoomX": 1.1256410256410256,
+    "zoomY": 1.1255924170616114,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "430x932",
+   "dpr": 2,
+   "css": {
+    "w": 430,
+    "h": 930.03
+   },
+   "backing": {
+    "w": 878,
+    "h": 1899
+   },
+   "drawingBuffer": {
+    "w": 878,
+    "h": 1899
+   },
+   "backingPerCssPx": 2.042,
+   "backingPerPhysicalPx": 1.021,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 2.25,
+    "target": 2.2051,
+    "width": 878,
+    "height": 1899,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.021,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 430,
+    "cssHeight": 930.03,
+    "zoomX": 2.2512820512820513,
+    "zoomY": 2.25,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "430x932",
+   "dpr": 3,
+   "css": {
+    "w": 430,
+    "h": 930.56
+   },
+   "backing": {
+    "w": 1170,
+    "h": 2532
+   },
+   "drawingBuffer": {
+    "w": 1170,
+    "h": 2532
+   },
+   "backingPerCssPx": 2.721,
+   "backingPerPhysicalPx": 0.907,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 3,
+    "target": 3.3077,
+    "width": 1170,
+    "height": 2532,
+    "limitedBy": "cap",
+    "backingPerPhysicalPx": 0.907,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 430,
+    "cssHeight": 930.56,
+    "zoomX": 3,
+    "zoomY": 3,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "844x390",
+   "dpr": 1,
+   "css": {
+    "w": 180.2,
+    "h": 390
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.164,
+   "backingPerPhysicalPx": 2.164,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.4621,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 2.164,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "844x390",
+   "dpr": 2,
+   "css": {
+    "w": 180.2,
+    "h": 390
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.164,
+   "backingPerPhysicalPx": 1.082,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.9242,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.082,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "844x390",
+   "dpr": 3,
+   "css": {
+    "w": 180.2,
+    "h": 390
+   },
+   "backing": {
+    "w": 585,
+    "h": 1266
+   },
+   "drawingBuffer": {
+    "w": 585,
+    "h": 1266
+   },
+   "backingPerCssPx": 3.246,
+   "backingPerPhysicalPx": 1.082,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.5,
+    "target": 1.3863,
+    "width": 585,
+    "height": 1266,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.082,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 180.21,
+    "cssHeight": 390,
+    "zoomX": 1.5,
+    "zoomY": 1.5,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "667x375",
+   "dpr": 1,
+   "css": {
+    "w": 173.28,
+    "h": 375
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.251,
+   "backingPerPhysicalPx": 2.251,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.4443,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 2.251,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 1,
+    "quality": "high",
+    "cssWidth": 173.28,
+    "cssHeight": 375,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "667x375",
+   "dpr": 2,
+   "css": {
+    "w": 173.28,
+    "h": 375
+   },
+   "backing": {
+    "w": 390,
+    "h": 844
+   },
+   "drawingBuffer": {
+    "w": 390,
+    "h": 844
+   },
+   "backingPerCssPx": 2.251,
+   "backingPerPhysicalPx": 1.125,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1,
+    "target": 0.8886,
+    "width": 390,
+    "height": 844,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.125,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 2,
+    "quality": "high",
+    "cssWidth": 173.28,
+    "cssHeight": 375,
+    "zoomX": 1,
+    "zoomY": 1,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  },
+  {
+   "label": "after",
+   "entry": "release",
+   "sha": "e0a15cfb31f534994135baefebfa86d3430ba71a",
+   "browser": "chromium 153.0.8010.12 headless",
+   "emulated": true,
+   "physicalHardware": false,
+   "scene": "ShatterStepScene",
+   "viewport": "667x375",
+   "dpr": 3,
+   "css": {
+    "w": 173.13,
+    "h": 375
+   },
+   "backing": {
+    "w": 536,
+    "h": 1161
+   },
+   "drawingBuffer": {
+    "w": 536,
+    "h": 1161
+   },
+   "backingPerCssPx": 3.096,
+   "backingPerPhysicalPx": 1.032,
+   "imageRendering": "auto",
+   "cssTransform": "none",
+   "cameraZoom": null,
+   "fontFaces": [
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Fredoka One",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "400",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "600",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "700",
+     "status": "loaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "unloaded"
+    },
+    {
+     "family": "Inter",
+     "weight": "800",
+     "status": "loaded"
+    }
+   ],
+   "interLoaded": true,
+   "fontsCheckInter600": true,
+   "activeScenes": null,
+   "domUiTextNodes": 10,
+   "renderScale": {
+    "scale": 1.375,
+    "target": 1.3329,
+    "width": 536,
+    "height": 1161,
+    "limitedBy": "none",
+    "backingPerPhysicalPx": 1.031,
+    "adaptive": false,
+    "downgrades": [],
+    "dpr": 3,
+    "quality": "high",
+    "cssWidth": 173.13,
+    "cssHeight": 375,
+    "zoomX": 1.3743589743589744,
+    "zoomY": 1.3755924170616114,
+    "scene": "ShatterStepScene"
+   },
+   "fontRequests": [
+    "https://fonts.googleapis.com/css2?family=Fredoka+One&family=Fredoka:wght@600;700&display=swap",
+    "/fonts/inter/inter-latin-400-normal.woff2",
+    "/fonts/inter/inter-latin-600-normal.woff2",
+    "/fonts/inter/inter-latin-700-normal.woff2",
+    "/fonts/inter/inter-latin-800-normal.woff2"
+   ],
+   "errors": []
+  }
+ ]
+}
