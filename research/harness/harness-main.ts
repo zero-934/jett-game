@@ -11,6 +11,7 @@ import * as Phaser from 'phaser';
 import { JettScene } from '../../src/scenes/JettScene';
 import { ShatterStepScene } from '../../src/scenes/ShatterStepScene';
 import { FlapFortuneScene } from '../../src/scenes/FlapFortuneScene';
+import { loadShellFonts } from '../../src/shared/render/FontLoader';
 
 type Counters = { audioContextsCreated: number; audioContextsClosed: number };
 const counters: Counters = { audioContextsCreated: 0, audioContextsClosed: 0 };
@@ -27,20 +28,23 @@ const params = new URLSearchParams(window.location.search);
 const target = params.get('scene') ?? 'JettScene';
 const limit = Number(params.get('fpsLimit') ?? '0');
 
+const SCENES_BY_KEY: Array<[string, typeof Phaser.Scene]> = [['JettScene', JettScene], ['ShatterStepScene', ShatterStepScene], ['FlapFortuneScene', FlapFortuneScene]];
+const ordered = SCENES_BY_KEY.filter(([k]) => k === target).concat(SCENES_BY_KEY.filter(([k]) => k !== target)).map(([, s]) => s);
+
 const config = {
   type: params.get('renderer') === 'canvas' ? Phaser.CANVAS : Phaser.AUTO,
   width: 390,
   height: 844,
   backgroundColor: '#000000',
-  resolution: window.devicePixelRatio || 2, // mirrors src/main.ts (ignored by Phaser 4)
-  scene: [JettScene, ShatterStepScene, FlapFortuneScene].filter((s) => s.name === target)
-    .concat([JettScene, ShatterStepScene, FlapFortuneScene].filter((s) => s.name !== target)),
+  // polish-004: route by the Phaser scene KEY, not JS class.name (minification renames classes).
+  scene: ordered,
   parent: 'app',
   fps: limit > 0 ? { limit } : undefined,
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   dom: { createContainer: true },
 } as Phaser.Types.Core.GameConfig;
 
+await loadShellFonts(import.meta.env.BASE_URL);
 const game = new Phaser.Game(config);
 (window as unknown as Record<string, unknown>).__game = game;
 (window as unknown as Record<string, unknown>).__counters = counters;

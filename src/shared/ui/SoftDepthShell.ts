@@ -28,6 +28,7 @@ import { loadSettings, saveSettings } from './DemoSettings';
 import type { DemoSettings, SettingsStorage } from './DemoSettings';
 import { AudioService } from '../audio/AudioService';
 import { formatCredits } from '../sim/DemoLedger';
+import { pointerToLogical } from '../render/RenderScale';
 
 /** Font stack. Inter is preferred when available; self-hosting it is a follow-up. */
 export const SHELL_FONT = '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
@@ -502,7 +503,11 @@ export class SoftDepthShell {
   }
 
   private wireStageZone(): void {
-    const toStagePointer = (p: Phaser.Input.Pointer): StagePointer => ({ id: p.id, x: p.x, y: p.y, stageX: p.x - this.stage.x, stageY: p.y - this.stage.y });
+    const toStagePointer = (p: Phaser.Input.Pointer): StagePointer => {
+      // polish-004: pointer.x/y are backing-store px; map through the camera to logical px.
+      const w = pointerToLogical(this.scene, p);
+      return { id: p.id, x: w.x, y: w.y, stageX: w.x - this.stage.x, stageY: w.y - this.stage.y };
+    };
     this.stageZone.on('pointerdown', (p: Phaser.Input.Pointer) => { AudioService.unlock(); if (!this.settingsOpenValue) this.opts.onStageDown?.(toStagePointer(p)); });
     this.stageZone.on('pointermove', (p: Phaser.Input.Pointer) => { if (!this.settingsOpenValue && p.isDown) this.opts.onStageMove?.(toStagePointer(p)); });
     this.stageZone.on('pointerup', (p: Phaser.Input.Pointer) => this.opts.onStageUp?.(toStagePointer(p)));

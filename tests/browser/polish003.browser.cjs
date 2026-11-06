@@ -363,7 +363,7 @@ async function perf(browser) {
         await cdp.send('Emulation.setCPUThrottlingRate', { rate: throttle });
         const r = await page.evaluate(async ([game, env]) => {
           const ui = window.__ui(); const g = window.__game;
-          if (!env) for (const k of ['sky', 'stars', 'planet', 'satellite', 'horizonFar', 'horizonNear', 'farLayer', 'nearLayer', 'shaft']) ui[k] && ui[k].setVisible(false);
+          if (!env) for (const k of ['sky', 'stars', 'planet', 'satellite', 'horizonFar', 'horizonNear', 'farLayer', 'nearLayer', 'shaft']) [].concat(ui[k] || []).forEach((o) => o.setVisible(false)); // polish-004: Jett stars are two Graphics
           ui.round.config.combustionFloorPerTick = 0; ui.round.config.combustionChancePerTick = 0;
           const measure = (ms) => new Promise((res) => {
             const step = []; const ivl = []; let a = 0; let last = performance.now();

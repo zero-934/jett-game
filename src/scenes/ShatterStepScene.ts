@@ -8,6 +8,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { RenderScaleController } from '../shared/render/RenderScale';
 import { ShatterStepUI } from '../games/ShatterStepUI';
 
 const DEFAULT_BET = 10;
@@ -20,6 +21,8 @@ export class ShatterStepScene extends Phaser.Scene {
   }
 
   create(): void {
+    // polish-004: high-density backing store, logical 390×844 coordinates unchanged.
+    RenderScaleController.attach(this);
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#0d121a');
     this.shatterUI = new ShatterStepUI(this, width, height);

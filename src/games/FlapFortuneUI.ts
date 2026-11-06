@@ -21,6 +21,7 @@ import { SoftDepthShell } from '../shared/ui/SoftDepthShell';
 import type { ShellKey } from '../shared/ui/SoftDepthShell';
 import { hexToInt, fitWorld, LAYOUT_IMMERSIVE } from '../shared/ui/SoftDepthTheme';
 import { AudioService } from '../shared/audio/AudioService';
+import { makeDenseTexture, TEXTURE_DENSITY } from '../shared/render/RenderScale';
 
 // ─── World fit (docs/polish-003/ART_AND_LAYOUT.md "Preserving Flap and Jett worlds") ──
 // polish-003 scale fix: Flap uses the immersive shell layout (stage 374×664 at y 56), so the
@@ -313,8 +314,8 @@ export class FlapFortuneUI {
     // Skyline layers: seamless tiles generated once, scrolled cosmetically.
     this.makeSkylineTexture(SKYLINE_FAR_KEY, FAR_SKYLINE, 120, false);
     this.makeSkylineTexture(SKYLINE_NEAR_KEY, NEAR_SKYLINE, 86, true);
-    this.farLayer = scene.add.tileSprite(S.x, S.y + S.height - 200, S.width, 170, SKYLINE_FAR_KEY).setScale(1, 200 / 170).setOrigin(0).setDepth(DEPTH.far);
-    this.nearLayer = scene.add.tileSprite(S.x, S.y + S.height - 140, S.width, 120, SKYLINE_NEAR_KEY).setScale(1, 140 / 120).setOrigin(0).setDepth(DEPTH.near);
+    this.farLayer = scene.add.tileSprite(S.x, S.y + S.height - 200, S.width, 170, SKYLINE_FAR_KEY).setScale(1, 200 / 170).setTileScale(1 / TEXTURE_DENSITY).setOrigin(0).setDepth(DEPTH.far);
+    this.nearLayer = scene.add.tileSprite(S.x, S.y + S.height - 140, S.width, 120, SKYLINE_NEAR_KEY).setScale(1, 140 / 120).setTileScale(1 / TEXTURE_DENSITY).setOrigin(0).setDepth(DEPTH.near);
 
     // Gutters outside the fitted world are dimmed so the lethal playfield reads clearly.
     const g = scene.add.graphics().setDepth(DEPTH.gutter);
@@ -337,15 +338,13 @@ export class FlapFortuneUI {
     const hintStyle = { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '14px', color: '#e8edf4', fontStyle: 'bold' };
     this.hint = scene.add.text(S.x + S.width / 2, S.y + S.height - 30, 'TAP THE SKY TO FLAP', hintStyle).setOrigin(0.5).setDepth(DEPTH.hint).setLetterSpacing(1.6);
     this.exitHint = scene.add.text(S.x + S.width / 2, S.y + S.height - 50, 'DIVE TO CASH OUT · AFTER FIRST GATE', { ...hintStyle, fontSize: '12px', color: '#c8d3e2' }).setOrigin(0.5).setDepth(DEPTH.hint).setLetterSpacing(1.2);
-    for (const t of [this.hint, this.exitHint]) t.setResolution(Math.min(3, window.devicePixelRatio || 1));
     this.debug = this.debugEnabled ? scene.add.graphics().setDepth(DEPTH.debug) : null;
     this.render(1);
   }
 
   private makeSkylineTexture(key: string, color: number, height: number, near: boolean): void {
-    if (this.scene.textures.exists(key)) return;
     const w = STAGE.width;
-    const g = this.scene.make.graphics({ x: 0, y: 0 }, false);
+    makeDenseTexture(this.scene, key, w, height, (g) => {
     g.fillStyle(color, 1);
     // Roofs/chimneys inset from both edges so the tile wraps seamlessly.
     const roofs = near
@@ -366,8 +365,7 @@ export class FlapFortuneUI {
       g.fillStyle(WINDOW_WARM, 0.9);
       for (const [x, y] of [[20, 30], [80, 22], [134, 38], [150, 38], [200, 28], [252, 40], [268, 40], [318, 26]]) g.fillRect(x, height - y, 6, 6);
     }
-    g.generateTexture(key, w, height);
-    g.destroy();
+    });
   }
 
   // ─── Rendering (once per frame) ──────────────────────────────────────────
@@ -379,8 +377,8 @@ export class FlapFortuneUI {
 
     // Parallax (cosmetic, from simulation distance only).
     const dist = this.distance;
-    if (this.farLayer) this.farLayer.tilePositionX = dist * SKYLINE_FAR_PARALLAX;
-    if (this.nearLayer) this.nearLayer.tilePositionX = dist * SKYLINE_NEAR_PARALLAX;
+    if (this.farLayer) this.farLayer.tilePositionX = dist * SKYLINE_FAR_PARALLAX * TEXTURE_DENSITY; // tile position is in texture px
+    if (this.nearLayer) this.nearLayer.tilePositionX = dist * SKYLINE_NEAR_PARALLAX * TEXTURE_DENSITY;
 
     // Pipes, clipped to the fitted world so nothing lethal appears in the gutters.
     const g = this.pipes;

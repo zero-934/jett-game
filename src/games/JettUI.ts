@@ -21,6 +21,7 @@ import { SoftDepthShell } from '../shared/ui/SoftDepthShell';
 import type { ShellKey, StagePointer } from '../shared/ui/SoftDepthShell';
 import { hexToInt, fitWorld, LAYOUT_IMMERSIVE } from '../shared/ui/SoftDepthTheme';
 import { AudioService } from '../shared/audio/AudioService';
+import { makeDenseTexture } from '../shared/render/RenderScale';
 
 // ─── World fit ───────────────────────────────────────────────────────────────
 // Immersive shell layout (as Flap): unchanged 390×844 world fitted at k ≈ 0.787 (was 0.645).
@@ -54,7 +55,7 @@ const FLAME_INNER = 0xffe08a;
 const PILOT_TEXTURE = 'jett-pilot';
 const ROCK_KEYS = ['jett-rock-0', 'jett-rock-1', 'jett-rock-2', 'jett-rock-3'];
 const COIN_KEY = 'jett-coin';
-const STARS_KEY = 'jett-stars';
+const STAR_COUNT = 46;
 const ROCK_TEX = 96;
 const COIN_TEX = 32;
 const PILOT_DISPLAY_WORLD_H = 62;   // ≈40 screen px tall at k=0.645 (spec: 34–46)
@@ -112,7 +113,8 @@ export class JettUI {
 
   // Display
   private sky: Phaser.GameObjects.Graphics | null = null;
-  private stars: Phaser.GameObjects.TileSprite | null = null;
+  /** Two wrapped copies of a vector star field (crisp at any render scale; no large texture). */
+  private stars: Phaser.GameObjects.Graphics[] = [];
   private planet: Phaser.GameObjects.Graphics | null = null;
   private satellite: Phaser.GameObjects.Graphics | null = null;
   private horizonFar: Phaser.GameObjects.Graphics | null = null;
@@ -193,12 +195,12 @@ export class JettUI {
   }
 
   private destroyWorld(): void {
-    for (const o of [this.sky, this.stars, this.planet, this.satellite, this.horizonFar, this.horizonNear, this.gutters, this.pilot, this.flame, this.hint, this.debug, this.bonusText]) o?.destroy();
+    for (const o of [this.sky, ...this.stars, this.planet, this.satellite, this.horizonFar, this.horizonNear, this.gutters, this.pilot, this.flame, this.hint, this.debug, this.bonusText]) o?.destroy();
     for (const o of [...this.rockPool, ...this.coinPool, ...this.sparkles]) o.destroy();
     this.rockPool = []; this.coinPool = []; this.sparkles = [];
     this.rockById.clear(); this.coinById.clear();
     this.sky = this.planet = this.satellite = this.horizonFar = this.horizonNear = this.gutters = this.flame = this.debug = null;
-    this.stars = null; this.pilot = null; this.hint = null; this.bonusText = null;
+    this.stars = []; this.pilot = null; this.hint = null; this.bonusText = null;
   }
 
   // ─── Round lifecycle ──────────────────────────────────────────────────────
@@ -324,8 +326,7 @@ export class JettUI {
   private makeTextures(): void {
     const scene = this.scene;
     if (!scene.textures.exists(ROCK_KEYS[0])) {
-      ROCK_KEYS.forEach((key, variant) => {
-        const g = scene.make.graphics({ x: 0, y: 0 }, false);
+      ROCK_KEYS.forEach((key, variant) => makeDenseTexture(scene, key, ROCK_TEX, ROCK_TEX, (g) => {
         const c = ROCK_TEX / 2; const r = ROCK_TEX / 2 - 3;
         const pts: Phaser.Math.Vector2[] = [];
         const n = 9 + variant;
@@ -347,29 +348,15 @@ export class JettUI {
         g.moveTo(pts[start].x, pts[start].y);
         for (let i = start + 1; i <= end; i++) g.lineTo(pts[i % n].x, pts[i % n].y);
         g.strokePath();
-        g.generateTexture(key, ROCK_TEX, ROCK_TEX);
-        g.destroy();
-      });
+      }));
     }
-    if (!scene.textures.exists(COIN_KEY)) {
-      const g = scene.make.graphics({ x: 0, y: 0 }, false);
+    makeDenseTexture(scene, COIN_KEY, COIN_TEX, COIN_TEX, (g) => {
       const c = COIN_TEX / 2;
       g.fillStyle(COIN_RIM, 1).fillCircle(c, c, c - 1);
       g.fillStyle(COIN, 1).fillCircle(c, c, c - 4);
       g.lineStyle(2, COIN_RIM, 0.8).strokeCircle(c, c, c - 8);
       g.fillStyle(COIN_SHINE, 0.85).fillCircle(c - 4, c - 5, 3);
-      g.generateTexture(COIN_KEY, COIN_TEX, COIN_TEX);
-      g.destroy();
-    }
-    if (!scene.textures.exists(STARS_KEY)) {
-      const g = scene.make.graphics({ x: 0, y: 0 }, false);
-      for (let i = 0; i < 46; i++) {
-        const x = (i * 131) % STAGE.width; const y = (i * 197) % STAGE.height;
-        g.fillStyle(0xe3ebf7, 0.25 + (i % 5) * 0.1).fillCircle(x, y, i % 9 === 0 ? 1.3 : 0.8);
-      }
-      g.generateTexture(STARS_KEY, STAGE.width, STAGE.height);
-      g.destroy();
-    }
+    });
   }
 
   private buildWorld(): void {
@@ -379,7 +366,14 @@ export class JettUI {
     const sky = scene.add.graphics().setDepth(DEPTH.sky);
     sky.fillGradientStyle(SKY_TOP, SKY_TOP, SKY_BOTTOM, SKY_BOTTOM, 1).fillRect(S.x, S.y, S.width, S.height);
     this.sky = sky;
-    this.stars = scene.add.tileSprite(S.x, S.y, S.width, S.height, STARS_KEY).setOrigin(0).setDepth(DEPTH.sky);
+    this.stars = [0, 1].map(() => {
+      const g = scene.add.graphics().setDepth(DEPTH.sky);
+      for (let i = 0; i < STAR_COUNT; i++) {
+        const x = (i * 131) % S.width; const y = (i * 197) % S.height;
+        g.fillStyle(0xe3ebf7, 0.25 + (i % 5) * 0.1).fillCircle(S.x + x, y, i % 9 === 0 ? 1.3 : 0.8);
+      }
+      return g;
+    });
 
     // One small cropped planet top-right with broad bands (non-colliding, subdued).
     const pl = scene.add.graphics().setDepth(DEPTH.planet);
@@ -414,9 +408,9 @@ export class JettUI {
     const tex = scene.textures.exists(PILOT_TEXTURE) ? scene.textures.get(PILOT_TEXTURE).getSourceImage() : { height: 196 };
     this.pilot = scene.add.image(0, 0, PILOT_TEXTURE).setScale((PILOT_DISPLAY_WORLD_H * K) / tex.height).setDepth(DEPTH.pilot);
     this.hint = scene.add.text(S.x + S.width / 2, S.y + S.height - 26, 'DRAG TO STEER', { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '12px', color: '#e8edf4', fontStyle: 'bold' })
-      .setOrigin(0.5).setDepth(DEPTH.hint).setLetterSpacing(1.6).setResolution(Math.min(3, window.devicePixelRatio || 1));
+      .setOrigin(0.5).setDepth(DEPTH.hint).setLetterSpacing(1.6);
     this.bonusText = scene.add.text(0, 0, '+0.03×', { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '13px', color: '#f2c14e', fontStyle: 'bold' })
-      .setOrigin(0.5).setDepth(DEPTH.fx).setVisible(false).setResolution(Math.min(3, window.devicePixelRatio || 1));
+      .setOrigin(0.5).setDepth(DEPTH.fx).setVisible(false);
     this.debug = this.debugEnabled ? scene.add.graphics().setDepth(DEPTH.debug) : null;
   }
 
@@ -443,7 +437,11 @@ export class JettUI {
     const alt = this.prevAltitude + (st.altitude - this.prevAltitude) * alpha;
     const playerX = this.prevPlayerX + (st.playerX - this.prevPlayerX) * alpha;
 
-    if (this.stars) this.stars.tilePositionY = -alt * STAR_PARALLAX;
+    if (this.stars.length) {
+      const off = ((alt * STAR_PARALLAX) % STAGE.height + STAGE.height) % STAGE.height;
+      this.stars[0].y = STAGE.y + off;
+      this.stars[1].y = STAGE.y + off - STAGE.height;
+    }
     this.horizonFar?.setY(alt * HORIZON_FAR_PARALLAX);
     this.horizonNear?.setY(alt * HORIZON_NEAR_PARALLAX);
     if (this.satellite) this.satellite.x = STAGE.x + 54 + ((this.scene.time.now * SATELLITE_DRIFT_PER_MS) % 30);

@@ -19,6 +19,7 @@ import { SoftDepthShell } from '../shared/ui/SoftDepthShell';
 import type { ShellKey, StageAction } from '../shared/ui/SoftDepthShell';
 import { hexToInt } from '../shared/ui/SoftDepthTheme';
 import { AudioService } from '../shared/audio/AudioService';
+import { makeDenseTexture, TEXTURE_DENSITY } from '../shared/render/RenderScale';
 
 // ─── Board geometry (docs/polish-003/ART_AND_LAYOUT.md, reference coordinates) ─
 const TOTAL_ROWS = 10;
@@ -57,6 +58,8 @@ const T_DONE_MS = 650;
 const REDUCED_CROSSFADE_MS = 100;
 const RUNNER_STEP_MS = 160;
 const RUNNER_FOOT_OFFSET = 12;
+/** Generated textures are TEXTURE_DENSITY× their logical size; images are drawn at 1/TD. */
+const TD = TEXTURE_DENSITY;
 const DEPTH = { shaft: 1, rails: 2, panes: 4, marks: 5, runner: 6, cracks: 7, shards: 8, flash: 9, labels: 9, hits: 39 } as const;
 
 /** Centre Y of a row (0 = bottom row, first pick). */
@@ -164,51 +167,37 @@ export class ShatterStepUI {
   private makeTextures(): void {
     const scene = this.scene;
     const w = Math.ceil(PANE_W); const h = PANE_H + BEVEL;
-    if (!scene.textures.exists(PANE_KEY)) {
-      const g = scene.make.graphics({ x: 0, y: 0 }, false);
+    makeDenseTexture(scene, PANE_KEY, w, h, (g) => {
       g.fillStyle(GLASS_BEVEL, 0.38).fillRoundedRect(1, PANE_H - 3, w - 2, BEVEL + 3, 3); // thin underside bevel (3–4 px below)
       g.fillStyle(GLASS_TINT, 0.13).fillRoundedRect(0, 0, w, PANE_H, 6);               // 10–25 % tint
       g.fillStyle(0xffffff, 0.12).fillRoundedRect(4, 3, w * 0.42, 7, 3);               // upper-left highlight
       g.fillStyle(0xffffff, 0.09).fillTriangle(w * 0.28, PANE_H - 2, w * 0.4, PANE_H - 2, w * 0.58, 2); // one diagonal reflection
       g.fillTriangle(w * 0.58, 2, w * 0.46, 2, w * 0.28, PANE_H - 2);
       g.lineStyle(1, GLASS_EDGE, 0.55).strokeRoundedRect(0.5, 0.5, w - 1, PANE_H - 1, 6); // thin pale-cyan edge
-      g.generateTexture(PANE_KEY, w, h);
-      g.destroy();
-    }
-    FRAME_KEYS.forEach((key, v) => {
-      if (scene.textures.exists(key)) return;
-      const g = scene.make.graphics({ x: 0, y: 0 }, false);
+    });
+    FRAME_KEYS.forEach((key, v) => makeDenseTexture(scene, key, w, h, (g) => {
       g.lineStyle(1, GLASS_EDGE, 0.35).strokeRoundedRect(0.5, 0.5, w - 1, PANE_H - 1, 6);
       g.fillStyle(GLASS_TINT, 0.22);
       // Jagged remnants clinging to the frame edges.
       const teeth = v === 0 ? [[6, 0, 18, 0, 10, 9], [40, 0, 60, 0, 52, 6], [w - 24, 0, w - 4, 0, w - 10, 11], [0, PANE_H, 16, PANE_H, 6, PANE_H - 10], [w - 40, PANE_H, w - 16, PANE_H, w - 30, PANE_H - 8], [0, 8, 0, 26, 9, 15]]
                             : [[12, 0, 30, 0, 18, 7], [70, 0, 92, 0, 80, 10], [w - 30, 0, w - 8, 0, w - 18, 6], [10, PANE_H, 30, PANE_H, 22, PANE_H - 9], [w - 22, PANE_H, w - 2, PANE_H, w - 8, PANE_H - 12], [w, 10, w, 30, w - 10, 22]];
       for (const t of teeth) g.fillTriangle(t[0], t[1], t[2], t[3], t[4], t[5]);
-      g.generateTexture(key, w, h);
-      g.destroy();
-    });
-    SHARD_KEYS.forEach((key, v) => {
-      if (scene.textures.exists(key)) return;
-      const g = scene.make.graphics({ x: 0, y: 0 }, false);
+    }));
+    SHARD_KEYS.forEach((key, v) => makeDenseTexture(scene, key, 22, 24, (g) => {
       const shapes = [[0, 12, 9, 0, 18, 15], [0, 0, 16, 5, 6, 18], [2, 16, 10, 0, 14, 14, 6, 20], [0, 6, 20, 0, 12, 12], [4, 0, 12, 4, 10, 22, 0, 16]];
       const pts = shapes[v];
       const vecs: Phaser.Math.Vector2[] = [];
       for (let i = 0; i < pts.length; i += 2) vecs.push(new Phaser.Math.Vector2(pts[i], pts[i + 1]));
       g.fillStyle(GLASS_TINT, 0.55).fillPoints(vecs, true);
       g.lineStyle(1, GLASS_EDGE, 0.8).strokePoints(vecs, true);
-      g.generateTexture(key, 22, 24);
-      g.destroy();
-    });
-    if (!scene.textures.exists(RUNNER_KEY)) {
-      // The existing simple runner, now softly shaded (head + body), same identity.
-      const g = scene.make.graphics({ x: 0, y: 0 }, false);
+    }));
+    // The existing simple runner, now softly shaded (head + body), same identity.
+    makeDenseTexture(scene, RUNNER_KEY, 18, 31, (g) => {
       g.fillStyle(RUNNER_INK, 1).fillCircle(9, 7, 7).fillRoundedRect(2, 12, 14, 18, 4);
       g.fillStyle(RUNNER_SKIN, 1).fillCircle(9, 7, 5.5);
       g.fillStyle(RUNNER_BODY, 1).fillRoundedRect(3.5, 13.5, 11, 15, 3);
       g.fillStyle(0xffffff, 0.25).fillRoundedRect(5, 15, 3, 9, 1.5);
-      g.generateTexture(RUNNER_KEY, 18, 31);
-      g.destroy();
-    }
+    });
   }
 
   // ─── Board construction (static; only changed panes update) ──────────────
@@ -235,16 +224,15 @@ export class ShatterStepUI {
   private buildBoard(): void {
     this.drawShaft();
     const scene = this.scene;
-    const res = Math.min(3, window.devicePixelRatio || 1);
     this.title = scene.add.text(this.worldWidth / 2, 154, 'CHOOSE ONE GLASS PANE', { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '11px', color: '#c8d3e2', fontStyle: 'bold' })
-      .setOrigin(0.5).setDepth(DEPTH.labels).setLetterSpacing(1.6).setResolution(res);
+      .setOrigin(0.5).setDepth(DEPTH.labels).setLetterSpacing(1.6);
     for (let row = 0; row < TOTAL_ROWS; row++) {
       const y = rowY(row);
       const views = {} as Record<TileSide, PaneView>;
       for (const side of ['left', 'right'] as const) {
         const x = paneX(side);
-        const image = scene.add.image(x, y - PANE_H / 2, PANE_KEY).setOrigin(0).setDepth(DEPTH.panes);
-        const frame = scene.add.image(x, y - PANE_H / 2, FRAME_KEYS[row % 2]).setOrigin(0).setDepth(DEPTH.panes).setVisible(false);
+        const image = scene.add.image(x, y - PANE_H / 2, PANE_KEY).setOrigin(0).setScale(1 / TD).setDepth(DEPTH.panes);
+        const frame = scene.add.image(x, y - PANE_H / 2, FRAME_KEYS[row % 2]).setOrigin(0).setScale(1 / TD).setDepth(DEPTH.panes).setVisible(false);
         const mark = scene.add.graphics().setDepth(DEPTH.marks);
         views[side] = { image, frame, mark };
         const hit = scene.add.rectangle(x + PANE_W / 2, y, PANE_W, HIT_H, 0, 0).setDepth(DEPTH.hits).setInteractive({ useHandCursor: true });
@@ -259,12 +247,12 @@ export class ShatterStepUI {
       }
       this.panes.push(views);
       this.labels.push(scene.add.text(LABEL_X, y, String(row + 1).padStart(2, '0'), { fontFamily: '"Inter", system-ui, sans-serif', fontSize: '11px', color: '#a6b3c4', fontStyle: 'bold' })
-        .setOrigin(1, 0.5).setDepth(DEPTH.labels).setResolution(res));
+        .setOrigin(1, 0.5).setDepth(DEPTH.labels));
     }
     this.activeRow = scene.add.graphics().setDepth(DEPTH.marks);
     this.cracks = scene.add.graphics().setDepth(DEPTH.cracks);
     this.flash = scene.add.arc(0, 0, 10, 0, 360, false, 0xffffff, 0.9).setDepth(DEPTH.flash).setVisible(false);
-    this.runner = scene.add.image(this.worldWidth / 2, PLATFORM_Y, RUNNER_KEY).setOrigin(0.5, 1).setDepth(DEPTH.runner);
+    this.runner = scene.add.image(this.worldWidth / 2, PLATFORM_Y, RUNNER_KEY).setOrigin(0.5, 1).setScale(1 / TD).setDepth(DEPTH.runner);
     for (let i = 0; i < SHARD_COUNT; i++) this.shards.push(scene.add.image(0, 0, SHARD_KEYS[i % SHARD_KEYS.length]).setDepth(DEPTH.shards).setVisible(false));
   }
 
@@ -282,7 +270,7 @@ export class ShatterStepUI {
     for (const s of this.shards) s.setVisible(false);
     this.cracks?.clear();
     this.flash?.setVisible(false);
-    this.runner?.setPosition(this.worldWidth / 2, PLATFORM_Y).setAlpha(1).setScale(1).setAngle(0).setVisible(true);
+    this.runner?.setPosition(this.worldWidth / 2, PLATFORM_Y).setAlpha(1).setScale(1 / TD).setAngle(0).setVisible(true);
     this.shell?.hideResult();
     this.refresh();
   }
@@ -410,7 +398,7 @@ export class ShatterStepUI {
     // 0–35 ms: local contact flash, runner compresses.
     this.flash?.setPosition(contact.x, contact.y).setScale(0.6).setAlpha(0.9).setVisible(true);
     this.scene.tweens.add({ targets: this.flash, scale: 1.4, alpha: 0, duration: T_CRACK_MS * 2 });
-    if (this.runner) this.scene.tweens.add({ targets: this.runner, scaleY: 0.86, duration: T_CRACK_MS, yoyo: true });
+    if (this.runner) this.scene.tweens.add({ targets: this.runner, scaleY: 0.86 / TD, duration: T_CRACK_MS, yoyo: true });
     // 35–85 ms: branching cracks radiate from the contact point.
     later(T_CRACK_MS, () => this.drawCracks(contact, row, side, 0.55));
     later(T_CRACK_FULL_MS - 20, () => this.drawCracks(contact, row, side, 1));
@@ -424,7 +412,7 @@ export class ShatterStepUI {
         const fx = x0 + 10 + ((i * 37) % (PANE_W - 20));                  // spread across the pane (deterministic)
         const fy = y0 + 6 + ((i * 13) % (PANE_H - 12));
         const dir = fx < contact.x ? -1 : 1;
-        s.setPosition(fx, fy).setAlpha(0.95).setAngle((i * 47) % 360).setScale(0.7 + (i % 3) * 0.15).setVisible(true);
+        s.setPosition(fx, fy).setAlpha(0.95).setAngle((i * 47) % 360).setScale((0.7 + (i % 3) * 0.15) / TD).setVisible(true);
         this.shardTweens.push(this.scene.tweens.add({
           targets: s, x: fx + dir * (10 + ((i * 11) % 26)), y: fy + 25 + ((i * 17) % 66), angle: s.angle + dir * (90 + (i % 4) * 40), alpha: 0,
           duration: T_DONE_MS - T_CRACK_FULL_MS, ease: 'Quad.easeIn', onComplete: () => s.setVisible(false),

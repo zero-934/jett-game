@@ -8,6 +8,7 @@
  */
 
 import * as Phaser from 'phaser';
+import { RenderScaleController } from '../shared/render/RenderScale';
 import { FlapFortuneUI } from '../games/FlapFortuneUI';
 
 const DEFAULT_BET = 10;
@@ -37,6 +38,8 @@ export class FlapFortuneScene extends Phaser.Scene {
   }
 
   create(): void {
+    // polish-004: high-density backing store, logical 390×844 coordinates unchanged.
+    RenderScaleController.attach(this);
     this.cameras.main.setBackgroundColor('#0d121a');
     this.flapUI = new FlapFortuneUI(this, { ...FLAP_SCENE_CONFIG });
     this.flapUI.start(DEFAULT_BET);
