@@ -31,6 +31,8 @@ import { formatCredits } from '../sim/DemoLedger';
 import { pointerToLogical } from '../render/RenderScale';
 import { getActiveBrand, onBrandChange, applyBrandTokens, brandLocksAccent, brandRadius, brandFontStack, isSafeLogoUrl } from '../brand/Brand';
 import type { BrandConfig } from '../brand/Brand';
+import { getHost } from '../host/DemoHostAdapter';
+import type { HostGameTarget } from '../host/DemoHostAdapter';
 
 /** Font stack (Inter is self-hosted, see public/fonts/inter). */
 export const SHELL_FONT = '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
@@ -266,6 +268,7 @@ export class SoftDepthShell {
   private k = 1;
   private lastPointerActivation: { id: string; t: number } | null = null;
   private offBrand: (() => void) | null = null;
+  private hostTarget: HostGameTarget | null = null;
 
   // DOM
   private dom: HTMLDivElement | null = null;
@@ -300,6 +303,15 @@ export class SoftDepthShell {
     this.buildDom();
     this.redrawChrome();
     this.offBrand = onBrandChange((b) => { this.brand = b; this.applyTokens(); });
+    // Host lifecycle: pause/settings commands reach the running game through its shell. A host
+    // "resume" never auto-resumes a live round: the player taps to continue (no hidden danger).
+    this.hostTarget = {
+      pause: () => this.opts.onVisibilityLost?.('hidden'),
+      resume: () => { /* player-initiated resume only */ },
+      openSettings: () => this.openSettings(),
+      closeSettings: () => this.closeSettings(),
+    };
+    getHost().setTarget(this.hostTarget);
 
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.destroy());
     scene.events.once(Phaser.Scenes.Events.DESTROY, () => this.destroy());
@@ -499,6 +511,7 @@ export class SoftDepthShell {
     if (this.destroyed) return;
     this.destroyed = true;
     this.offBrand?.(); this.offBrand = null;
+    if (this.hostTarget) { getHost().setTarget(null); this.hostTarget = null; }
     for (const [target, type, fn] of this.listeners) target.removeEventListener(type, fn);
     this.listeners.length = 0;
     this.scene.scale.off(Phaser.Scale.Events.RESIZE, this.layoutDom, this);
@@ -587,6 +600,7 @@ export class SoftDepthShell {
     this.settingsOpenValue = true;
     this.opts.onSettingsOpen?.(true);
     this.openDomDialog();
+    getHost().notify({ type: 'settingsOpened', payload: {} });
   }
 
   private closeSettings(): void {
@@ -594,6 +608,7 @@ export class SoftDepthShell {
     this.settingsOpenValue = false;
     this.closeDomDialog();
     this.opts.onSettingsOpen?.(false);
+    getHost().notify({ type: 'settingsClosed', payload: {} });
   }
 
   /**
@@ -724,8 +739,8 @@ export class SoftDepthShell {
     this.listen(window, 'resize', () => this.layoutDom());
     this.listen(window, 'keydown', (e) => this.onWindowKey(e as KeyboardEvent, 'down'));
     this.listen(window, 'keyup', (e) => this.onWindowKey(e as KeyboardEvent, 'up'));
-    this.listen(window, 'blur', () => this.opts.onVisibilityLost?.('blur'));
-    this.listen(document, 'visibilitychange', () => { if (document.hidden) this.opts.onVisibilityLost?.('hidden'); });
+    this.listen(window, 'blur', () => { this.opts.onVisibilityLost?.('blur'); getHost().notify({ type: 'paused', payload: { reason: 'blur' } }); });
+    this.listen(document, 'visibilitychange', () => { if (document.hidden) { this.opts.onVisibilityLost?.('hidden'); getHost().notify({ type: 'paused', payload: { reason: 'hidden' } }); } });
     if (document.fonts) this.listen(document.fonts, 'loadingdone', () => { this.hudBoxes = null; });
     this.syncBrandHeader();
     this.layoutDom();

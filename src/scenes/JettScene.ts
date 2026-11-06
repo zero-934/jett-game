@@ -9,6 +9,8 @@
 
 import * as Phaser from 'phaser';
 import { RenderScaleController } from '../shared/render/RenderScale';
+import { getHost } from '../shared/host/DemoHostAdapter';
+import { JETT_SIM_VERSION } from '../games/JettLogic';
 import { JettUI } from '../games/JettUI';
 
 const DEFAULT_BET = 10;
@@ -38,6 +40,7 @@ export class JettScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#0d121a');
     this.jettUI = new JettUI(this, { ...JETT_SCENE_CONFIG });
     this.jettUI.start(DEFAULT_BET);
+    getHost().gameReady({ sceneKey: 'JettScene', mathVersion: JETT_SIM_VERSION, configId: 'jett-prod-v1' });
     // Phaser never calls a Scene method named shutdown(); subscribe explicitly (R-OWN-2).
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.shutdown());
   }

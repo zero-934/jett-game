@@ -18,6 +18,7 @@ import { FixedStepRunner } from '../shared/sim/FixedStepRunner';
 import { getPageLedger, nextRoundId, toHundredths, formatCredits } from '../shared/sim/DemoLedger';
 import { createSeedString, RNG_ALGORITHM_V2 } from '../shared/rng/ProvablyFairRNG';
 import { SoftDepthShell } from '../shared/ui/SoftDepthShell';
+import { getHost } from '../shared/host/DemoHostAdapter';
 import type { ShellKey, StagePointer } from '../shared/ui/SoftDepthShell';
 import { hexToInt, fitWorld, LAYOUT_IMMERSIVE } from '../shared/ui/SoftDepthTheme';
 import { AudioService } from '../shared/audio/AudioService';
@@ -180,7 +181,7 @@ export class JettUI {
     this.shell = new SoftDepthShell(this.scene, {
       title: 'Jett',
       layout: LAYOUT_IMMERSIVE,
-      onBack: () => { window.location.href = 'https://zero-934.github.io/jett-landing/'; },
+      onBack: () => getHost().requestLobby(), // polish-004: host decides (validated lobby / parent)
       onPrimary: () => this.onPrimary(),
       onStageDown: (p) => this.onSteer(p),
       onStageMove: (p) => this.onSteer(p),

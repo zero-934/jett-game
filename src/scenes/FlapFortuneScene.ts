@@ -9,6 +9,8 @@
 
 import * as Phaser from 'phaser';
 import { RenderScaleController } from '../shared/render/RenderScale';
+import { getHost } from '../shared/host/DemoHostAdapter';
+import { FLAP_SIM_VERSION } from '../games/FlapFortuneLogic';
 import { FlapFortuneUI } from '../games/FlapFortuneUI';
 
 const DEFAULT_BET = 10;
@@ -43,6 +45,7 @@ export class FlapFortuneScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#0d121a');
     this.flapUI = new FlapFortuneUI(this, { ...FLAP_SCENE_CONFIG });
     this.flapUI.start(DEFAULT_BET);
+    getHost().gameReady({ sceneKey: 'FlapFortuneScene', mathVersion: FLAP_SIM_VERSION, configId: 'flap-prod-v1' });
     // Phaser never calls a Scene method named shutdown(); subscribe explicitly (R-OWN-2).
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.shutdown());
   }

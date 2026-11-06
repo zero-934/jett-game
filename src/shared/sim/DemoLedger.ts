@@ -47,6 +47,11 @@ export function formatCredits(hundredths: number): string {
   return `${sign}${whole}.${(abs % HUNDREDTHS_PER_CREDIT).toString().padStart(2, '0')}`;
 }
 
+/** Ledger change notification (fired only when state actually changes; idempotent repeats are silent). */
+export type LedgerEvent =
+  | { type: 'start'; roundId: string; stakeHundredths: number; balanceHundredths: number }
+  | { type: 'settle'; record: LedgerSettlement; balanceHundredths: number };
+
 /**
  * Demo ledger. Rejects double debits/credits for the same round.
  * @example
@@ -58,6 +63,7 @@ export class DemoLedger {
   private balance: number;
   private readonly open = new Map<string, number>();
   private readonly settled = new Map<string, LedgerSettlement>();
+  private readonly observers = new Set<(e: LedgerEvent) => void>();
 
   /** @param initialHundredths - Starting balance. */
   constructor(initialHundredths: number = DEFAULT_DEMO_BALANCE_HUNDREDTHS) {
@@ -80,6 +86,7 @@ export class DemoLedger {
     if (!Number.isInteger(stakeHundredths) || stakeHundredths <= 0 || stakeHundredths > this.balance) return false;
     this.balance -= stakeHundredths;
     this.open.set(roundId, stakeHundredths);
+    this.emit({ type: 'start', roundId, stakeHundredths, balanceHundredths: this.balance });
     return true;
   }
 
@@ -102,7 +109,24 @@ export class DemoLedger {
     this.open.delete(roundId);
     const record: LedgerSettlement = { roundId, stakeHundredths: stake, returnHundredths: amount, netHundredths: amount - stake, reason };
     this.settled.set(roundId, record);
+    this.emit({ type: 'settle', record, balanceHundredths: this.balance });
     return record;
+  }
+
+  /**
+   * Observes debits/settlements (read-only; observers cannot change the ledger).
+   * @param fn - Observer.
+   * @returns Unsubscribe function.
+   * @example
+   * const off = ledger.observe((e) => console.info(e.type)); off();
+   */
+  observe(fn: (e: LedgerEvent) => void): () => void {
+    this.observers.add(fn);
+    return () => this.observers.delete(fn);
+  }
+
+  private emit(e: LedgerEvent): void {
+    for (const fn of [...this.observers]) { try { fn(e); } catch { /* an observer must never break settlement */ } }
   }
 
   /**

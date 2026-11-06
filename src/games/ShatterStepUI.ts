@@ -16,6 +16,7 @@ import { createShatterRound, pickShatterRound, canCashOutShatter, cashOutShatter
 import { getPageLedger, nextRoundId, toHundredths, formatCredits } from '../shared/sim/DemoLedger';
 import { createSeedString, RNG_ALGORITHM_V2 } from '../shared/rng/ProvablyFairRNG';
 import { SoftDepthShell } from '../shared/ui/SoftDepthShell';
+import { getHost } from '../shared/host/DemoHostAdapter';
 import type { ShellKey, StageAction } from '../shared/ui/SoftDepthShell';
 import { hexToInt } from '../shared/ui/SoftDepthTheme';
 import { AudioService } from '../shared/audio/AudioService';
@@ -142,7 +143,7 @@ export class ShatterStepUI {
     this.betHundredths = toHundredths(bet);
     this.shell = new SoftDepthShell(this.scene, {
       title: 'Shatter Step',
-      onBack: () => { window.location.href = 'https://zero-934.github.io/jett-landing/'; },
+      onBack: () => getHost().requestLobby(), // polish-004: host decides (validated lobby / parent)
       onPrimary: () => this.onPrimary(),
       onKey: (k) => this.onKey(k),
       onSettingsChanged: () => { this.drawShaft(); this.refresh(); },

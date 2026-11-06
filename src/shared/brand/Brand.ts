@@ -36,6 +36,8 @@ export interface BrandConfig {
 export const LOGO_HOST_ALLOWLIST: readonly string[] = [];
 
 const HEX = /^#[0-9a-f]{6}$/i;
+/** The only token keys a brand may set. success/loss/text/muted/stage are locked. */
+export const BRANDABLE_COLOR_KEYS = ['accent', 'cta', 'ctaText', 'focus', 'surface', 'surfaceRaised', 'background', 'line'] as const;
 const ID = /^[a-z0-9-]{2,32}$/;
 const MAX_WORDMARK = 24;
 
@@ -106,7 +108,10 @@ export function validateBrand(brand: unknown, theme: ThemeName = 'gold'): BrandV
   if (b.controlRadius !== undefined && (typeof b.controlRadius !== 'number' || !Number.isFinite(b.controlRadius))) errors.push('controlRadius');
   if (b.colors !== undefined) {
     if (typeof b.colors !== 'object' || b.colors === null) errors.push('colors');
-    else for (const [k, v] of Object.entries(b.colors)) if (typeof v !== 'string' || !HEX.test(v)) errors.push(`colors.${k}`);
+    else for (const [k, v] of Object.entries(b.colors)) {
+      if (!(BRANDABLE_COLOR_KEYS as readonly string[]).includes(k)) errors.push(`colors.${k} (locked)`);
+      else if (typeof v !== 'string' || !HEX.test(v)) errors.push(`colors.${k}`);
+    }
   }
   if (errors.length === 0) {
     const t = applyBrandTokens(resolveTheme(theme), b);
@@ -128,9 +133,10 @@ export function validateBrand(brand: unknown, theme: ThemeName = 'gold'): BrandV
  * applyBrandTokens(resolveTheme('gold'), EXAMPLE_BRAND_ORCHID).accent; // '#f2a07b'
  */
 export function applyBrandTokens(tokens: SoftDepthTokens, brand: BrandConfig): SoftDepthTokens {
-  const c = brand.colors ?? {};
+  const out = { ...tokens };
+  const c = (brand.colors ?? {}) as Record<string, unknown>;
+  for (const k of BRANDABLE_COLOR_KEYS) if (typeof c[k] === 'string' && HEX.test(c[k] as string)) out[k] = c[k] as string;
   // High contrast keeps its own text/muted/line overrides on top of any brand.
-  const out = { ...tokens, ...c };
   if (tokens.highContrast) { out.text = tokens.text; out.muted = tokens.muted; out.line = tokens.line; }
   return out;
 }

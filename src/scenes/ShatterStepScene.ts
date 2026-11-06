@@ -10,6 +10,8 @@
 import * as Phaser from 'phaser';
 import { RenderScaleController } from '../shared/render/RenderScale';
 import { LOGICAL_W, LOGICAL_H } from '../shared/render/RenderScalePolicy';
+import { getHost } from '../shared/host/DemoHostAdapter';
+import { SHATTER_SIM_VERSION } from '../games/ShatterStepLogic';
 import { ShatterStepUI } from '../games/ShatterStepUI';
 
 const DEFAULT_BET = 10;
@@ -29,6 +31,7 @@ export class ShatterStepScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#0d121a');
     this.shatterUI = new ShatterStepUI(this, width, height);
     this.shatterUI.start(DEFAULT_BET);
+    getHost().gameReady({ sceneKey: 'ShatterStepScene', mathVersion: SHATTER_SIM_VERSION, configId: 'shatter-prod-v1' });
     // Phaser never calls a Scene method named shutdown(); subscribe explicitly (R-OWN-2).
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.shutdown());
   }
