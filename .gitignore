@@ -5,3 +5,4 @@ dist/
 *.local
 .vercel
 _gemini_*.json\n_gemini_*.txt
+capture-out/
